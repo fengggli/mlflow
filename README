@@ -1,0 +1,8 @@
+quick start of vertex machine learning
+get a slice of turbulence data from John Hopkins
+seperate the data into regions
+feed the data into sequential machine learning method k-medroid with
+verify with synthetic data.
+
+write the algorithm first
+
