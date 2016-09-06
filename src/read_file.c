@@ -28,10 +28,14 @@ int main(){
     hid_t       file;                        /* handles */
     hid_t       dataset_p;  
     hid_t       dataset_u;  
+    hid_t       filespace_p;                   
     hid_t       filespace_u;                   
+    hid_t       memspace_p;                  
     hid_t       memspace_u;                  
-    hid_t       cparms;                   
-    hsize_t     dims[4];                     /* dataset and chunk dimensions*/ 
+    hid_t       cparms_p;                   
+    hid_t       cparms_u;                   
+    hsize_t     dims_p[4];                     /* dataset and chunk dimensions*/ 
+    hsize_t     dims_u[4];                     /* dataset and chunk dimensions*/ 
     //hsize_t     chunk_dims[2];
     //hsize_t     col_dims[1];
 
@@ -41,7 +45,8 @@ int main(){
     float  data_u[4][3][2][3];  /* buffer for velocity to be read */
     //int         chunk_out[2][5];   /* buffer for chunk to be read */
     //int         column[10];        /* buffer for column to be read */
-    int         rank;
+    int         rank_p;
+    int         rank_u;
     hsize_t i, j, k, m;
     
 
@@ -54,27 +59,39 @@ int main(){
     dataset_u = H5Dopen(file, DATASET_U, H5P_DEFAULT);
  
     /*
-     * Get dataset rank and dimension.
+     * Get dataset rank and dimension for pressure data.
+     */
+    filespace_p = H5Dget_space(dataset_p);    /* Get filespace handle first. */
+    rank_p      = H5Sget_simple_extent_ndims(filespace_p);
+    printf("dataset rank %d \n", rank_p);
+    status_n  = H5Sget_simple_extent_dims(filespace_p, dims_p, NULL);
+    printf("pressure dataset rank %d, dimensions %lu x %lu x %lu x %lu \n",
+       rank_p, (unsigned long)(dims_p[0]),(unsigned long)(dims_p[1]),(unsigned long)(dims_p[2]), (unsigned long)(dims_p[3]));
+
+    
+    /*
+     * Get dataset rank and dimension for velocity data.
      */
 
     filespace_u = H5Dget_space(dataset_u);    /* Get filespace handle first. */
-    rank      = H5Sget_simple_extent_ndims(filespace_u);
-    printf("dataset rank %d \n", rank);
-    status_n  = H5Sget_simple_extent_dims(filespace_u, dims, NULL);
-    printf("dataset rank %d, dimensions %lu x %lu x %lu x %lu \n",
-       rank, (unsigned long)(dims[0]),(unsigned long)(dims[1]),(unsigned long)(dims[2]), (unsigned long)(dims[3]));
+    rank_u      = H5Sget_simple_extent_ndims(filespace_u);
+    printf("dataset rank %d \n", rank_u);
+    status_n  = H5Sget_simple_extent_dims(filespace_u, dims_u, NULL);
+    printf(" velocity dataset rank %d, dimensions %lu x %lu x %lu x %lu \n",
+       rank_u, (unsigned long)(dims_u[0]),(unsigned long)(dims_u[1]),(unsigned long)(dims_u[2]), (unsigned long)(dims_u[3]));
 
     /*
      * Get creation properties list.
      */
-    cparms = H5Dget_create_plist(dataset_u); /* Get properties handle first. */
+    cparms_u = H5Dget_create_plist(dataset_u); /* Get properties handle first. */
+    cparms_p = H5Dget_create_plist(dataset_p); /* Get properties handle first. */
 
     /* 
      * Check if dataset is chunked.
      */
 
-    if (H5D_CHUNKED == H5Pget_layout(cparms))  {
-        printf("its thunked\n");
+    if (H5D_CHUNKED == H5Pget_layout(cparms_p))  {
+        printf("pressure data is  thunked\n");
 
     /*
      * Get chunking information: rank and dimensions
@@ -85,13 +102,11 @@ int main(){
            (unsigned long)(chunk_dims[0]), (unsigned long)(chunk_dims[1]));
     */
     }
+    if (H5D_CHUNKED == H5Pget_layout(cparms_u))  {
+        printf("velocity data is  thunked\n");
+    }
 
-    /*
-     * Define the memory space to read dataset.
-     */
-    memspace_u = H5Screate_simple(RANK,dims,NULL);
-
-    /*
+        /*
      * allocate space for dataout
      * do we need dynamic memory?
      */
@@ -117,21 +132,43 @@ int main(){
     */
     
  
-    /*
+     /*
+     * Define the memory space to read dataset.
+     */
+    memspace_p = H5Screate_simple(RANK,dims_p,NULL);
+    memspace_u = H5Screate_simple(RANK,dims_u,NULL);
+
+
+     /*
      * Read dataset back and display.
      */
+
     
+    status = H5Dread(dataset_p, H5T_NATIVE_FLOAT, memspace_p, filespace_p,
+             H5P_DEFAULT, data_p);
     status = H5Dread(dataset_u, H5T_NATIVE_FLOAT, memspace_u, filespace_u,
              H5P_DEFAULT, data_u);
     printf("\n");
-    printf("Dataset: \n");
-    
+    printf(" pressure Dataset: \n");
 
-    for (i = 0; i < dims[0]; i++) {
-        for (j = 0; j < dims[1]; j++){ 
-            for (k = 0; k < dims[2]; k++){
+    for (i = 0; i < dims_p[0]; i++) {
+        for (j = 0; j < dims_p[1]; j++){ 
+            for (k = 0; k < dims_p[2]; k++){
+                    printf("%.6f ", data_p[i][j][k]);
+            }
+        printf("\n");
+        }
+        printf("\n");
+    }
+    
+    printf("\n");
+    printf(" velocity Dataset: \n");
+
+    for (i = 0; i < dims_u[0]; i++) {
+        for (j = 0; j < dims_u[1]; j++){ 
+            for (k = 0; k < dims_u[2]; k++){
                 printf("(");
-                for(m=0;m<dims[3];m++)
+                for(m=0;m<dims_u[3];m++)
                     printf("%.6f ", data_u[i][j][k][m]);
                 printf(")\t");
 
@@ -142,6 +179,9 @@ int main(){
     }
     
     
+    H5Dclose(dataset_p);
+    H5Sclose(filespace_p);
+    H5Sclose(memspace_p);
 
     H5Dclose(dataset_u);
     H5Sclose(filespace_u);
