@@ -8,7 +8,7 @@
 
 #define PI (3.1415926)
 #define LARGE_NUMBER (999999)
-#define debug
+//#define debug
 
 /*
  * this is basically a sort function
@@ -24,7 +24,9 @@ void get_kth_dist(double *array_to_sort, int length_to_sort, int k){
         }
         array_to_sort[i+1] = key;
     }
+#ifdef debug
     print_matrix(array_to_sort, 1, length_to_sort);
+#endif
     //return array_to_sort[k-1];
 }
 
@@ -69,8 +71,7 @@ double get_bound_dist(int i, double *DisMatrix, int length, int k){
     int length_to_sort = length;
     get_kth_dist(tmp_array, length_to_sort, k);
 
-    // then return that distance
-    printf("/*k_dist = %.3f*/\n", tmp_array[k-1]);
+    // if all the tipple values are the same, nearest neibour distance can be 0
     return tmp_array[k-1];
 }
 
@@ -141,7 +142,9 @@ double get_divs(double (*A)[3], double (*B)[3], int region_length, int k){
         den_a = k/((4/3)*(num_elem -1)*PI*pow(k_dist_a, 3));
         den_b = k/((4/3)*(num_elem)*PI*pow(k_dist_b,3));
 
-        printf("point %d dist in A %lf, dist in B %lf;density in A: %lf, in B: %lf\n", i, k_dist_a,k_dist_b,den_a, den_b);
+//#ifdef debug
+        printf("\tpoint %d dist in lh %lf, dist in rh %lf;density in lh: %lf, in rh: %lf\n", i, k_dist_a,k_dist_b,den_a, den_b);
+//#endif
         
         // Now we can free the distance lookup table(matrix)
         // allert if the value is too small, use logorithm here
