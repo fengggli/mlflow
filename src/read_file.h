@@ -16,11 +16,15 @@
 #define RANK         4 // four dims: x y z and time 
 #define p_malloc_error(I) {printf("malloc failuren at %d",I);exit(-1);} 
 
+/* read data from hdf5 file
+ * input:
+ *  file_name(path)
+ * output:
+ *  pdata: data buffer of fetched data(data is flat)
+ *  num_row, num_col: logic shape of data buffer
 
-/*
-int get_data(const char *file_name, const char *dataset_name, float ****pressure, float *****velocity){}
+int read_data(const char *file_name, double (*pdata)[3], double *num_row, double *num_col){}
 int free_data(float ****pressure, float *****velocity){}
-*/
 
 
 int main(){

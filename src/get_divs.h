@@ -83,7 +83,7 @@ double get_bound_dist(int i, double *DisMatrix, int length, int k){
  *      k the nearest neibours need to check in divergence
  * return: divergence  
  */
-double get_divs(double (*A)[3], double (*B)[3], int region_length, int k){
+double get_divs(double (*A)[3], double (*B)[3], int region_length, int k, int div_func){
     // there are region_length^2 points in each region
     // we can treat data as if there are in 1-demension
     int i, j;
@@ -96,7 +96,8 @@ double get_divs(double (*A)[3], double (*B)[3], int region_length, int k){
     double k_dist_a;
     double k_dist_b;
 
-    double div= 0, tmp;
+    // u is for gaussian
+    double div= 0, tmp = 0, tmp2, u;
 
     // the estimated density 
     double den_a, den_b;
@@ -148,12 +149,23 @@ double get_divs(double (*A)[3], double (*B)[3], int region_length, int k){
         
         // Now we can free the distance lookup table(matrix)
         // allert if the value is too small, use logorithm here
-        tmp = den_a*den_b; 
-        
-        //if tmp is too small give some allerts
-        //if(tmp <<)
-        div +=tmp;
+        if(div_func == 0){
+            // linear kernel
+            tmp = den_a*den_b; 
+            div += tmp;
+        }else if(div_func == 1){
+            // L_2 divergence
+            tmp += pow(den_a - den_b, 2);
+        }else if(div_func == 2){
+            // KL divergence
+            div += den_a*log(den_a/den_b);
         }
+    }
+
+    // for L_2 divergence, square root is required
+    if(div_func == 1){
+        div = sqrt(tmp);
+    }
     free(DisMatrixA);
     free(DisMatrixB);
     return div;

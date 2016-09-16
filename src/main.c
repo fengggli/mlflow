@@ -10,10 +10,19 @@ int main(){
 
     int i,j,ret;
 
+
+    // divide configrations
+    int region_length = 11;
+
     // how many clusters 
-    int numcluster;
-    the results
+    int ncluster = 3;
+    int npass = 1;
+
+    // clustering result
     int clusterid[];
+    int centroid;
+    double error;
+    int ifound;
 
     // size of the turbulence cut
     int num_row, num_col;
@@ -21,18 +30,17 @@ int main(){
     // flat representation of all velocity data
     double (*pdata)[3];
 
-    
-
-	ret = readturbulence(file_name, pdata,  double&num_row, &num_col);
+	ret = read_data(file_name, pdata,  double&num_row, &num_col);
     if(ret == 1){
         printf("velocity data is read from %s\n", file_name);
     }
 
-
 	// split the slice into regions
-    char * regions[];
+    // since we know each region's exact size, we only need record the starting address
+    double (* regions[])[3];
     int num_region;
 
+    // distance matrix
     double **distance = (double **)malloc(sizeof(double *)* num_region);
     check_malloc(distance);
     for(i = 0; i < num_region; i++){
@@ -40,27 +48,29 @@ int main(){
         check_malloc(distance);
     }
 
-	num_region = divide(pdata, num_col,regions);
+	num_region = divide(pdata, num_col,regions, region_length);
 	
 	// caculate the divergence between all regions
+    // distance matrix can be very large
+    
     double div;
     for(i = 0; i< num_region; i++){
         for(j = i+1; j < num_region ; j++){
-            div = get_divs()
+            div = get_divs( regions[i], regions[j], region_length);
 
-            distance[i][j]
+            distance[i][j] = div;
+            dstance[j][i] = div;
+        }
 
-    get_div
-	
+    // do clustering
+    kmedoid(nclusters, nelements, distance, npass, clusterid, &error, &ifound);
 
-	// do the clustering job
-void getclustermedoids(int nclusters, int nelements, double** distance,
-  int clusterid[], int centroids[], double errors[]);
-
-	// may visulaization
-	
-	// free in this iteration
+    // save the results(nclusters)?
+    // or visulize the clustering results?
+    
+	// if regions are just pointers, no need to free 
 	free(regions);
+    // also free pdata block
 
 }
 
