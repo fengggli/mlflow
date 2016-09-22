@@ -1,76 +1,103 @@
-#include <iostream>
-#include "read_file.h"
+#include <stdio.h>
 #include "divide.h"
-#include "get_div.h"
 
+extern int read_data(const char* file_name, float **pressure, float **velocity, int *dim1, int *dim2, int *dim3);
+extern int free_data(float *pressure, float *velocity);
+extern float get_divs(float *A, float *B, int region_length, int k, int div_func);
 
 int main(){
-	// read a data slice 
-    char *file_name = "some turbulence datacut";
+    
+    printf(" read data to buffer\n");
+    //const char *file_name = "data/test_1_2_3_4.h5";
+    const char *file_name = "data/isotropic_255_255_5.h5";
+    float *pressure, *velocity;
+    int dim1, dim2, dim3;
 
-    int i,j,ret;
+    int i,j,ii, jj, p, q, ret;
 
 
-    // divide configrations
-    int region_length = 11;
+    // divide configrations, length of 10 region will have 11*11 121 points
+    int region_length = 10;
 
     // how many clusters 
     int ncluster = 3;
     int npass = 1;
 
     // clustering result
+    /*
     int clusterid[];
     int centroid;
-    double error;
+    float error;
     int ifound;
+    */
 
-    // size of the turbulence cut
-    int num_row, num_col;
+    // read data to buffer
+    read_data(file_name, &pressure, &velocity, &dim1, &dim2, &dim3);
+    //print_p_data(pressure, dim1, dim2, dim3);
+    //save visualized result
+    
+    printf("data is read, dimension is %d * %d * %d\n", dim1, dim2, dim3);
+    
 
-    // flat representation of all velocity data
-    double (*pdata)[3];
-
-	ret = read_data(file_name, pdata,  double&num_row, &num_col);
-    if(ret == 1){
-        printf("velocity data is read from %s\n", file_name);
-    }
 
 	// split the slice into regions
     // since we know each region's exact size, we only need record the starting address
-    double (* regions[])[3];
     int num_region;
 
-    // distance matrix
-    double **distance = (double **)malloc(sizeof(double *)* num_region);
-    check_malloc(distance);
-    for(i = 0; i < num_region; i++){
-        distance[i] = (double *)malloc(sizeof(double) * num_region);
-        check_malloc(distance);
-    }
+    // num_regions* points_in_region*3
+    float  *regions;
 
-	num_region = divide(pdata, num_col,regions, region_length);
+    // dim1 = dim2 = 201, in a region, 11 points in each side, thus length 10, the whole block has length 201-1 = 200. So (200/10)^2 400 regions
+    // d1 d2 d3 is the 3-dimension matrix 
+    int d1 = dim1;
+    int d2 = region_length*region_length;;
+    int d3 = 3;
+    divide(velocity, d1, region_length, &num_region, &regions);
+
+    // distance matrix
+    float **distance = (float **)malloc(sizeof(float *)* num_region);
+    if(distance == NULL){
+        perror("allocate error\n");
+        exit(-1);
+    }
+       
+    for(i = 0; i < num_region; i++){
+        distance[i] = (float *)malloc(sizeof(float) * num_region);
+        if(distance[i] == NULL){
+            perror("allocation error\n");
+            exit(-1);
+        }
+    }
 	
 	// caculate the divergence between all regions
     // distance matrix can be very large
     
-    double div;
+    float  div;
+    // find k=5 nearest neighbours to determine the density
+    int k = 5;
+    // use L-2 divergence
+    int div_func = 1;
     for(i = 0; i< num_region; i++){
         for(j = i+1; j < num_region ; j++){
-            div = get_divs( regions[i], regions[j], region_length);
-
+            // starting address of each region as input
+            div = get_divs( regions+ i*d2*d3 , regions + j*d2*d3, region_length, k, div_func);
+            printf("\t divergence between region %d and %d is %.3f\n", div);
             distance[i][j] = div;
-            dstance[j][i] = div;
+            distance[j][i] = div;
         }
+    }
 
     // do clustering
-    kmedoid(nclusters, nelements, distance, npass, clusterid, &error, &ifound);
+    //    kmedoid(nclusters, nelements, distance, npass, clusterid, &error, &ifound);
 
     // save the results(nclusters)?
     // or visulize the clustering results?
     
 	// if regions are just pointers, no need to free 
 	free(regions);
+    // free buffer
+    free_data(pressure, velocity);
     // also free pdata block
-
+    
+    return 1;
 }
-

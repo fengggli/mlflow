@@ -66,13 +66,14 @@ int main(){
         }
 
         
-        a_a = get_divs(A, A, 3, k, i); 
         printf("all matrix are 3*3, use %d-nearest neighbours\n\n",k);
         printf("A and A:\n");
+        a_a = get_divs(A, A, 3, k, i); 
         printf("non-turbulence itself is %lf\n\n", a_a );
 
-        a_b = get_divs(A, B, 3,k, i);
+
         printf("A and B:\n");
+        a_b = get_divs(A, B, 3,k, i);
         printf("the divergence of non-turbulence vs turbulence  is %lf\n\n", a_b);
 
 
@@ -82,25 +83,25 @@ int main(){
         printf("A and D\n");
         a_d= get_divs(A, D, 3, k ,i);
 
-        b_a = get_divs(B, A, 3,k, i);
         printf("B and A:\n");
+        b_a = get_divs(B, A, 3,k, i);
         printf("turbulence vs non-turbulence is %lf\n\n", b_a);
 
-        b_b = get_divs(B, B, 3,k, i);
         printf("B and B:\n");
+        b_b = get_divs(B, B, 3,k, i);
         printf("turbulence itself is %lf\n\n",b_b );
 
 
         
 
         // how about two turbulence in oppsite direction?
-        b_c= get_divs(B, C, 3,k, i);
         printf("B and C:\n");
+        b_c= get_divs(B, C, 3,k, i);
         printf(" two turbulence in opposite direction, div is %lf\n\n", b_c);
 
 
-        b_d= get_divs(B, D, 3,k, i);
         printf("B and D:\n");
+        b_d= get_divs(B, D, 3,k, i);
         printf("turbulence vs certain pattern, div is %lf\n\n", b_d);
 
         printf("C and A\n");
@@ -109,8 +110,8 @@ int main(){
         printf("C and B\n");
         c_b= get_divs(C, B, 3, k ,i);
 
-        c_c= get_divs(C, C, 3,k, i);
         printf("C and C:\n");
+        c_c= get_divs(C, C, 3,k, i);
         printf("C itself, div is %lf\n\n", c_c);
 
         printf("C and D:\n");
