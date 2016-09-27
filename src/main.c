@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <string.h>
 #include "divide.h"
+
 
 extern int read_data(const char* file_name, float **pressure, float **velocity, int *dim1, int *dim2, int *dim3);
 extern int free_data(float *pressure, float *velocity);
@@ -9,7 +11,7 @@ int main(){
     
     printf(" read data to buffer\n");
     //const char *file_name = "data/test_1_2_3_4.h5";
-    const char *file_name = "data/isotropic_255_255_5.h5";
+    const char *file_name = "data/isotropic_201_201_1.h5";
     float *pressure, *velocity;
     int dim1, dim2, dim3;
 
@@ -55,19 +57,22 @@ int main(){
     divide(velocity, d1, region_length, &num_region, &regions);
 
     // distance matrix
+    /*
     float **distance = (float **)malloc(sizeof(float *)* num_region);
     if(distance == NULL){
-        perror("allocate error\n");
+        perror("allocate error 1");
         exit(-1);
     }
        
     for(i = 0; i < num_region; i++){
         distance[i] = (float *)malloc(sizeof(float) * num_region);
         if(distance[i] == NULL){
-            perror("allocation error\n");
+            perror("allocation error 2");
             exit(-1);
         }
     }
+    */
+    float distance[num_region][num_region];
 	
 	// caculate the divergence between all regions
     // distance matrix can be very large
@@ -77,15 +82,32 @@ int main(){
     int k = 5;
     // use L-2 divergence
     int div_func = 1;
+    char *dist_path = "data/all_dist.txt";
+
+    FILE * f_dist = fopen(dist_path, "w");
+    if(p_dist_path == NULL){
+        perror("cannot access the dist_path file");
+        exit(-1);
+    }
+
+
     for(i = 0; i< num_region; i++){
-        for(j = i+1; j < num_region ; j++){
+        for(j = i; j < num_region ; j++){
             // starting address of each region as input
-            div = get_divs( regions+ i*d2*d3 , regions + j*d2*d3, region_length, k, div_func);
-            printf("\t divergence between region %d and %d is %.3f\n", div);
+            div = get_divs( regions + i*d2*d3 , regions + j*d2*d3, region_length, k, div_func);
+            printf("\t divergence between region %d and %d is %.3f\n", i, j, div);
+            fprintf(f_dist,"%f\n",div);
+            /*
             distance[i][j] = div;
-            distance[j][i] = div;
+            if(i != j){
+                distance[j][i] = div;
+            }
+            */
         }
     }
+
+    printf("distance matrix is saved in %s\n", dist_path);
+    fclose(f_dist);
 
     // do clustering
     //    kmedoid(nclusters, nelements, distance, npass, clusterid, &error, &ifound);

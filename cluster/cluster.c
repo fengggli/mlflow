@@ -32,6 +32,7 @@
 #include <float.h>
 #include <limits.h>
 #include <string.h>
+#include <stdio.h>
 #include "cluster.h"
 #ifdef WINDOWS
 #  include <windows.h>
@@ -2827,14 +2828,19 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
   }
 
   *error = DBL_MAX;
+  int counter_pass = 0; 
   do /* Start the loop */
-  { double total = DBL_MAX;
+  { 
+      printf("\nstart No.%d run\n", ++counter_pass);
+      double total = DBL_MAX;
+
     int counter = 0;
     int period = 10;
 
     if (npass!=0) randomassign (nclusters, nelements, tclusterid);
     while(1)
-    { double previous = total;
+    { 
+        double previous = total;
       total = 0.0;
 
       if (counter % period == 0) /* Save the current cluster assignments */
@@ -2866,7 +2872,9 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
         }
         total += distance;
       }
+      printf("recenter No.%d, previous total dist: %.3lf, current total dist: %.3lf\n",counter, previous, total);
       if (total>=previous) break;
+
       /* total>=previous is FALSE on some machines even if total and previous
        * are bitwise identical. */
       for (i = 0; i < nelements; i++)
@@ -2875,18 +2883,36 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
         break; /* Identical solution found; break out of this loop */
     }
 
+
+    // centroids(tclusterid[i]), the elements index of each cluster
+    // since we only want the cluster id of each cluster, output only only the clusterid
     for (i = 0; i < nelements; i++)
     { if (clusterid[i]!=centroids[tclusterid[i]])
       { if (total < *error)
         { *ifound = 1;
           *error = total;
-          /* Replace by the centroid in each cluster. */
+          // Replace by the centroid in each cluster. 
           for (j = 0; j < nelements; j++)
             clusterid[j] = centroids[tclusterid[j]];
         }
         break;
       }
     }
+    /*
+    // if we subtitute with this block, real clusterid from 0~ncluster-1 will be returned.
+    for (i = 0; i < nelements; i++)
+    { if (clusterid[i]!=tclusterid[i])
+      { if (total < *error)
+        { *ifound = 1;
+          *error = total;
+          // Replace by the centroid in each cluster. 
+          for (j = 0; j < nelements; j++)
+            clusterid[j] = tclusterid[j];
+        }
+        break;
+      }
+    }
+  */
     if (i==nelements) (*ifound)++; /* break statement not encountered */
   } while (++ipass < npass);
 

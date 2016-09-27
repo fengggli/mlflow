@@ -126,9 +126,9 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
         den_a = k/((4/3)*(num_elem -1)*PI*pow(k_dist_a, 3));
         den_b = k/((4/3)*(num_elem -1)*PI*pow(k_dist_b,3));
 
-//#ifdef debug
+#ifdef debug
         printf("\tpoint %d dist in lh %lf, dist in rh %lf;density in lh: %lf, in rh: %lf\n", i, k_dist_a,k_dist_b,den_a, den_b);
-//#endif
+#endif
         
         // Now we can free the distance lookup table(matrix)
         // allert if the value is too small, use logorithm here

@@ -56,6 +56,9 @@ void getclustermedoids(int nclusters, int nelements, double** distance,
 void kcluster (int nclusters, int ngenes, int ndata, double** data,
   int** mask, double weight[], int transpose, int npass, char method, char dist,
   int clusterid[], double* error, int* ifound);
+// sampling , find the center based on only part of the pair-wised data
+// visualize the regions
+// what will happen if vortices have different speeds?
 void kmedoids (int nclusters, int nelements, double** distance,
   int npass, int clusterid[], double* error, int* ifound);
 

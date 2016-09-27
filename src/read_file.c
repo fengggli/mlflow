@@ -56,8 +56,8 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
        rank_p, (unsigned long)(dims_p[0]),(unsigned long)(dims_p[1]),(unsigned long)(dims_p[2]), (unsigned long)(dims_p[3]));
 
     //float  data_p[dims_p[0]][dims_p[1]][dims_p[2]];  /* buffer for pressure to be read */
-    void  *data_p = (float *)malloc(sizeof(float)*dims_p[0]*dims_p[1]*dims_p[2]);
-    *pressure = (float *)(data_p);
+    float  *data_p = (float *)malloc(sizeof(float)*dims_p[0]*dims_p[1]*dims_p[2]);
+    *pressure = data_p;
 
     
     /*
@@ -76,8 +76,8 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
     *dim3 = dims_u[2];
 
     // float  data_u[dims_u[0]][dims_u[1]][dims_u[2]][3];  /* buffer for velocity to be read */
-    void * data_u = (float *)malloc(sizeof(float)*dims_u[0]*dims_u[1]*dims_u[2]*3);  /* buffer for velocity to be read */
-    *velocity = (float *)data_u;
+    float * data_u = (float *)malloc(sizeof(float)*dims_u[0]*dims_u[1]*dims_u[2]*3);  /* buffer for velocity to be read */
+    *velocity =data_u;
 
     /*
      * Get creation properties list.

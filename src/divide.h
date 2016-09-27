@@ -21,7 +21,7 @@
  *  p_regions: the tripple features(vx, vy, dc). there will be num_regions* points_in_each_region*3 float numbers,note that features are stored in flat format.
  */
 void divide(float *pdata, int dim, int l, int *p_num_region, float **p_regions){
-    int p,q,ii,jj, side_num_region, num_region;
+    int p,q,ii,jj, side_num_region;
 
     // index inside the logic block 
     int index_x, index_y;
@@ -30,9 +30,7 @@ void divide(float *pdata, int dim, int l, int *p_num_region, float **p_regions){
     int linear_index;
     
     // velocity of dimension x and y
-    float ux, uy, * tripple_address, dist2;
-
-
+    float ux, uy, *tripple_address, dist2;
 
     if((dim - 1)%l != 0){
         printf("not pefect division, try different region size of datacut size\n");
@@ -48,6 +46,12 @@ void divide(float *pdata, int dim, int l, int *p_num_region, float **p_regions){
     int d3 = 3;
 
     float *regions = (float *)malloc(d1*d2*d3*sizeof(float));
+    if(regions == NULL){
+        perror("allocate space for regions");
+        exit(-1);
+    }else{
+        printf("%d x %d x %d space is allocated to region\n", d1, d2, d3);
+    }
 
     for(p = 0; p < side_num_region; p++){
         for( q = 0; q < side_num_region; q++){
@@ -60,27 +64,26 @@ void divide(float *pdata, int dim, int l, int *p_num_region, float **p_regions){
                 for(jj = 0; jj < l+1; jj++){
                     // for each point inside the region
                     index_x = p*l+ii;
-                    index_y = q*l*jj;
+                    index_y = q*l+jj;
 
                     // mapped the logic address into linear address
                     linear_index = index_x*dim + index_y;
                     tripple_address = pdata+ 3*linear_index;
-                    ux = * tripple_address;
+                    ux = *tripple_address;
                     uy = *(tripple_address + 1);
 
                     // square of dist to center
                     dist2 = (ii - l/2.0)*(ii - l/2.0) + (jj - l/2.0)*(jj - l/2.0); 
 
                     // add this tripple into region
-                    *(regions + (p*side_num_region+p)*d2*d3 + (ii*(l+1) +jj)*d3 + 0) = ux;
-                    *(regions + (p*side_num_region+p)*d2*d3 + (ii*(l+1) +jj)*d3 + 1) = ux;
-                    *(regions + (p*side_num_region+p)*d2*d3 + (ii*(l+1) +jj)*d3 + 2) = ux;
+                    *(regions + (p*side_num_region+q)*d2*d3 + (ii*(l+1) +jj)*d3 + 0) = ux;
+                    *(regions + (p*side_num_region+q)*d2*d3 + (ii*(l+1) +jj)*d3 + 1) = uy;
+                    *(regions + (p*side_num_region+q)*d2*d3 + (ii*(l+1) +jj)*d3 + 2) = dist2;
                 }
             }
         }
     }
     *p_regions = regions;
-    *p_num_region = num_region;
 }
 
 #endif
