@@ -1,3 +1,5 @@
+#ifndef DO_CLUSTERING_H
+#define DO_CLUSTERING_H
 /*
  * Sep 10, by Feng Li, IUPUI
  * based on the divergences beteen the regions, do the clustering job
@@ -78,3 +80,4 @@ void run_clustering (int nclusters, int num_region, char *dist_path,
     fclose(f_clusterid);
 }
 
+#endif
