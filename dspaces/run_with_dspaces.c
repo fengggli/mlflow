@@ -2,18 +2,6 @@
 #include "run_with_dspaces.h"
 #include "divide.h"
 
-/* read a block cutout from hdf file
-* divide into regions
-* input: 
-*   hdfpath:path of hdf source
-*   region_length: length of 10 region will have 11*11 121 points
-* output:
-*   p_num_of_regions: number of regions
-*   p_regions: buffer for all the regions
-* return:
-*   1 if succeed
-*/
-
 int generate_regions(char *hdfpath, int region_length, int *p_num_region, float **p_regions){
     
     printf(" read data to buffer\n");
