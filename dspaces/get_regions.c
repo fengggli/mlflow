@@ -37,8 +37,9 @@ int main(int argc, char **argv)
 {
     // region definition
     // those parameters are obtained after dividing 
-    int region_length;
-    int num_region;
+    // !! there should be communication between two application
+    int region_length = 10;
+    int num_region = 400;
 
 	int err;
 	int nprocs, rank, i;
@@ -58,8 +59,7 @@ int main(int argc, char **argv)
  	// Name our data.
 	char var_name[128];
 	sprintf(var_name, "velocity_data");
-
-	dspaces_lock_on_read("my_test_lock", &gcomm);
+	dspaces_lock_on_read("velocity_lock", &gcomm);
 
     // !!!feng: we should know how many regions in total so that we can asign the pairs
     // MPI_receive here?
@@ -86,6 +86,10 @@ int main(int argc, char **argv)
     int *table;
     generate_lookup_table(num_region, &table);
 
+
+    // I should wait after all regions are placed into dspaces
+    MPI_Reiceive
+
     for(i = pair_index_l; i<= pair_index_h; i++){
         // the index of the two pairs
         int a, b;
@@ -111,8 +115,12 @@ int main(int argc, char **argv)
         ub[0] =b;
         dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_b);
 
+
         // we can get the divergence now!
         div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
+
+        free(buffer_a);
+        free(buffer_b);
 
         // put the divergence into divergence matrix
         sprintf(div_name, "div_data");
@@ -129,10 +137,11 @@ int main(int argc, char **argv)
         // how about the symmetric part?
 		dspaces_unlock_on_write("div_lock", &gcomm);
     }
-
-
+    // now we can release velocity lock
+	dspaces_unlock_on_read("velocity_lock", &gcomm);
 
     // should wait until get all the divergence
+    MPI_Barrior(gcomm);
 	// Report data to user
 	if(rank==0){
         // get the clustering done here
@@ -148,7 +157,7 @@ int main(int argc, char **argv)
             exit(-1);
         }
         matrix[0] = NULL;
-        for(i = 0; i< num_region; i++){
+        for(i = 1; i< num_region; i++){
             matrix[i] = malloc(i*sizeof(double));
             if(matrix[i] == NULL) break;
         }
@@ -183,8 +192,16 @@ int main(int argc, char **argv)
         int ifound;
 
         kmdoids(nclusters, num_region, matrix, npass, clusterid, &error, &ifound);
+
+        for(i = 1; i< num_region; i++){
+            if(matrix[i] != NULL) free(matrix[i]);
+        }
+        if(matrix != NULL) {
+            free(matrix);
+            printf("distance matrix freed\n");
 	}
 
+    if(table != NULL);
     free_lookup_table(table);
 
 	// DataSpaces: Finalize and clean up DS process

@@ -1,24 +1,37 @@
-HDFPATH=/home/lifen/tools/hdf5-1.8.17/hdf5
-all: read_file get_divs main
-	h5cc -o bin/run  bin/main.o bin/read_file.o bin/get_divs.o -lm
+OPT= -g
+CCFLAGS = ${OPT} -Wall 
+LDFLAGS = ${OPT} 
 
-withlg: read_file get_divs main
-	h5cc -o bin/run_withlg  bin/main.o bin/read_file.o bin/get_divs.o -lm
+DEPS_DS=dspaces/get_regions.h dspaces/put_regions.h src/divide.h cluster/cluster.h src/get_divs.h src/read_file.h
+ODIR=obj
+_OBJ_GET = get_regions.o cluster.o
+OBJ_GET = $(patsubst %,$(ODIR)/%,$(_OBJ_GET))
+_OBJ_PUT = put_regions.o read_file.o divide.o
+OBJ_PUT = $(patsubst %,$(ODIR)/%,$(_OBJ_PUT))
+RM= rm -rf
 
-main: src/main.c
-	gcc src/main.c -c -g -o bin/main.o 
+H5_ROOT=/home/lifen/tools/hdf5-1.8.17/hdf5
+## dataspaces configurations
+DS_ROOT=/home/user/software/dataspaces-1.5.0/bin
+DS_INC=-I ${DS_ROOT}/include ${H5_ROOT}/include
+DS_LIB=-L ${DS_ROOT}/lib -ldspaces -ldscommon -ldart -lrdmacm -libverbs -lm
 
-read_file: src/read_file.c
-	gcc src/read_file.c -c -g -o bin/read_file.o -I ${HDFPATH}/include
-get_divs: src/get_divs.c
-	gcc src/get_divs.c -c -g -o bin/get_divs.o 
-clustering: src/do_clustering.c
-	gcc src/do_clustering.c cluster/cluster.c -g -W -lm -o bin/do_clustering
+DS_CC=mpicc                       
 
-test_file: src/test_hdf.c
-	gcc src/test_hdf.c -c -g  -I ${HDFPATH}/include -o bin/test_hdf.o
-test_div: src/test_div.c
-	gcc src/test_div.c -o bin/test_div -lm -g
+$(ODIR)/%.o: %.c $(DEPS_DS)
+	    $(DS_CC) -c -o $@ $< $(DS_INC) $(CCFLAGS)
 
+
+get_regions: $(OBJ_GET) 
+	    $(DS_CC) -o get_regions $^ $(DS_LIB) $(LDFLAGS)
+
+    
+put_regions: $(OBJ_PUT)
+	    $(DS_CC) -o put_regions $^ $(DS_LIB)  $(LDFLAGS)
+
+.PHONY: clean
 clean:
-	rm bin/*.o -rf
+	$(RM) cluster/*.o
+	$(RM) src/*.o
+	$(RM) dspaces/*.o
+	$(RM) bin/*
