@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     // if rank == 0 get the data and divide into regions
     // other processes will wait here
     generate_regions(hdfpath, region_length, &num_region, &regions);
-    printf("are regions are generated\n");
+    printf("all regions are generated\n");
 
     // how large is one region?
     region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);
@@ -67,11 +67,10 @@ int main(int argc, char **argv)
 		// 1 integer in each box, fill boxes 0,0,0 to 127,0,0
 		dspaces_put(var_name, timestep, region_memory_size, ndim, lb, ub, regions);
 
-		free(data);
-		
+		free(regions);
 		// DataSpaces: Release our lock on the data
 		dspaces_unlock_on_write("velocity_lock", &gcomm);
-
+        printf("put_regions: velocity_data is written");
 	}
 
 	// DataSpaces: Finalize and clean up DS process

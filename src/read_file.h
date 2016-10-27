@@ -22,12 +22,6 @@
 
 int read_data(const char* file_name, float **pressure, float **velocity, int *dim1, int *dim2, int *dim3);
 
-int free_data(float *pressure, float *velocity){
-    free(pressure);
-    free(velocity);
-    printf("buffer freed\n");
-    return 1;
-}
-	
+int free_data(float *pressure, float *velocity);
 #endif
 

@@ -21,6 +21,17 @@ void get_kth_dist(float *array_to_sort, int length_to_sort, int k){
     //return array_to_sort[k-1];
 }
 
+void print_matrix(float *Dismatrix, int num_row, int num_col){
+    printf("print matrix\n");
+    int i,j;
+    for(i = 0; i < num_row; i++){
+        for(j = 0; j < num_col; j++){
+            printf("%.3f\t", Dismatrix[i*num_col + j]);
+        }
+        printf("\n");
+    }
+}
+
 /* 
  * inside the region, get the distance to a point's k-neares neighbours
  * input:

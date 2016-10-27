@@ -1,13 +1,15 @@
 #include "get_regions.h"
 
-void get_pair_index(i, range,a, b);
 
+void my_message(char *msg, int rank){
+    printf("**rank %d: %s\n", rank, msg);
+}
 void generate_lookup_table(int num_region, int **p_table){
     int i, j, count;
 
     int num_pair = num_region*(num_region)/2;
     int *table = (int *)malloc(num_pair*sizeof(int)*2);
-    if(tablle == NULL){
+    if(table == NULL){
         perror("malloc lookupdable");
         exit(-1);
     }
@@ -41,8 +43,11 @@ int main(int argc, char **argv)
     int region_length = 10;
     int num_region = 400;
 
+
+    // how many neareast neighbours: 3
+    int k = 3;
 	int err;
-	int nprocs, rank, i;
+	int nprocs, rank, i, j;
 	MPI_Comm gcomm;
 
 	MPI_Init(&argc, &argv);
@@ -58,12 +63,11 @@ int main(int argc, char **argv)
 	
  	// Name our data.
 	char var_name[128];
-	sprintf(var_name, "velocity_data");
-	dspaces_lock_on_read("velocity_lock", &gcomm);
+	sprintf(var_name, "region_data");
+	dspaces_lock_on_read("region_lock", &gcomm);
 
     // !!!feng: we should know how many regions in total so that we can asign the pairs
     // MPI_receive here?
-    int num_region;
     int num_tasks = num_region*(num_region-1)/2;
 
 	// Each process will need to compute its DataSpace index
@@ -80,78 +84,116 @@ int main(int argc, char **argv)
 		pair_index_h = ds_lb_index + tasks_per_proc-1;
 	}
 
-    region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);
+    int region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);
 
     // generate pair lookup table;
     int *table;
     generate_lookup_table(num_region, &table);
+    my_message("pair lookup table generated", rank);
 
 
+    int timestep=1;
     // I should wait after all regions are placed into dspaces
-    MPI_Reiceive
+
+    // the index of the two pairs
+    int a, b;
+    float *buffer_a, *buffer_b;
+
+    // Prepare LOWER and UPPER bound dimensions
+    uint64_t lb[3] = {0}, ub[3] = {0};
+
+    // Define the dimensionality of the data to be received 
+    int ndim = 1;
+
+    // parameter for second variable: div
+    float div;
+    uint64_t lb_div[3] = {0}, ub_div[3] = {0};
+    // save divergence in a 1-d array! this will save space
+    int ndim_div = 1;
+	char var_name_div[128];
+	sprintf(var_name_div, "div_data");
+
+    // use L2 divergence
+    int div_func = 1;
+
+    // return values for regions dspaces operations
+    int ret_get_0 = -1;
+    int ret_get_1 = -1;
+
+    // return values for div dspaces operations
+    int ret_put = -1;
+    int ret_get = -1;
+
+    // output buffer
+    char msg[20];
 
     for(i = pair_index_l; i<= pair_index_h; i++){
-        // the index of the two pairs
-        int a, b;
-        float div;
+
 
         // get the region index of that pair
         get_pair_index(table, i, &a, &b);
 
-        float *buffer a = (float *)malloc(region_memory_size);
-        float *buffer b = (float *)malloc(region_memory_size);
-        // Define the dimensionality of the data to be received 
-        int ndim = 1; 
+        buffer_a = (float *)malloc(region_memory_size);
+        buffer_b = (float *)malloc(region_memory_size);
             
-        // Prepare LOWER and UPPER bound dimensions
-        uint64_t lb[3] = {0}, ub[3] = {0};
         // get buffer for left region
         lb[0]= a;
         ub[0] =a;
-        dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_a);
+        ret_get_0 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_a);
 
         // get buffer for right region
         lb[0]= b;
         ub[0] =b;
-        dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_b);
+        ret_get_1 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_b);
 
+        if(ret_get_0 == 0 && ret_get_1 == 0){
+            sprintf(msg, "get regions %d and %d success",a, b);
+        }else{
+            sprintf(msg, "ERROR when getting regions %d and %d",a, b);
+        }
+        my_message(msg, rank);
 
         // we can get the divergence now!
         div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
-
         free(buffer_a);
         free(buffer_b);
 
         // put the divergence into divergence matrix
-        sprintf(div_name, "div_data");
+        sprintf(var_name_div, "div_data");
 		dspaces_lock_on_write("div_lock", &gcomm);
 
-        // save divergence in a 1-d array! this will save space
-        ndim = 1;
-        lb[3] = {0}, ub[3] = {0};
 
         //!!!! pay attention to the order of dimensions!
-        lb[0] = i, ub[0] = i;
-		dspaces_put(var_name, timestep, sizeof(float), ndim, lb, ub, div);
+        lb_div[0] = i, ub_div[0] = i;
+		ret_put = dspaces_put(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, &div);
 
         // how about the symmetric part?
 		dspaces_unlock_on_write("div_lock", &gcomm);
+
+        if(ret_put == 0){
+            sprintf(msg, "divergence of region  %d and %d are stored in dspaces",a, b);
+        }else{
+
+            sprintf(msg, "ERROR when storing divergence of region  %d and %d into dspaces",a, b);
+        }
+        my_message(msg, rank);
     }
     // now we can release velocity lock
-	dspaces_unlock_on_read("velocity_lock", &gcomm);
+	dspaces_unlock_on_read("region_lock", &gcomm);
 
     // should wait until get all the divergence
-    MPI_Barrior(gcomm);
+    sprintf(msg,"--has finished assigned pairs of divs");
+    my_message(msg, rank);
+    MPI_Barrier(gcomm);
 	// Report data to user
 	if(rank==0){
         // get the clustering done here
-        sprintf(div_name, "div_data");
 		dspaces_lock_on_write("div_lock", &gcomm);
 
 
         //reconstruct the divergence matrix, this is a ragged matrix, only le 
         //see the distancematrix function in cluster.c 
-        double **matrix = num_region*sizeof(double *); 
+        double **matrix = malloc(num_region*sizeof(double *)); 
         if(matrix == NULL){
             perror("malloc for div matrix");
             exit(-1);
@@ -162,43 +204,73 @@ int main(int argc, char **argv)
             if(matrix[i] == NULL) break;
         }
         if(i< num_region){
-            for(i = 0 ; i< j; i++)
-                free(matrix[i]);
+            for(j = 0 ;j< i; j++)
+                free(matrix[j]);
             perror("malloc 2 for div matrix");
             exit(-2);
         }
 
 
-        ndim = 1;
-        lb[3] = {0}, ub[3] = {0};
-
         int count = 0;
-        for(i = 1, i < n, i++){
-            for(j = 0; j < i, j++){
+        int error_flag = 0;
+        for(i = 1; i < num_region; i++){
+            for(j = 0; j < i;j++){
                 // its the same order as when its saved
-                lb[0] = count;
-                ub[0] = count;
-		        dspaces_get(var_name, timestep, sizeof(float), ndim, lb, ub, matrix[i][j]);
+                lb_div[0] = count;
+                ub_div[0] = count;
+		        ret_get = dspaces_get(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, &(matrix[i][j]));
+                if(ret_get != 0){
+                    error_flag  = 1;
+                    break;
+                }
                 count +=1;
             }
         }
+
 		dspaces_unlock_on_write("div_lock", &gcomm);
 
-        // clustering parameters
-        int nclusters = 3;
-        int npass = 100;
-        int clusterid[num_region];
-        double error;
-        int ifound;
+        if(error_flag == 1){
+            sprintf(msg, "ERROR when read divergence from Dspaces");
+            my_message(msg, rank);
+        }
+        // if everything is fine we start clustering
+        else{
 
-        kmdoids(nclusters, num_region, matrix, npass, clusterid, &error, &ifound);
+            // clustering parameters
+            int nclusters = 3;
+            int npass = 100;
+            int clusterid[num_region];
+            double error;
+            int ifound;
 
+            kmedoids(nclusters, num_region, matrix, npass, clusterid, &error, &ifound);
+
+            sprintf(msg, "finished clustering");
+            my_message(msg, rank);
+
+            // save cluster results into file
+            char *output_path = "data/clusterid_201_1.txt";
+            FILE * f_clusterid = fopen(output_path, "w");
+            if(f_clusterid == NULL){
+                perror("file open error");                                                                                                                                                            
+                exit(-1);
+            }
+
+            for(i = 0; i < num_region; i++){
+                fprintf(f_clusterid, "%d\n",clusterid[i]);
+            }
+            
+            fclose(f_clusterid);
+        }
+
+        // free the divergence buffer
         for(i = 1; i< num_region; i++){
             if(matrix[i] != NULL) free(matrix[i]);
         }
         if(matrix != NULL) {
             free(matrix);
             printf("distance matrix freed\n");
+        }
 	}
 
     if(table != NULL);

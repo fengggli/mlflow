@@ -3,31 +3,27 @@ CCFLAGS = ${OPT} -Wall
 LDFLAGS = ${OPT} 
 
 DEPS_DS=dspaces/get_regions.h dspaces/put_regions.h src/divide.h cluster/cluster.h src/get_divs.h src/read_file.h
-ODIR=obj
-_OBJ_GET = get_regions.o cluster.o
-OBJ_GET = $(patsubst %,$(ODIR)/%,$(_OBJ_GET))
-_OBJ_PUT = put_regions.o read_file.o divide.o
-OBJ_PUT = $(patsubst %,$(ODIR)/%,$(_OBJ_PUT))
 RM= rm -rf
+BIN = bin
 
-H5_ROOT=/home/lifen/tools/hdf5-1.8.17/hdf5
+H5_ROOT=/opt/hdf5/intel/mvapich2_ib
 ## dataspaces configurations
-DS_ROOT=/home/user/software/dataspaces-1.5.0/bin
-DS_INC=-I ${DS_ROOT}/include ${H5_ROOT}/include
-DS_LIB=-L ${DS_ROOT}/lib -ldspaces -ldscommon -ldart -lrdmacm -libverbs -lm
+DS_ROOT=/home/rlu/Dataspacesroot
+DS_INC=-I ${DS_ROOT}/include -I${H5_ROOT}/include -Icluster -Isrc -Idspaces
+DS_LIB=-L ${DS_ROOT}/lib -L $(H5_ROOT)/lib -ldspaces -ldscommon -ldart -lrdmacm -libverbs -lm -lpthread
 
-DS_CC=mpicc                       
+CC=mpicc                       
 
-$(ODIR)/%.o: %.c $(DEPS_DS)
-	    $(DS_CC) -c -o $@ $< $(DS_INC) $(CCFLAGS)
+%.o : %.c $(DEPS_DS)
+	    $(CC) -c -o $@ $< $(DS_INC) $(CCFLAGS)
 
 
-get_regions: $(OBJ_GET) 
-	    $(DS_CC) -o get_regions $^ $(DS_LIB) $(LDFLAGS)
+get_regions: dspaces/get_regions.o cluster/cluster.o src/get_divs.o
+	    $(CC) -o $(BIN)/get_regions $^ $(DS_LIB) $(LDFLAGS)
 
     
-put_regions: $(OBJ_PUT)
-	    $(DS_CC) -o put_regions $^ $(DS_LIB)  $(LDFLAGS)
+put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/read_file.o src/divide.o 
+	    h5pcc -o $(BIN)/put_regions $^ $(DS_LIB)  $(LDFLAGS)
 
 .PHONY: clean
 clean:

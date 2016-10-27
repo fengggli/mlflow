@@ -1,5 +1,6 @@
 #include "do_clustering.h"
 #include "run.h"
+#include <stdlib.h>
 
 int main(){
     //char *dist_path = "data/all_dist.txt";

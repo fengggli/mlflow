@@ -146,3 +146,10 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
 
     return 0;
 }
+
+int free_data(float *pressure, float *velocity){
+    free(pressure);
+    free(velocity);
+    printf("buffer freed\n");
+    return 1;
+}

@@ -6,3 +6,11 @@ verify with synthetic data.
 
 write the algorithm first
 
+Code has three parts:
+dspaces_server:
+    how the data looks like
+put_regions
+    generate the regions(by hdf5 file) and put into dspaces
+get_regions
+    get from regions and calculate divgernce, clustering
+

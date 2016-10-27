@@ -19,7 +19,9 @@
 #include <stdint.h>
 #include "dataspaces.h"
 #include "mpi.h"
-#include "cluster/cluster.h"
+#include "cluster.h"
+#include "get_divs.h"
+#include "string.h"
 // Example using array size, 128. 
 // If modifying, MUST change in minmax_writer.c as well.
 #define ARRAY_SIZE 128
@@ -48,5 +50,14 @@ void free_lookup_table(int * table);
  *  a, b: index of two regions, a<b
  */
 void get_pair_index(int *table, int index_pair,int *a, int *b);
+
+/*
+ * print message from different ranks
+ * input:
+ *  string to show
+ *  current rank
+ */
+void my_message(char *msg, int rank);
+
 
 #endif
