@@ -12,14 +12,8 @@ int generate_regions(char *hdfpath, int region_length, int *p_num_region, float 
     // read data into buffer
     read_data(hdfpath, &pressure, &velocity, &dim1, &dim2, &dim3);
 
-    int num_region;
-    float *regions;
-
     // dim1 is the dimension of x, we assume that the datacut is a square: dim1 = dim2
-    divide(velocity, dim1, region_length, &num_region, &regions);
-
-    *p_regions = regions;
-
+    divide(velocity, dim1, region_length, p_num_region, p_regions);
     
     // free buffer
     free_data(pressure, velocity);

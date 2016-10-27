@@ -1,5 +1,11 @@
 #include "put_regions.h"
 
+
+void my_message(char *msg, int rank){
+    printf("**rank %d: %s\n", rank, msg);
+}
+
+
 int main(int argc, char **argv)
 {
 	int err;
@@ -8,9 +14,15 @@ int main(int argc, char **argv)
 
     char * hdfpath = "data/isotropic_201_201_1.h5";
     int region_length = 10;
-    int num_region;
+    int num_region = -1;
     float *regions;
     size_t region_memory_size; 
+    char msg[20];
+
+
+    // dataspaces access return value
+    int ret_put = -1;
+    
 
     // MPI communicator
 	MPI_Init(&argc, &argv);
@@ -19,21 +31,28 @@ int main(int argc, char **argv)
 	MPI_Barrier(MPI_COMM_WORLD);
 	gcomm = MPI_COMM_WORLD;
 
-    // if rank == 0 get the data and divide into regions
-    // other processes will wait here
-    generate_regions(hdfpath, region_length, &num_region, &regions);
-    printf("all regions are generated\n");
-
-    // how large is one region?
-    region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);
-
-	// Initalize DataSpaces
+    // Initalize DataSpaces
 	// # of Peers, Application ID, ptr MPI comm, additional parameters
 	// # Peers: Number of connecting clients to the DS server
 	// Application ID: Unique idenitifier (integer) for application
 	// Pointer to the MPI Communicator, allows DS Layer to use MPI barrier func
 	// Addt'l parameters: Placeholder for future arguments, currently NULL.
 	dspaces_init(1, 1, &gcomm, NULL);
+
+
+    // how large is one region?
+    region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);
+
+    // if rank == 0 get the data and divide into regions
+    // other processes will wait here
+    generate_regions(hdfpath, region_length, &num_region, &regions);
+    sprintf(msg, "%d regions are generated, each region has size %ld bytes", num_region, region_memory_size);
+    my_message(msg, rank);
+
+
+	
+    sprintf(msg, "dataspaces init complete");
+    my_message(msg, rank);
 
 	// Timestep notation left in to demonstrate how this can be adjusted
 	int timestep=0;
@@ -45,11 +64,13 @@ int main(int argc, char **argv)
 		// DataSpaces: Lock Mechanism
 		// Usage: Prevent other process from modifying 
 		// 	  data at the same time as ours
-		dspaces_lock_on_write("velocity_lock", &gcomm);
+		dspaces_lock_on_write("region_lock", &gcomm);
+        sprintf(msg, "acquired the region write lock");
+        my_message(msg, rank);
 
 		//Name the Data that will be writen
 		char var_name[128];
-		sprintf(var_name, "velocity_data");
+		sprintf(var_name, "region_data");
 
         // each "cell" is a region 
 		// ndim: Dimensions for application data domain
@@ -65,12 +86,21 @@ int main(int argc, char **argv)
 
 		// DataSpaces: Put data array into the space
 		// 1 integer in each box, fill boxes 0,0,0 to 127,0,0
-		dspaces_put(var_name, timestep, region_memory_size, ndim, lb, ub, regions);
+		ret_put = dspaces_put(var_name, timestep, region_memory_size, ndim, lb, ub, regions);
+        if(ret_put == 0){
+            sprintf(msg, "%d regions are written into Dspaces",num_region);
+        }
+        else{
+            sprintf(msg, "ERROR when writing regions into dspacs");
+        }
+        my_message(msg, rank);
 
 		free(regions);
 		// DataSpaces: Release our lock on the data
-		dspaces_unlock_on_write("velocity_lock", &gcomm);
-        printf("put_regions: velocity_data is written");
+		dspaces_unlock_on_write("region_lock", &gcomm);
+
+        sprintf(msg, "released the region write lock");
+        my_message(msg, rank);
 	}
 
 	// DataSpaces: Finalize and clean up DS process

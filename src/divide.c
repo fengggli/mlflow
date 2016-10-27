@@ -30,7 +30,7 @@ void divide(float *pdata, int dim, int l, int *p_num_region, float **p_regions){
         perror("allocate space for regions");
         exit(-1);
     }else{
-        printf("%d x %d x %d space is allocated to region\n", d1, d2, d3);
+        printf("%d x %d x %d x sizeof(float) space is allocated to region\n", d1, d2, d3);
     }
 
     for(p = 0; p < side_num_region; p++){

@@ -112,6 +112,8 @@ int main(int argc, char **argv)
     int ndim_div = 1;
 	char var_name_div[128];
 	sprintf(var_name_div, "div_data");
+    uint64_t gdim_div[3] = {10000,0,0};
+    dspaces_define_gdim(var_name_div, 3,gdim_div);
 
     // use L2 divergence
     int div_func = 1;

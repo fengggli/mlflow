@@ -24,6 +24,7 @@
 
 // read hdffile and generate all the regions
 extern int generate_regions(char *hdfpath, int region_length, int *p_num_region, float **p_regions);
+void my_message(char *msg, int rank);
 
 #endif
 
