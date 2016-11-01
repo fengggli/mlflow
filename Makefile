@@ -6,11 +6,11 @@ DEPS_DS=dspaces/get_regions.h dspaces/put_regions.h src/divide.h cluster/cluster
 RM= rm -rf
 BIN = bin
 
-H5_ROOT=/opt/hdf5/intel/mvapich2_ib
+#H5_ROOT=/opt/hdf5/intel/mvapich2_ib
 ## dataspaces configurations
 DS_ROOT=/home/rlu/Dataspacesroot
-DS_INC=-I ${DS_ROOT}/include -I${H5_ROOT}/include -Icluster -Isrc -Idspaces
-DS_LIB=-L ${DS_ROOT}/lib -L $(H5_ROOT)/lib -ldspaces -ldscommon -ldart -lrdmacm -libverbs -lm -lpthread
+DS_INC=-I ${DS_ROOT}/include -Icluster -Isrc -Idspaces
+DS_LIB=-L ${DS_ROOT}/lib -ldspaces -ldscommon -ldart -lrdmacm -libverbs -lm -lpthread
 
 CC=mpicc                       
 
@@ -23,7 +23,7 @@ get_regions: dspaces/get_regions.o cluster/cluster.o src/get_divs.o
 
     
 put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/read_file.o src/divide.o 
-	    h5pcc -o $(BIN)/put_regions $^ $(DS_LIB)  $(LDFLAGS)
+	    $(CC) -o $(BIN)/put_regions $^ $(DS_LIB)  $(LDFLAGS)
 
 .PHONY: clean
 clean:
