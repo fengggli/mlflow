@@ -1,7 +1,6 @@
 #ifndef READ_FILE_H
 #define READ_FILE_H
 
-#include "hdf5.h"
 #include <stdlib.h>
 //#include "read_file.h"
 //#define FILE        "data/test_1_2_3_4.h5"
@@ -12,6 +11,7 @@
 
 #define RANK         4 // four dims: x y z and time 
 #define p_malloc_error(I) {printf("malloc failuren at %d",I);exit(-1);} 
+typedef unsigned long hsize_t;
 
 
 /*

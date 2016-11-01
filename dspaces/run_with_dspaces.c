@@ -1,5 +1,6 @@
 #include "run_with_dspaces.h"
 #include "divide.h"
+#include "read_file.h"
 
 int generate_regions(char *hdfpath, int region_length, int *p_num_region, float **p_regions){
     

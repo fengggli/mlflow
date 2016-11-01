@@ -39,6 +39,10 @@ int main(int argc, char **argv)
 	// Addt'l parameters: Placeholder for future arguments, currently NULL.
 	dspaces_init(1, 1, &gcomm, NULL);
 
+    sprintf(msg, "init successfully");
+    my_message(msg, rank);
+    
+
 
     // how large is one region?
     region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);

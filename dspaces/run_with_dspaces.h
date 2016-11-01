@@ -8,7 +8,6 @@
 #include <math.h>
 
 #include "divide.h"
-#include "read_file.h"
 
 // get current time
 double get_cur_time();
