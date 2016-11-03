@@ -37,34 +37,52 @@ void get_pair_index(int *table, int index_pair,int *a, int *b){
 
 int main(int argc, char **argv)
 {
+    char msg[80];
+    int err;
+    int nprocs, rank;
+    MPI_Comm gcomm;
+
+    MPI_Init(&argc, &argv);    
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);                                                                                                             
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Barrier(MPI_COMM_WORLD);    
+    gcomm = MPI_COMM_WORLD;    
+
+  
+    // DataSpaces: Initalize and identify application
+    // Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
+    // Note: appid for get.c is 2 [for put.c, it was 1]
+    dspaces_init(nprocs, 2, &gcomm, NULL);
+    sprintf(msg, "init successfully");
+    my_message(msg, rank);
+
+    
+    // Name our data.
+    char var_name[128];
+    sprintf(var_name, "ex3_sample_data");
+
+    // DataSpaces: Read-Lock Mechanism
+    // Usage: Prevent other processies from changing the 
+    //    data while we are working with it
+    sprintf(msg, "try to acqure the  the region read lock");
+    my_message(msg, rank);
+
+    dspaces_lock_on_read("my_test_lock", &gcomm);
+
+    sprintf(msg, "get the  the region read lock");
+    my_message(msg, rank);
+    
+    
     // region definition
     // those parameters are obtained after dividing 
     // !! there should be communication between two application
+    int i,j;
     int region_length = 10;
     int num_region = 400;
 
 
     // how many neareast neighbours: 3
     int k = 3;
-	int err;
-	int nprocs, rank, i, j;
-	MPI_Comm gcomm;
-
-	MPI_Init(&argc, &argv);
-	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Barrier(MPI_COMM_WORLD);
-	gcomm = MPI_COMM_WORLD;
-
-	// DataSpaces: Initalize and identify application
-	// Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
-	// Note: appid for get.c is 2 [for put.c, it was 1]
-	dspaces_init(nprocs, 2, &gcomm, NULL);
-	
- 	// Name our data.
-	char var_name[128];
-	sprintf(var_name, "region_data");
-	dspaces_lock_on_read("region_lock", &gcomm);
 
     // !!!feng: we should know how many regions in total so that we can asign the pairs
     // MPI_receive here?
@@ -127,7 +145,6 @@ int main(int argc, char **argv)
     int ret_get = -1;
 
     // output buffer
-    char msg[20];
 
     for(i = pair_index_l; i<= pair_index_h; i++){
 
@@ -181,7 +198,7 @@ int main(int argc, char **argv)
         my_message(msg, rank);
     }
     // now we can release velocity lock
-	dspaces_unlock_on_read("region_lock", &gcomm);
+	dspaces_unlock_on_read("my_test_lock", &gcomm);
 
     // should wait until get all the divergence
     sprintf(msg,"--has finished assigned pairs of divs");

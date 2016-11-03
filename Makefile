@@ -1,4 +1,4 @@
-OPT= -g
+OPT =
 CCFLAGS = ${OPT} -Wall 
 LDFLAGS = ${OPT} 
 
@@ -17,6 +17,7 @@ CC=mpicc
 %.o : %.c $(DEPS_DS)
 	    $(CC) -c -o $@ $< $(DS_INC) $(CCFLAGS)
 
+.PHONY: clean get_regions put_regions
 
 get_regions: dspaces/get_regions.o cluster/cluster.o src/get_divs.o
 	    $(CC) -o $(BIN)/get_regions $^ $(DS_LIB) $(LDFLAGS)
@@ -25,7 +26,6 @@ get_regions: dspaces/get_regions.o cluster/cluster.o src/get_divs.o
 put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/read_file.o src/divide.o 
 	    $(CC) -o $(BIN)/put_regions $^ $(DS_LIB)  $(LDFLAGS)
 
-.PHONY: clean
 clean:
 	$(RM) cluster/*.o
 	$(RM) src/*.o

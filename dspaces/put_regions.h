@@ -12,8 +12,6 @@
  * 1 element at each space in the box
  * */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include "dataspaces.h"
 #include "run_with_dspaces.h"
