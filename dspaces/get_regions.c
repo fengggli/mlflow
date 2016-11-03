@@ -37,37 +37,32 @@ void get_pair_index(int *table, int index_pair,int *a, int *b){
 
 int main(int argc, char **argv)
 {
-    char msg[80];
     int err;
-    int nprocs, rank;
-    MPI_Comm gcomm;
+	int nprocs, rank;
+	MPI_Comm gcomm;
 
-    MPI_Init(&argc, &argv);    
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);                                                                                                             
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Barrier(MPI_COMM_WORLD);    
-    gcomm = MPI_COMM_WORLD;    
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Barrier(MPI_COMM_WORLD);
+	gcomm = MPI_COMM_WORLD;
 
-  
-    // DataSpaces: Initalize and identify application
-    // Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
-    // Note: appid for get.c is 2 [for put.c, it was 1]
-    dspaces_init(nprocs, 2, &gcomm, NULL);
-    sprintf(msg, "init successfully");
+	// DataSpaces: Initalize and identify application
+	// Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
+	// Note: appid for get.c is 2 [for put.c, it was 1]
+	dspaces_init(nprocs, 2, &gcomm, NULL);
+
+
+ 	// Name our data.
+	char var_name[128];
+	sprintf(var_name, "region_data");
+
+
+    char msg[20];
+    sprintf(msg, "try to acquired the region read lock");
     my_message(msg, rank);
 
-    
-    // Name our data.
-    char var_name[128];
-    sprintf(var_name, "ex3_sample_data");
-
-    // DataSpaces: Read-Lock Mechanism
-    // Usage: Prevent other processies from changing the 
-    //    data while we are working with it
-    sprintf(msg, "try to acqure the  the region read lock");
-    my_message(msg, rank);
-
-    dspaces_lock_on_read("my_test_lock", &gcomm);
+	dspaces_lock_on_read("region_lock", &gcomm);
 
     sprintf(msg, "get the  the region read lock");
     my_message(msg, rank);
@@ -198,7 +193,7 @@ int main(int argc, char **argv)
         my_message(msg, rank);
     }
     // now we can release velocity lock
-	dspaces_unlock_on_read("my_test_lock", &gcomm);
+	dspaces_unlock_on_read("region_lock", &gcomm);
 
     // should wait until get all the divergence
     sprintf(msg,"--has finished assigned pairs of divs");
