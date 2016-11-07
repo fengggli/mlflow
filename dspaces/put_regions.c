@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 		// DataSpaces: Lock Mechanism
 		// Usage: Prevent other process from modifying 
 		// 	  data at the same time as ours
-        char msg[20];
+        char msg[80];
         sprintf(msg, "try to acquired the region write lock");
         my_message(msg, rank);
 
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
         // if rank == 0 get the data and divide into regions
         // other processes will wait here
-        //generate_regions(hdfpath, region_length, &num_region, &regions);
+        generate_regions(hdfpath, region_length, &num_region, &regions);
         sprintf(msg, "%d regions are generated, each region has size %ld bytes", num_region, region_memory_size);
         my_message(msg, rank);
         

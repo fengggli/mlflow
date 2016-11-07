@@ -42,12 +42,16 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
 }
 
 int free_data(float *pressure, float *velocity){
+    printf("    try to free pressure and velocity\n");
     if(pressure != NULL){
         free(pressure);
+    }else{
+        printf("    pressure free error\n");
     }
     if(velocity != NULL){
         free(velocity);
-    }
+    }else
+        printf("    velocity free error\n");
     printf("buffer freed\n");
     return 1;
 }

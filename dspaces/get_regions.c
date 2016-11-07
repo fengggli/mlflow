@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	sprintf(var_name, "region_data");
 
 
-    char msg[20];
+    char msg[80];
     sprintf(msg, "try to acquired the region read lock");
     my_message(msg, rank);
 

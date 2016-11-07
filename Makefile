@@ -26,6 +26,10 @@ get_regions: dspaces/get_regions.o cluster/cluster.o src/get_divs.o
 put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/read_file.o src/divide.o 
 	    $(CC) -o $(BIN)/put_regions $^ $(DS_LIB)  $(LDFLAGS)
 
+run: get_regions put_regions
+		sbatch regions.dspaces.job
+
+
 clean:
 	$(RM) cluster/*.o
 	$(RM) src/*.o

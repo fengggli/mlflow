@@ -27,10 +27,10 @@ void divide(float *pdata, int dim, int l, int *p_num_region, float **p_regions){
 
     float *regions = (float *)malloc(d1*d2*d3*sizeof(float));
     if(regions == NULL){
-        perror("allocate space for regions");
+        perror("    allocate space for regions");
         exit(-1);
     }else{
-        printf("%d x %d x %d x sizeof(float) space is allocated to region\n", d1, d2, d3);
+        printf("    %d x %d x %d x sizeof(float) space is allocated to region\n", d1, d2, d3);
     }
 
     for(p = 0; p < side_num_region; p++){
@@ -56,11 +56,17 @@ void divide(float *pdata, int dim, int l, int *p_num_region, float **p_regions){
                     dist2 = (ii - l/2.0)*(ii - l/2.0) + (jj - l/2.0)*(jj - l/2.0); 
 
                     // add this tripple into region
-                    *(regions + (p*side_num_region+q)*d2*d3 + (ii*(l+1) +jj)*d3 + 0) = ux;
-                    *(regions + (p*side_num_region+q)*d2*d3 + (ii*(l+1) +jj)*d3 + 1) = uy;
-                    *(regions + (p*side_num_region+q)*d2*d3 + (ii*(l+1) +jj)*d3 + 2) = dist2;
+
+                    int shift_tuple = (p*side_num_region+q)*d2*d3 + (ii*(l+1) +jj)*d3;
+                    float *index_tuple = regions + shift_tuple;
+
+
+                    *(index_tuple + 0) = ux;
+                    *(index_tuple + 1) = uy;
+                    *(index_tuple + 2) = dist2;
                 }
             }
+            //printf("    region %d-%d is tupled\n", p, q);
         }
     }
     *p_regions = regions;
