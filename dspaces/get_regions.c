@@ -139,7 +139,8 @@ int main(int argc, char **argv)
     int ret_put = -1;
     int ret_get = -1;
 
-    // output buffer
+    // put the divergence into divergence matrix
+    dspaces_lock_on_write("div_lock", &gcomm);
 
     for(i = pair_index_l; i<= pair_index_h; i++){
 
@@ -172,9 +173,6 @@ int main(int argc, char **argv)
         free(buffer_a);
         free(buffer_b);
 
-        // put the divergence into divergence matrix
-        sprintf(var_name_div, "div_data");
-		dspaces_lock_on_write("div_lock", &gcomm);
 
 
         //!!!! pay attention to the order of dimensions!
@@ -182,7 +180,6 @@ int main(int argc, char **argv)
 		ret_put = dspaces_put(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, &div);
 
         // how about the symmetric part?
-		dspaces_unlock_on_write("div_lock", &gcomm);
 
         if(ret_put == 0){
             sprintf(msg, "divergence of region  %d and %d are stored in dspaces",a, b);
@@ -192,6 +189,8 @@ int main(int argc, char **argv)
         }
         my_message(msg, rank);
     }
+
+    dspaces_unlock_on_write("div_lock", &gcomm);
     // now we can release velocity lock
 	dspaces_unlock_on_read("region_lock", &gcomm);
 
@@ -202,7 +201,7 @@ int main(int argc, char **argv)
 	// Report data to user
 	if(rank==0){
         // get the clustering done here
-		dspaces_lock_on_write("div_lock", &gcomm);
+		dspaces_lock_on_read("div_lock", &gcomm);
 
 
         //reconstruct the divergence matrix, this is a ragged matrix, only le 
@@ -241,7 +240,7 @@ int main(int argc, char **argv)
             }
         }
 
-		dspaces_unlock_on_write("div_lock", &gcomm);
+		dspaces_unlock_on_read("div_lock", &gcomm);
 
         if(error_flag == 1){
             sprintf(msg, "ERROR when read divergence from Dspaces");
