@@ -22,6 +22,7 @@
 #include "cluster.h"
 #include "get_divs.h"
 #include "string.h"
+#include "region_def.h"
 // Example using array size, 128. 
 // If modifying, MUST change in minmax_writer.c as well.
 #define ARRAY_SIZE 128

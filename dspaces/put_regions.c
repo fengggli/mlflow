@@ -55,8 +55,10 @@ int main(int argc, char **argv)
         sprintf(msg, "init successfully");
         my_message(msg, rank);
 
-        char * hdfpath = "data/isotropic_201_201_1.h5";
-        int region_length = 10;
+        //char * hdfpath = "data/isotropic_201_201_1.h5";
+        char hdfpath[80];
+        sprintf(hdfpath, "data/isotropic_%d_%d_1.h5",POINTS_SIDE,POINTS_SIDE);
+        //int region_length = 10;
         int num_region = -1;
         float *regions;
         size_t region_memory_size; 
@@ -66,11 +68,11 @@ int main(int argc, char **argv)
         int ret_put = -1;
         
         // how large is one region?
-        region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);
+        region_memory_size = (REGION_LENGTH+1)*(REGION_LENGTH+1)*3*sizeof(float);
 
         // if rank == 0 get the data and divide into regions
         // other processes will wait here
-        generate_regions(hdfpath, region_length, &num_region, &regions);
+        generate_regions(hdfpath, REGION_LENGTH, &num_region, &regions);
         sprintf(msg, "%d regions are generated, each region has size %ld bytes", num_region, region_memory_size);
         my_message(msg, rank);
         

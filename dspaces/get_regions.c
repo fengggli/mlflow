@@ -72,9 +72,15 @@ int main(int argc, char **argv)
     // those parameters are obtained after dividing 
     // !! there should be communication between two application
     int i,j;
+    
+    /*
     int region_length = 10;
     int num_region = 400;
-
+    */
+    int region_length = REGION_LENGTH;
+    int side_num_region = (POINTS_SIDE - 1)/REGION_LENGTH;
+    int num_region =side_num_region*side_num_region ;
+    
 
     // how many neareast neighbours: 3
     int k = 3;
@@ -210,13 +216,18 @@ int main(int argc, char **argv)
     sprintf(msg,"--has finished assigned pairs of divs in %.3lf time", t2 -t1);
     my_message(msg, rank);
     MPI_Barrier(gcomm);
+
+    sprintf(msg,"--has reached barrier and try to acqure div read");
+    my_message(msg, rank);
+
+    // every rank need at least acquire the lock
+    dspaces_lock_on_read("div_lock", &gcomm);
+    sprintf(msg, "acquired div read lock");
+    my_message(msg, rank);
+    
 	// Report data to user
 	if(rank==0){
         // get the clustering done here
-		dspaces_lock_on_read("div_lock", &gcomm);
-
-        sprintf(msg, "acquired div read lock");
-        my_message(msg, rank);
 
 
         //reconstruct the divergence matrix, this is a ragged matrix, only le 
@@ -242,6 +253,9 @@ int main(int argc, char **argv)
         int count = 0;
         int error_flag = 0;
 
+        sprintf(msg, "divergence matrix constructed, now try to fill all the values");
+        my_message(msg, rank);
+
         t1 = MPI_Wtime();
         for(i = 1; i < num_region; i++){
             for(j = 0; j < i;j++){
@@ -259,9 +273,8 @@ int main(int argc, char **argv)
 
         t2 = MPI_Wtime();
 
-		dspaces_unlock_on_read("div_lock", &gcomm);
 
-        sprintf(msg, "divergence read lock released, divergence matrix constructed in %.3f time", t2-t1);
+        sprintf(msg, "divergence matrix filled in %.3f s time", t2-t1);
         my_message(msg, rank);
 
         if(error_flag == 1){
@@ -287,7 +300,7 @@ int main(int argc, char **argv)
 
             t2 = MPI_Wtime();
 
-            sprintf(msg, "finished clustering in %.3lf time", t2 -t1);
+            sprintf(msg, "finished clustering in %.3lf s  time", t2 -t1);
             my_message(msg, rank);
 
             // save cluster results into file
@@ -314,6 +327,11 @@ int main(int argc, char **argv)
             printf("distance matrix freed\n");
         }
 	}
+
+	dspaces_unlock_on_read("div_lock", &gcomm);
+
+    sprintf(msg, "divergence read lock released ");
+    my_message(msg, rank);
 
     if(table != NULL);
     free_lookup_table(table);

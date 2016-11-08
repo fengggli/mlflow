@@ -3,8 +3,8 @@
 #SBATCH -o "results/%j.out"  
 #SBATCH -A prd157
 #SBATCH -p compute
-#SBATCH -n 52
-#SBATCH -N 4
+#SBATCH -n 12
+#SBATCH -N 1
 #SBATCH --export=ALL  
 #SBATCH -t 00:20:00  
 
@@ -36,12 +36,12 @@ echo "## Config file for DataSpaces
 ndim = 3
 dims = 500, 500, 500
 max_versions = 1
-max_readers = 51
+max_readers = 11
 lock_type = 2
 " > dataspaces.conf
 
 ## Run DataSpaces servers
-ibrun -n 1 ${DS_SERVER} -s 1 -c 51  >& ${PBS_RESULTDIR}/server.log &
+ibrun -n 1 ${DS_SERVER} -s 1 -c 11  >& ${PBS_RESULTDIR}/server.log &
 ## Give some time for the servers to load and startup
 while [ ! -f conf ]; do
     sleep 1s
@@ -52,7 +52,7 @@ sleep 5s  # wait server to fill up the conf file
 ibrun -n 1 bin/put_regions >& ${PBS_RESULTDIR}/producer.log &
 
 ## Run reader application
-ibrun -n 50 bin/get_regions >& ${PBS_RESULTDIR}/consumer.log &
+ibrun -n 10 bin/get_regions >& ${PBS_RESULTDIR}/consumer.log &
 
 ## Wait for the entire workflow to finish
 wait
