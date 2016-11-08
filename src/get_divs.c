@@ -80,8 +80,8 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     // we can treat data as if there are in 1-demension
     int i, j;
     int num_elem = (region_length+1)*(region_length +1);
-    printf("there are %d points in each region\n", num_elem);
-    fprintf(stderr, "there are %d points in each region\n", num_elem);
+    //printf("there are %d points in each region\n", num_elem);
+    //fprintf(stderr, "there are %d points in each region\n", num_elem);
 
     float* DisMatrixA = (float *)malloc(sizeof(float)*num_elem*num_elem);
     float* DisMatrixB = (float *)malloc(sizeof(float)*num_elem*num_elem);

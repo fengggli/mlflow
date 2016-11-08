@@ -116,16 +116,16 @@ int main(int argc, char **argv)
     uint64_t lb[3] = {0}, ub[3] = {0};
 
     // Define the dimensionality of the data to be received 
-    int ndim = 1;
+    int ndim = 3;
 
     // parameter for second variable: div
     float div;
     uint64_t lb_div[3] = {0}, ub_div[3] = {0};
     // save divergence in a 1-d array! this will save space
-    int ndim_div = 1;
+    int ndim_div = 3;
 	char var_name_div[128];
 	sprintf(var_name_div, "div_data");
-    uint64_t gdim_div[3] = {10000,0,0};
+    uint64_t gdim_div[3] = {10000,1,1};
     dspaces_define_gdim(var_name_div, 3,gdim_div);
 
     // use L2 divergence
@@ -139,21 +139,24 @@ int main(int argc, char **argv)
     int ret_put = -1;
     int ret_get = -1;
 
+
+    buffer_a = (float *)malloc(region_memory_size);
+    buffer_b = (float *)malloc(region_memory_size);
+
     // put the divergence into divergence matrix
     dspaces_lock_on_write("div_lock", &gcomm);
 
     for(i = pair_index_l; i<= pair_index_h; i++){
 
-
         // get the region index of that pair
         get_pair_index(table, i, &a, &b);
 
-        buffer_a = (float *)malloc(region_memory_size);
-        buffer_b = (float *)malloc(region_memory_size);
             
         // get buffer for left region
         lb[0]= a;
         ub[0] =a;
+
+
         ret_get_0 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_a);
 
         // get buffer for right region
@@ -162,16 +165,14 @@ int main(int argc, char **argv)
         ret_get_1 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_b);
 
         if(ret_get_0 == 0 && ret_get_1 == 0){
-            sprintf(msg, "get regions %d and %d success",a, b);
+            //sprintf(msg, "get regions %d and %d success",a, b);
         }else{
             sprintf(msg, "ERROR when getting regions %d and %d",a, b);
+            my_message(msg, rank);
         }
-        my_message(msg, rank);
 
         // we can get the divergence now!
         div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
-        free(buffer_a);
-        free(buffer_b);
 
 
 
@@ -182,13 +183,16 @@ int main(int argc, char **argv)
         // how about the symmetric part?
 
         if(ret_put == 0){
-            sprintf(msg, "divergence of region  %d and %d are stored in dspaces",a, b);
+            sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f, saved in dspaces",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
         }else{
 
             sprintf(msg, "ERROR when storing divergence of region  %d and %d into dspaces",a, b);
         }
         my_message(msg, rank);
     }
+
+    free(buffer_a);
+    free(buffer_b);
 
     dspaces_unlock_on_write("div_lock", &gcomm);
     // now we can release velocity lock
