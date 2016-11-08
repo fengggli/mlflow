@@ -2,8 +2,9 @@
 #SBATCH -J "regions_feng"  
 #SBATCH -o "results/%j.out"  
 #SBATCH -A prd157
-#SBATCH -p shared 
-#SBATCH -n 3
+#SBATCH -p compute
+#SBATCH -n 52
+#SBATCH -N 4
 #SBATCH --export=ALL  
 #SBATCH -t 00:20:00  
 

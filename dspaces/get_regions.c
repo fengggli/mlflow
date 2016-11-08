@@ -88,6 +88,9 @@ int main(int argc, char **argv)
 	int tasks_left_over = num_tasks%nprocs;
     int pair_index_l, pair_index_h;
 	int ds_lb_index, ds_ub_index;
+
+    // timber
+    double t1,t2,t3;
 	
 	if(rank<tasks_left_over){
 		pair_index_l = rank*(tasks_per_proc+1);
@@ -146,6 +149,8 @@ int main(int argc, char **argv)
     // put the divergence into divergence matrix
     dspaces_lock_on_write("div_lock", &gcomm);
 
+    t1 = MPI_Wtime();
+
     for(i = pair_index_l; i<= pair_index_h; i++){
 
         // get the region index of that pair
@@ -191,6 +196,9 @@ int main(int argc, char **argv)
         my_message(msg, rank);
     }
 
+
+    t2 = MPI_Wtime();
+
     free(buffer_a);
     free(buffer_b);
 
@@ -199,13 +207,16 @@ int main(int argc, char **argv)
 	dspaces_unlock_on_read("region_lock", &gcomm);
 
     // should wait until get all the divergence
-    sprintf(msg,"--has finished assigned pairs of divs");
+    sprintf(msg,"--has finished assigned pairs of divs in %.3lf time", t2 -t1);
     my_message(msg, rank);
     MPI_Barrier(gcomm);
 	// Report data to user
 	if(rank==0){
         // get the clustering done here
 		dspaces_lock_on_read("div_lock", &gcomm);
+
+        sprintf(msg, "acquired div read lock");
+        my_message(msg, rank);
 
 
         //reconstruct the divergence matrix, this is a ragged matrix, only le 
@@ -230,6 +241,8 @@ int main(int argc, char **argv)
 
         int count = 0;
         int error_flag = 0;
+
+        t1 = MPI_Wtime();
         for(i = 1; i < num_region; i++){
             for(j = 0; j < i;j++){
                 // its the same order as when its saved
@@ -244,7 +257,12 @@ int main(int argc, char **argv)
             }
         }
 
+        t2 = MPI_Wtime();
+
 		dspaces_unlock_on_read("div_lock", &gcomm);
+
+        sprintf(msg, "divergence read lock released, divergence matrix constructed in %.3f time", t2-t1);
+        my_message(msg, rank);
 
         if(error_flag == 1){
             sprintf(msg, "ERROR when read divergence from Dspaces");
@@ -260,9 +278,16 @@ int main(int argc, char **argv)
             double error;
             int ifound;
 
+
+            sprintf(msg, "start clustering");
+            my_message(msg, rank);
+
+            t1 = MPI_Wtime();
             kmedoids(nclusters, num_region, matrix, npass, clusterid, &error, &ifound);
 
-            sprintf(msg, "finished clustering");
+            t2 = MPI_Wtime();
+
+            sprintf(msg, "finished clustering in %.3lf time", t2 -t1);
             my_message(msg, rank);
 
             // save cluster results into file
