@@ -217,7 +217,7 @@ int main(int argc, char **argv)
     my_message(msg, rank);
     MPI_Barrier(gcomm);
 
-    sprintf(msg,"--has reached barrier and try to acqure div read");
+    sprintf(msg,"--has reached barrier and try to acquire div read lock");
     my_message(msg, rank);
 
     // every rank need at least acquire the lock
