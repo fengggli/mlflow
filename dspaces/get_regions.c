@@ -82,6 +82,7 @@ int main(int argc, char **argv)
     // MPI_receive here?
     int num_tasks = num_region*(num_region-1)/2;
 
+
 	// Each process will need to compute its DataSpace index
 	int tasks_per_proc = num_tasks/nprocs;
 	int tasks_left_over = num_tasks%nprocs;
@@ -100,15 +101,19 @@ int main(int argc, char **argv)
 		pair_index_h = pair_index_l + tasks_per_proc;
 	}else{
 		pair_index_l = rank*tasks_per_proc+tasks_left_over;
-		pair_index_h = ds_lb_index + tasks_per_proc-1;
+		pair_index_h = pair_index_l + tasks_per_proc-1;
 	}
+    if(rank == 0)
+        printf("--rank%d:num_tasks=%d, tasks_per_proc=%d,tasks_left_over=%d\n", rank,num_tasks, tasks_per_proc, tasks_left_over);
 
     int region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);
 
     // generate pair lookup table;
     int *table;
     generate_lookup_table(num_region, &table);
-    my_message("pair lookup table generated", rank);
+    sprintf(msg,"pair lookup table generated, I am responsible for P%d to P%d", pair_index_l, pair_index_h);
+    my_message(msg, rank);
+//    printf("index_h = %d, index_l = %d", pair_index_h, pair_index_l);
 
 
     int timestep=1;
@@ -150,11 +155,17 @@ int main(int argc, char **argv)
     // prepare buffer for regions
     buffer_a = (float *)malloc(region_memory_size);
     buffer_b = (float *)malloc(region_memory_size);
+    if(buffer_a == NULL || buffer_b == NULL){
+        perror("malloc error for region buffer, now exit");
+        exit(-1);
+    }
 
     // prepare buffer for divs
-    divs_this_rank = (float *)malloc((pair_index_h - pair_index_l+1)*sizeof(float));
-    if(buffer_a == NULL || buffer_b == NULL || divs_this_rank == NULL){
-        perror("malloc error");
+    int size_div = (pair_index_h - pair_index_l+1)*sizeof(float);
+    printf("div buffer has size %d", size_div);
+    divs_this_rank = (float *)malloc(size_div);
+    if(divs_this_rank == NULL){
+        perror("malloc error for div buffer, now exit");
         exit(-1);
     }
 
@@ -200,6 +211,9 @@ int main(int argc, char **argv)
 
         // we can get the divergence now!
         div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
+
+        sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
+        my_message(msg, rank);
 
         t3 = MPI_Wtime();
 
@@ -249,7 +263,7 @@ int main(int argc, char **argv)
     }
 
     // should wait until get all the divergence
-    sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time comm, time_cal, t2 -t1);
+    sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm, time_cal, t2 -t1);
     my_message(msg, rank);
     MPI_Barrier(gcomm);
 
