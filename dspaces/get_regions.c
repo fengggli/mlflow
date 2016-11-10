@@ -59,14 +59,7 @@ int main(int argc, char **argv)
 
 
     char msg[80];
-    sprintf(msg, "try to acquired the region read lock");
-    my_message(msg, rank);
-
-	dspaces_lock_on_read("region_lock", &gcomm);
-
-    sprintf(msg, "get the  the region read lock");
-    my_message(msg, rank);
-    
+        
     
     // region definition
     // those parameters are obtained after dividing 
@@ -120,6 +113,7 @@ int main(int argc, char **argv)
     // the index of the two pairs
     int a, b;
     float *buffer_a, *buffer_b;
+    float *divs_this_rank;
 
     // Prepare LOWER and UPPER bound dimensions
     uint64_t lb[3] = {0}, ub[3] = {0};
@@ -149,11 +143,28 @@ int main(int argc, char **argv)
     int ret_get = -1;
 
 
+    // prepare buffer for regions
     buffer_a = (float *)malloc(region_memory_size);
     buffer_b = (float *)malloc(region_memory_size);
 
+    // prepare buffer for divs
+    divs_this_rank = (float *)malloc((pair_index_h - pair_index_l+1)*sizeof(float));
+    if(buffer_a == NULL || buffer_b == NULL || divs_this_rank == NULL){
+        perror("malloc error");
+        exit(-1);
+    }
+
+
     // put the divergence into divergence matrix
-    dspaces_lock_on_write("div_lock", &gcomm);
+    
+    sprintf(msg, "try to acquired the region read lock");
+    my_message(msg, rank);
+
+	dspaces_lock_on_read("region_lock", &gcomm);
+
+    sprintf(msg, "get the  the region read lock");
+    my_message(msg, rank);
+
 
     t1 = MPI_Wtime();
 
@@ -185,22 +196,13 @@ int main(int argc, char **argv)
         // we can get the divergence now!
         div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
 
+        // save it into buffer first
+        divs_this_rank[i - pair_index_l] = div;
 
-
-        //!!!! pay attention to the order of dimensions!
-        lb_div[0] = i, ub_div[0] = i;
-		ret_put = dspaces_put(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, &div);
-
-        // how about the symmetric part?
-
-        if(ret_put == 0){
-            sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f, saved in dspaces",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
-        }else{
-
-            sprintf(msg, "ERROR when storing divergence of region  %d and %d into dspaces",a, b);
-        }
-        my_message(msg, rank);
     }
+
+    // now we can release velocity lock
+	dspaces_unlock_on_read("region_lock", &gcomm);
 
 
     t2 = MPI_Wtime();
@@ -208,9 +210,30 @@ int main(int argc, char **argv)
     free(buffer_a);
     free(buffer_b);
 
+
+    dspaces_lock_on_write("div_lock", &gcomm);
+    // write div information into div variable
+
+    //!!!! pay attention to the order of dimensions!
+    lb_div[0] = pair_index_l, ub_div[0] = pair_index_h;
+    ret_put = dspaces_put(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, divs_this_rank);
+
+    // how about the symmetric part?
+
+    if(ret_put == 0){
+        sprintf(msg, "divergence of %d pairs have saved into dspaces",pair_index_h - pair_index_l +1);
+    }else{
+        sprintf(msg, "ERROR when storing divergence of region");
+    }
+    my_message(msg, rank);
+
+
     dspaces_unlock_on_write("div_lock", &gcomm);
-    // now we can release velocity lock
-	dspaces_unlock_on_read("region_lock", &gcomm);
+
+    // now the divs buffer can be freed
+    if(divs_this_rank != NULL){
+        free(divs_this_rank);
+    }
 
     // should wait until get all the divergence
     sprintf(msg,"--has finished assigned pairs of divs in %.3lf time", t2 -t1);
