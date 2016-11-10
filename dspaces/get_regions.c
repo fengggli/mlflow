@@ -90,6 +90,10 @@ int main(int argc, char **argv)
 
     // timber
     double t1,t2,t3;
+
+    // accumulated time for communication and calculation
+    double time_comm = 0;
+    double time_cal = 0;
 	
 	if(rank<tasks_left_over){
 		pair_index_l = rank*(tasks_per_proc+1);
@@ -166,7 +170,6 @@ int main(int argc, char **argv)
     my_message(msg, rank);
 
 
-    t1 = MPI_Wtime();
 
     for(i = pair_index_l; i<= pair_index_h; i++){
 
@@ -179,12 +182,14 @@ int main(int argc, char **argv)
         ub[0] =a;
 
 
+        t1 = MPI_Wtime();
         ret_get_0 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_a);
 
         // get buffer for right region
         lb[0]= b;
         ub[0] =b;
         ret_get_1 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_b);
+        t2 = MPI_Wtime();
 
         if(ret_get_0 == 0 && ret_get_1 == 0){
             //sprintf(msg, "get regions %d and %d success",a, b);
@@ -196,9 +201,14 @@ int main(int argc, char **argv)
         // we can get the divergence now!
         div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
 
+        t3 = MPI_Wtime();
+
         // save it into buffer first
         divs_this_rank[i - pair_index_l] = div;
 
+        // record the time for communication and calculation
+        time_comm += t2 -t1;
+        time_cal += t3 -t2;
     }
 
     // now we can release velocity lock
@@ -216,7 +226,10 @@ int main(int argc, char **argv)
 
     //!!!! pay attention to the order of dimensions!
     lb_div[0] = pair_index_l, ub_div[0] = pair_index_h;
+
+    t1 = MPI_Wtime();
     ret_put = dspaces_put(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, divs_this_rank);
+    t2 = MPI_Wtime();
 
     // how about the symmetric part?
 
@@ -236,7 +249,7 @@ int main(int argc, char **argv)
     }
 
     // should wait until get all the divergence
-    sprintf(msg,"--has finished assigned pairs of divs in %.3lf time", t2 -t1);
+    sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time comm, time_cal, t2 -t1);
     my_message(msg, rank);
     MPI_Barrier(gcomm);
 
