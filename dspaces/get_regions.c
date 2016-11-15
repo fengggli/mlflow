@@ -35,6 +35,16 @@ void get_pair_index(int *table, int index_pair,int *a, int *b){
     *b = table[2*index_pair +1];
 }
 
+
+// test segmentation fault
+int validate_regions(float *buffer_a, int region_memory_size){
+    int i;
+    for(i = 0; i< region_memory_size;i++){
+        buffer_a[i] == 0;
+    }
+    return 1;
+}
+
 int main(int argc, char **argv)
 {
     int err;
@@ -192,7 +202,7 @@ int main(int argc, char **argv)
         perror("get all regions error, now exit");
         exit(-1);
     }else{
-        sprintf(msg, "read all the regions from dspaces");
+        sprintf(msg, "read %d regions from dspaces, each has %d bytes", num_region, region_memory_size);
         my_message(msg, rank);
     }
 
@@ -202,6 +212,9 @@ int main(int argc, char **argv)
 
     // now we can release velocity lock
 	dspaces_unlock_on_read("region_lock", &gcomm);
+
+    sprintf(msg, "release the region read lock");
+    my_message(msg, rank);
 
     for(i = pair_index_l; i<= pair_index_h; i++){
 
@@ -215,7 +228,18 @@ int main(int argc, char **argv)
         buffer_b = buffer_all_regions + b*region_memory_size;
 
         t2 = MPI_Wtime();
+
+        int aa, bb;
+        // validate the two regions
+        aa =  validate_regions(buffer_a,region_memory_size);
+        bb = validate_regions(buffer_b, region_memory_size);
+
+        if(aa == 1 && bb == 1){
+            sprintf(msg, "No.%d/%d pair, region %d and %d is validate",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
+            my_message(msg, rank);
+        }
             
+
         // we can get the divergence now!
         div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
 
