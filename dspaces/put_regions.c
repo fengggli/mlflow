@@ -108,9 +108,152 @@ int main(int argc, char **argv)
 		free(regions);
 		// DataSpaces: Release our lock on the data
 		dspaces_unlock_on_write("region_lock", &gcomm);
+        
 
         sprintf(msg, "released the region write lock");
         my_message(msg, rank);
+
+        /*
+         * start part IIo
+         */
+        // parameter for second variable: div
+        float div;
+        uint64_t lb_div[3] = {0}, ub_div[3] = {0};
+        // save divergence in a 1-d array! this will save space
+        int ndim_div = 3;
+        char var_name_div[128];
+        sprintf(var_name_div, "div_data");
+        uint64_t gdim_div[3] = {10000,1,1};
+        dspaces_define_gdim(var_name_div, 3,gdim_div);
+
+        double t1, t2, t3;
+        int i, j, ret_get;
+
+
+        // now anlysis
+        // get the clustering done here
+
+        // every rank need at least acquire the lock
+        dspaces_lock_on_read("div_lock", &gcomm);
+        sprintf(msg, "acquired div read lock");
+        my_message(msg, rank);
+
+
+        //reconstruct the divergence matrix, this is a ragged matrix, only le 
+        //see the distancematrix function in cluster.c 
+        double **matrix = malloc(num_region*sizeof(double *)); 
+        if(matrix == NULL){
+            perror("malloc for div matrix");
+            exit(-1);
+        }
+        matrix[0] = NULL;
+        for(i = 1; i< num_region; i++){
+            matrix[i] = malloc(i*sizeof(double));
+            if(matrix[i] == NULL) break;
+        }
+        if(i< num_region){
+            for(j = 0 ;j< i; j++)
+                free(matrix[j]);
+            perror("malloc 2 for div matrix");
+            exit(-2);
+        }
+
+
+        int count = 0;
+        int error_flag = 0;
+
+        sprintf(msg, "divergence matrix constructed, now try to fill all the values");
+        my_message(msg, rank);
+
+        // get data from dspaces
+        // how many pairs
+
+        int num_tasks = num_region*(num_region-1)/2;
+        float* all_divs = (float*)malloc(num_tasks*sizeof(float));
+
+        lb_div[0] = 0; 
+        ub_div[0] = num_tasks-1;
+
+        t1 = MPI_Wtime();
+        ret_get = dspaces_get(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, all_divs);
+        if(ret_get != 0){
+                    error_flag  = 1;
+                    exit(-1);
+                }
+        sprintf(msg, "all the divergence is read from dataspaces");
+        my_message(msg, rank);
+
+        // reconstruct the matrix
+        t2 = MPI_Wtime();
+        for(i = 1; i < num_region; i++){
+            for(j = 0; j < i;j++){
+                // its the same order as when its saved
+                matrix[i][j] = all_divs[count];
+                
+                count +=1;
+            }
+        }
+
+        t3 = MPI_Wtime();
+
+
+        sprintf(msg, "divergence matrix read %.3f s,filled in %.3f s time", t2-t1, t3- t2);
+        my_message(msg, rank);
+
+        if(error_flag == 1){
+            sprintf(msg, "ERROR when read divergence from Dspaces");
+            my_message(msg, rank);
+        }
+        // if everything is fine we start clustering
+        else{
+
+            // clustering parameters
+            int nclusters = 3;
+            int npass = 100;
+            int clusterid[num_region];
+            double error;
+            int ifound;
+
+
+            sprintf(msg, "start clustering");
+            my_message(msg, rank);
+
+            t1 = MPI_Wtime();
+            kmedoids(nclusters, num_region, matrix, npass, clusterid, &error, &ifound);
+
+            t2 = MPI_Wtime();
+
+            sprintf(msg, "finished clustering in %.3lf s  time", t2 -t1);
+            my_message(msg, rank);
+
+            // save cluster results into file
+            char *output_path = "data/clusterid_201_1.txt";
+            FILE * f_clusterid = fopen(output_path, "w");
+            if(f_clusterid == NULL){
+                perror("file open error");                                                                                                                                                            
+                exit(-1);
+            }
+
+            for(i = 0; i < num_region; i++){
+                fprintf(f_clusterid, "%d\n",clusterid[i]);
+            }
+            
+            fclose(f_clusterid);
+        }
+
+        // free the divergence buffer
+        for(i = 1; i< num_region; i++){
+            if(matrix[i] != NULL) free(matrix[i]);
+        }
+        if(matrix != NULL) {
+            free(matrix);
+            printf("distance matrix freed\n");
+        }
+        dspaces_unlock_on_read("div_lock", &gcomm);
+
+        sprintf(msg, "divergence read lock released ");
+        my_message(msg, rank);
+
 	}
 
 	// DataSpaces: Finalize and clean up DS process
