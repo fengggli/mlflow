@@ -79,12 +79,12 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     // there are (region_length+1)^2 points in each region
     // we can treat data as if there are in 1-demension
     int i, j;
-    int num_elem = (region_length+1)*(region_length +1);
-    //printf("there are %d points in each region\n", num_elem);
-    //fprintf(stderr, "there are %d points in each region\n", num_elem);
+    int num_cell = (region_length+1)*(region_length +1);
+    //printf("there are %d points in each region\n", num_cell);
+    //fprintf(stderr, "there are %d points in each region\n", num_cell);
 
-    float* DisMatrixA = (float *)malloc(sizeof(float)*num_elem*num_elem);
-    float* DisMatrixB = (float *)malloc(sizeof(float)*num_elem*num_elem);
+    float* DisMatrixA = (float *)malloc(sizeof(float)*num_cell*num_cell);
+    float* DisMatrixB = (float *)malloc(sizeof(float)*num_cell*num_cell);
 
     // distance to the k-nearest neighbours
     float dist_tmp = 0;
@@ -98,45 +98,50 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     float den_a, den_b;
 
     // get all the pair-wise distances between all the points 
-    for(i = 0; i < num_elem; i++)
-        for(j = i; j < num_elem; j++){
+    for(i = 0; i < num_cell; i++)
+        for(j = i; j < num_cell; j++){
             if(j == i) 
-                DisMatrixA[i*num_elem+j] = LARGE_NUMBER ;
+                DisMatrixA[i*num_cell+j] = LARGE_NUMBER ;
             else{
                 dist_tmp = (pow(*(A + 3*i) - *(A + 3*j),2) + pow(*(A + 3*i +1) - *(A + 3*j +1), 2)+ pow(*(A+3*i+2) - *(A+3*j+2),2) );
-                DisMatrixA[i* num_elem+j] = dist_tmp;
-                DisMatrixA[j* num_elem+i] = dist_tmp; // fixed the bug k_dist_a == 0
+                DisMatrixA[i* num_cell+j] = dist_tmp;
+                DisMatrixA[j* num_cell+i] = dist_tmp; // fixed the bug k_dist_a == 0
             }
-            //printf("A: distance(%d, %d)is %.4f\n",i,j, DisMatrixA[i*num_elem +j]);
-            //print_matrix(DisMatrixA, num_elem);
+            //printf("A: distance(%d, %d)is %.4f\n",i,j, DisMatrixA[i*num_cell +j]);
+            //print_matrix(DisMatrixA, num_cell);
         }
 
     // also get distances in region B
-    for(i = 0; i < num_elem; i++)
-        for(j = i; j < num_elem; j++){
+#ifdef debug
+    printf("distance region matrix at %p is calculated\n", (void *)A);
+#endif
+    for(i = 0; i < num_cell; i++)
+        for(j = i; j < num_cell; j++){
             if(j == i) 
-                DisMatrixB[i*num_elem+j] = LARGE_NUMBER ;
+                DisMatrixB[i*num_cell+j] = LARGE_NUMBER ;
             else{
                 dist_tmp = (pow(*(B + 3*i) - *(B + 3*j),2) + pow(*(B + 3*i +1) - *(B + 3*j +1), 2)+ pow(*(B+3*i+2) - *(B+3*j+2),2) );
-                DisMatrixB[i* num_elem+j] = dist_tmp;
-                DisMatrixB[j* num_elem+i] = dist_tmp;
+                DisMatrixB[i* num_cell+j] = dist_tmp;
+                DisMatrixB[j* num_cell+i] = dist_tmp;
             }
-            //printf("B: distance(%d, %d)is %.4f\n",i,j, DisMatrixB[i*num_elem +j]);
+            //printf("B: distance(%d, %d)is %.4f\n",i,j, DisMatrixB[i*num_cell +j]);
         }
+
 #ifdef debug
-    print_matrix(DisMatrixA, num_elem, num_elem);
-    print_matrix(DisMatrixB, num_elem, num_elem);
+    printf("distance matrix region at %p is calculated\n", (void *)(B);
+    print_matrix(DisMatrixA, num_cell, num_cell);
+    print_matrix(DisMatrixB, num_cell, num_cell);
 #endif
 
     // start to accumulate the divgence(linear kernel here)
-    for(i = 0; i< num_elem; i++){
+    for(i = 0; i< num_cell; i++){
         // for each point in both regions, get the distance to its k-nearest neighbours
-        k_dist_a = get_bound_dist(i, DisMatrixA, num_elem, k);
-        k_dist_b = get_bound_dist(i, DisMatrixB, num_elem, k);
+        k_dist_a = get_bound_dist(i, DisMatrixA, num_cell, k);
+        k_dist_b = get_bound_dist(i, DisMatrixB, num_cell, k);
 
         // estimate the density
-        den_a = k/((4/3)*(num_elem -1)*PI*pow(k_dist_a, 3));
-        den_b = k/((4/3)*(num_elem -1)*PI*pow(k_dist_b,3));
+        den_a = k/((4/3)*(num_cell -1)*PI*pow(k_dist_a, 3));
+        den_b = k/((4/3)*(num_cell -1)*PI*pow(k_dist_b,3));
 
 #ifdef debug
         printf("\tpoint %d dist in lh %lf, dist in rh %lf;density in lh: %lf, in rh: %lf\n", i, k_dist_a,k_dist_b,den_a, den_b);
@@ -156,6 +161,10 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
             div += den_a*log(den_a/den_b);
         }
     }
+
+#ifdef debug
+    printf("div between regions at %p and %p is calculated\n", (void*)(A), (void *)(B));
+#endif
 
     // for L_2 divergence, square root is required
     if(div_func == 1){

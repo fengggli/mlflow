@@ -37,13 +37,15 @@ void get_pair_index(int *table, int index_pair,int *a, int *b){
 
 
 // test segmentation fault
+/*
 int validate_regions(float *buffer_a, int region_memory_size){
     int i;
     for(i = 0; i< region_memory_size;i++){
-        buffer_a[i] == 0;
+        buffer_a[i] = 0.3;
     }
     return 1;
 }
+*/
 
 int main(int argc, char **argv)
 {
@@ -116,7 +118,9 @@ int main(int argc, char **argv)
     if(rank == 0)
         printf("--rank%d:num_tasks=%d, tasks_per_proc=%d,tasks_left_over=%d\n", rank,num_tasks, tasks_per_proc, tasks_left_over);
 
-    int region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);
+    int region_num_cell = (region_length+1)*(region_length+1);
+    // attention here: this is used only when malloc
+    size_t  region_memory_size = region_num_cell*3*sizeof(float);
 
     // generate pair lookup table;
     int *table;
@@ -185,7 +189,7 @@ int main(int argc, char **argv)
 
     // this is the to prefetch all regions
     // note that the regions a rank need may be not continous
-    float *buffer_all_regions = (float*)malloc(region_memory_size*num_region);
+    float *buffer_all_regions = (float*)malloc(region_num_cell*sizeof(float)*3*num_region);
     if(buffer_all_regions == NULL){
         perror("malloc error for regions buffer, now exit");
         exit(-1);
@@ -202,7 +206,7 @@ int main(int argc, char **argv)
         perror("get all regions error, now exit");
         exit(-1);
     }else{
-        sprintf(msg, "read %d regions from dspaces, each has %d bytes", num_region, region_memory_size);
+        sprintf(msg, "read %d regions from dspaces, each has %ld bytes", num_region, region_memory_size);
         my_message(msg, rank);
     }
 
@@ -224,22 +228,23 @@ int main(int argc, char **argv)
         sprintf(msg, "try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
         my_message(msg, rank);
 
-        buffer_a = buffer_all_regions + a*region_memory_size;
-        buffer_b = buffer_all_regions + b*region_memory_size;
+        buffer_a = buffer_all_regions + a*region_num_cell*3;
+        buffer_b = buffer_all_regions + b*region_num_cell*3;
 
         t2 = MPI_Wtime();
 
         int aa, bb;
         // validate the two regions
+        /*
         aa =  validate_regions(buffer_a,region_memory_size);
         bb = validate_regions(buffer_b, region_memory_size);
 
         if(aa == 1 && bb == 1){
-            sprintf(msg, "No.%d/%d pair, region %d and %d is validate",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
+            sprintf(msg, "No.%d/%d pair, region %d(%p) and %d(%p) is validate",i - pair_index_l, pair_index_h - pair_index_l +1, a,(void*)buffer_a, b,(void *)buffer_b);
             my_message(msg, rank);
         }
+        */
             
-
         // we can get the divergence now!
         div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
 
