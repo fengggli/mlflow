@@ -152,14 +152,6 @@ int main(int argc, char **argv)
     int ret_get = -1;
 
 
-    // prepare buffer for regions
-    buffer_a = (float *)malloc(region_memory_size);
-    buffer_b = (float *)malloc(region_memory_size);
-    if(buffer_a == NULL || buffer_b == NULL){
-        perror("malloc error for region buffer, now exit");
-        exit(-1);
-    }
-
     // prepare buffer for divs
     int size_div = (pair_index_h - pair_index_l+1)*sizeof(float);
     printf("div buffer has size %d", size_div);
@@ -181,34 +173,49 @@ int main(int argc, char **argv)
     my_message(msg, rank);
 
 
+    // this is the to prefetch all regions
+    // note that the regions a rank need may be not continous
+    float *buffer_all_regions = (float*)malloc(region_memory_size*num_region);
+    if(buffer_all_regions == NULL){
+        perror("malloc error for regions buffer, now exit");
+        exit(-1);
+    }
+
+    // read all regions in once
+    t1 = MPI_Wtime();
+
+    lb[0] = 0;
+    ub[0] = num_region - 1;
+    ret_get_0 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_all_regions);
+
+    if(ret_get_0 != 0){
+        perror("get all regions error, now exit");
+        exit(-1);
+    }else{
+        sprintf(msg, "read all the regions from dspaces");
+        my_message(msg, rank);
+    }
+
+    // read all regions in once
+    t2 = MPI_Wtime();
+    time_comm += t2 -t1;
+
+    // now we can release velocity lock
+	dspaces_unlock_on_read("region_lock", &gcomm);
 
     for(i = pair_index_l; i<= pair_index_h; i++){
 
         // get the region index of that pair
         get_pair_index(table, i, &a, &b);
 
-            
-        // get buffer for left region
-        lb[0]= a;
-        ub[0] =a;
+        sprintf(msg, "try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
+        my_message(msg, rank);
 
+        buffer_a = buffer_all_regions + a*region_memory_size;
+        buffer_b = buffer_all_regions + b*region_memory_size;
 
-        t1 = MPI_Wtime();
-        ret_get_0 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_a);
-
-        // get buffer for right region
-        lb[0]= b;
-        ub[0] =b;
-        ret_get_1 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_b);
         t2 = MPI_Wtime();
-
-        if(ret_get_0 == 0 && ret_get_1 == 0){
-            //sprintf(msg, "get regions %d and %d success",a, b);
-        }else{
-            sprintf(msg, "ERROR when getting regions %d and %d",a, b);
-            my_message(msg, rank);
-        }
-
+            
         // we can get the divergence now!
         div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
 
@@ -221,18 +228,11 @@ int main(int argc, char **argv)
         divs_this_rank[i - pair_index_l] = div;
 
         // record the time for communication and calculation
-        time_comm += t2 -t1;
         time_cal += t3 -t2;
     }
 
-    // now we can release velocity lock
-	dspaces_unlock_on_read("region_lock", &gcomm);
 
-
-    t2 = MPI_Wtime();
-
-    free(buffer_a);
-    free(buffer_b);
+    free(buffer_all_regions);
 
 
     dspaces_lock_on_write("div_lock", &gcomm);

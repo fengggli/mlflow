@@ -48,7 +48,7 @@ void free_lookup_table(int * table);
  *  i: index of pair
  *  range: how many elements
  * output:
- *  a, b: index of two regions, a<b
+ *  a, b: index of two regions, a<b, start from 0!
  */
 void get_pair_index(int *table, int index_pair,int *a, int *b);
 

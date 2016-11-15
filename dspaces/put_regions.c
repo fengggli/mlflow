@@ -85,7 +85,7 @@ int main(int argc, char **argv)
         // each "cell" is a region 
 		// ndim: Dimensions for application data domain
 		// In this case, our data array will be 1 dimensional
-		int ndim = 1; 
+		int ndim = 3; 
 		
 		// Prepare LOWER and UPPER bound dimensions, init 0s
         // feng: assign correct bound based on rank and total number of regions
