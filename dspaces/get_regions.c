@@ -168,8 +168,10 @@ int main(int argc, char **argv)
     while(timestep <= MAX_VERSION){
         timestep++;
 
-        if(rank == 0)
-        printf("\n********************timestep %d now start!\n",timestep);
+        if(rank == 0){
+            sprintf(msg, "\n********************timestep %d now start!\n",timestep);
+            my_message(msg, rank);
+        }
         // I should wait after all regions are placed into dspaces
 
         // return values for regions dspaces operations
@@ -183,7 +185,9 @@ int main(int argc, char **argv)
 
         // prepare buffer for divs
         int size_div = (pair_index_h - pair_index_l+1)*sizeof(float);
-        printf("div buffer has size %d", size_div);
+        sprintf(msg, "div buffer has size %d", size_div);
+        my_message(msg, rank);
+
         divs_this_rank = (float *)malloc(size_div);
         if(divs_this_rank == NULL){
             perror("malloc error for div buffer, now exit");

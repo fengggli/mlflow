@@ -23,8 +23,11 @@ get_regions: dspaces/get_regions.o  src/get_divs.o
 	    $(CC) -o $(BIN)/get_regions $^ $(DS_LIB) $(LDFLAGS)
 
     
-put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/read_file.o src/divide.o cluster/cluster.o
+put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/read_file.o src/divide.o 
 	    h5pcc -o $(BIN)/put_regions $^ $(DS_LIB)  $(LDFLAGS)
+
+analysis: dspaces/analysis.o cluster/cluster.o
+	    $(CC) -o $(BIN)/analysis  $^ $(DS_LIB) $(LDFLAGS)
 
 clean:
 	$(RM) cluster/*.o

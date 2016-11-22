@@ -9,6 +9,7 @@
 // points in each side  of this data block from hdf5 file
 // 51 or 201
 #define POINTS_SIDE (51)
+#define NUM_REGION (25)
 #define TIMING
 
 // frequency when print divergence result
