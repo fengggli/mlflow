@@ -1,0 +1,8 @@
+Use of uninitialized value in multiplication (*) at /opt/sdsc/bin/ibrun line 99.
+Use of uninitialized value in multiplication (*) at /opt/sdsc/bin/ibrun line 232, <NODEFILE> line 13.
+Use of uninitialized value in division (/) at /opt/sdsc/bin/ibrun line 287, <NODEFILE> line 13.
+Use of uninitialized value $npernode1 in foreach loop entry at /opt/sdsc/bin/ibrun line 468, <NODEFILE> line 13.
+'ds_boot_master()': all the peer are registered.13 12
+'ds_alloc()': init ok.
+[comet-03-01.sdsc.edu:mpirun_rsh][signal_processor] Caught signal 15, killing job
+Connection to comet-03-01 closed by remote host.

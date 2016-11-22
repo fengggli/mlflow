@@ -1,0 +1,24 @@
+Use of uninitialized value in multiplication (*) at /opt/sdsc/bin/ibrun line 99.
+Use of uninitialized value in multiplication (*) at /opt/sdsc/bin/ibrun line 232, <NODEFILE> line 13.
+Use of uninitialized value in division (/) at /opt/sdsc/bin/ibrun line 287, <NODEFILE> line 13.
+Use of uninitialized value $npernode1 in foreach loop entry at /opt/sdsc/bin/ibrun line 468, <NODEFILE> line 13.
+dc_alloc succeed 1.
+**rank 0: dataspaces init successfully
+**rank 0: 
+********************timestep 1 now start!
+
+**rank 0: try to acquired div read lock
+**rank 0: acquired div read lock
+**rank 0: divergence matrix constructed, now try to fill all the values
+**rank 0: all the divergence is read from dataspaces
+**rank 0: divergence matrix read 0.125 s,filled in 0.000 s time
+**rank 0: start clustering
+**rank 0: finished clustering in 0.001 s  time
+distance matrix freed
+**rank 0: divergence read lock released 
+**rank 0: 
+********************timestep 2 now start!
+
+**rank 0: try to acquired div read lock
+[comet-03-01.sdsc.edu:mpirun_rsh][signal_processor] Caught signal 15, killing job
+Connection to comet-03-01 closed by remote host.

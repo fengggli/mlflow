@@ -1,0 +1,31 @@
+Use of uninitialized value in multiplication (*) at /opt/sdsc/bin/ibrun line 99.
+Use of uninitialized value in multiplication (*) at /opt/sdsc/bin/ibrun line 232, <NODEFILE> line 13.
+Use of uninitialized value in division (/) at /opt/sdsc/bin/ibrun line 287, <NODEFILE> line 13.
+Use of uninitialized value $npernode1 in foreach loop entry at /opt/sdsc/bin/ibrun line 468, <NODEFILE> line 13.
+dc_alloc succeed 2.
+**rank 0: dataspaces init successfully
+**rank 0: 
+********************timestep 1 now start!
+
+**rank 0: try to acquired the region write lock
+**rank 0: acquired the region write lock
+    read data from data/isotropic_51_51_1_t_1.h5 to buffer
+pressure dataset rank 4, dimensions 51 x 51 x 1 x 1 
+ velocity dataset rank 4, dimensions 51 x 51 x 1 x 3 
+pressure data is  thunked
+velocity data is  thunked
+
+ pressure Dataset: 
+    25 x 121 x 3 x sizeof(float) space is allocated to region
+    all the regions are divided
+buffer freed
+    tmp buffer freeed, now prepare to flush into dataspaces
+ **rank 0: 25 regions are generated, each region has size 1452 bytes
+**rank 0: 25 regions are written into Dspaces
+**rank 0: released the region write lock
+**rank 0: 
+********************timestep 2 now start!
+
+**rank 0: try to acquired the region write lock
+[comet-03-01.sdsc.edu:mpirun_rsh][signal_processor] Caught signal 15, killing job
+Connection to comet-03-01 closed by remote host.

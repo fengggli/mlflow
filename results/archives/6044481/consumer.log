@@ -1,0 +1,133 @@
+Use of uninitialized value in multiplication (*) at /opt/sdsc/bin/ibrun line 99.
+Use of uninitialized value in multiplication (*) at /opt/sdsc/bin/ibrun line 232, <NODEFILE> line 13.
+Use of uninitialized value in division (/) at /opt/sdsc/bin/ibrun line 287, <NODEFILE> line 13.
+Use of uninitialized value $npernode1 in foreach loop entry at /opt/sdsc/bin/ibrun line 468, <NODEFILE> line 13.
+dc_alloc succeed 3.
+dc_alloc succeed 4.
+dc_alloc succeed 5.
+dc_alloc succeed 6.
+dc_alloc succeed 7.
+dc_alloc succeed 8.
+dc_alloc succeed 9.
+dc_alloc succeed 10.
+dc_alloc succeed 11.
+dc_alloc succeed 12.
+**rank 8: pair lookup table generated, I am responsible for P240 to P269
+**rank 8: div buffer has size 120
+**rank 8: try to acquired the region read lock
+**rank 5: pair lookup table generated, I am responsible for P150 to P179
+**rank 5: div buffer has size 120
+**rank 5: try to acquired the region read lock
+**rank 4: pair lookup table generated, I am responsible for P120 to P149
+**rank 4: div buffer has size 120
+**rank 4: try to acquired the region read lock
+**rank 1: pair lookup table generated, I am responsible for P30 to P59
+**rank 1: div buffer has size 120
+**rank 1: try to acquired the region read lock
+**rank 9: pair lookup table generated, I am responsible for P270 to P299
+**rank 9: div buffer has size 120
+**rank 9: try to acquired the region read lock
+**rank 7: pair lookup table generated, I am responsible for P210 to P239
+**rank 7: div buffer has size 120
+**rank 7: try to acquired the region read lock
+**rank 2: pair lookup table generated, I am responsible for P60 to P89
+**rank 2: div buffer has size 120
+**rank 2: try to acquired the region read lock
+--rank0:num_tasks=300, tasks_per_proc=30,tasks_left_over=0
+**rank 0: pair lookup table generated, I am responsible for P0 to P29
+**rank 0: 
+********************timestep 1 now start!
+
+**rank 0: div buffer has size 120
+**rank 0: try to acquired the region read lock
+**rank 3: pair lookup table generated, I am responsible for P90 to P119
+**rank 3: div buffer has size 120
+**rank 3: try to acquired the region read lock
+**rank 6: pair lookup table generated, I am responsible for P180 to P209
+**rank 6: div buffer has size 120
+**rank 6: try to acquired the region read lock
+**rank 2: get the  the region read lock
+**rank 6: get the  the region read lock
+**rank 4: get the  the region read lock
+**rank 5: get the  the region read lock
+**rank 7: get the  the region read lock
+**rank 3: get the  the region read lock
+**rank 0: get the  the region read lock
+**rank 9: get the  the region read lock
+**rank 1: get the  the region read lock
+**rank 8: get the  the region read lock
+**rank 5: read 25 regions from dspaces, each has 1452 bytes
+**rank 1: read 25 regions from dspaces, each has 1452 bytes
+**rank 9: read 25 regions from dspaces, each has 1452 bytes
+**rank 7: read 25 regions from dspaces, each has 1452 bytes
+**rank 3: read 25 regions from dspaces, each has 1452 bytes
+**rank 8: read 25 regions from dspaces, each has 1452 bytes
+**rank 4: read 25 regions from dspaces, each has 1452 bytes
+**rank 2: read 25 regions from dspaces, each has 1452 bytes
+**rank 0: read 25 regions from dspaces, each has 1452 bytes
+**rank 6: read 25 regions from dspaces, each has 1452 bytes
+**rank 7: release the region read lock
+**rank 3: release the region read lock
+**rank 5: release the region read lock
+**rank 9: release the region read lock
+**rank 1: release the region read lock
+**rank 6: release the region read lock
+**rank 4: release the region read lock
+**rank 2: release the region read lock
+**rank 8: release the region read lock
+**rank 0: release the region read lock
+**rank 8: divergence of 30 pairs have saved into dspaces
+**rank 3: divergence of 30 pairs have saved into dspaces
+**rank 0: divergence of 30 pairs have saved into dspaces
+**rank 7: divergence of 30 pairs have saved into dspaces
+**rank 2: divergence of 30 pairs have saved into dspaces
+**rank 1: divergence of 30 pairs have saved into dspaces
+**rank 4: divergence of 30 pairs have saved into dspaces
+**rank 9: divergence of 30 pairs have saved into dspaces
+**rank 6: divergence of 30 pairs have saved into dspaces
+**rank 5: divergence of 30 pairs have saved into dspaces
+**rank 4: --time eclapsed for read regions// calculation // put divs:0.0475 0.0470, 0.0120
+**rank 7: --time eclapsed for read regions// calculation // put divs:0.0459 0.0470, 0.0117
+**rank 3: --time eclapsed for read regions// calculation // put divs:0.0470 0.0470, 0.0113
+**rank 9: --time eclapsed for read regions// calculation // put divs:0.0455 0.0471, 0.0121
+**rank 6: --time eclapsed for read regions// calculation // put divs:0.0484 0.0470, 0.0121
+**rank 5: --time eclapsed for read regions// calculation // put divs:0.0444 0.0470, 0.0123
+**rank 2: --time eclapsed for read regions// calculation // put divs:0.0479 0.0469, 0.0119
+**rank 1: --time eclapsed for read regions// calculation // put divs:0.0450 0.0469, 0.0120
+**rank 8: --time eclapsed for read regions// calculation // put divs:0.0472 0.0471, 0.0112
+**rank 0: --time eclapsed for read regions// calculation // put divs:0.0482 0.0471, 0.0116
+**rank 4: --has reached barrier and yeild div read lock to producer
+**rank 3: --has reached barrier and yeild div read lock to producer
+**rank 2: --has reached barrier and yeild div read lock to producer
+**rank 1: --has reached barrier and yeild div read lock to producer
+**rank 5: --has reached barrier and yeild div read lock to producer
+**rank 9: --has reached barrier and yeild div read lock to producer
+**rank 6: --has reached barrier and yeild div read lock to producer
+**rank 7: --has reached barrier and yeild div read lock to producer
+**rank 0: --has reached barrier and yeild div read lock to producer
+**rank 8: --has reached barrier and yeild div read lock to producer
+**rank 4: div buffer has size 120
+**rank 3: div buffer has size 120
+**rank 0: 
+********************timestep 2 now start!
+
+**rank 8: div buffer has size 120
+**rank 2: div buffer has size 120
+**rank 1: div buffer has size 120
+**rank 5: div buffer has size 120
+**rank 9: div buffer has size 120
+**rank 6: div buffer has size 120
+**rank 2: try to acquired the region read lock
+**rank 7: div buffer has size 120
+**rank 4: try to acquired the region read lock
+**rank 9: try to acquired the region read lock
+**rank 0: div buffer has size 120
+**rank 3: try to acquired the region read lock
+**rank 8: try to acquired the region read lock
+**rank 1: try to acquired the region read lock
+**rank 5: try to acquired the region read lock
+**rank 6: try to acquired the region read lock
+**rank 7: try to acquired the region read lock
+**rank 0: try to acquired the region read lock
+[comet-03-01.sdsc.edu:mpirun_rsh][signal_processor] Caught signal 15, killing job
+Connection to comet-03-01 closed by remote host.
