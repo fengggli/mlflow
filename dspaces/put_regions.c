@@ -28,6 +28,11 @@ int main(int argc, char **argv)
 	// Addt'l parameters: Placeholder for future arguments, currently NULL.
 	dspaces_init(1, 1, &gcomm, NULL);
 
+    char msg[80];
+
+    sprintf(msg, "dataspaces init successfully");
+    my_message(msg, rank);
+
         /*
     sprintf(msg, "dataspaces init complete");
     my_message(msg, rank);
@@ -37,13 +42,12 @@ int main(int argc, char **argv)
 	int timestep=0;
 
     // we only need one timestamp
-	while(timestep<1){
+	while(timestep<=MAX_VERSION){
 		timestep++;
 
 		// DataSpaces: Lock Mechanism
 		// Usage: Prevent other process from modifying 
 		// 	  data at the same time as ours
-        char msg[80];
         sprintf(msg, "try to acquired the region write lock");
         my_message(msg, rank);
 
@@ -52,12 +56,11 @@ int main(int argc, char **argv)
         my_message(msg, rank);
 
 
-        sprintf(msg, "init successfully");
-        my_message(msg, rank);
 
         //char * hdfpath = "data/isotropic_201_201_1.h5";
         char hdfpath[80];
-        sprintf(hdfpath, "data/isotropic_%d_%d_1.h5",POINTS_SIDE,POINTS_SIDE);
+        sprintf(hdfpath, "data/isotropic_%d_%d_1_t_%d.h5",POINTS_SIDE,POINTS_SIDE, timestep);
+
         //int region_length = 10;
         int num_region = -1;
         float *regions;
@@ -70,14 +73,17 @@ int main(int argc, char **argv)
         // how large is one region?
         region_memory_size = (REGION_LENGTH+1)*(REGION_LENGTH+1)*3*sizeof(float);
 
-        // if rank == 0 get the data and divide into regions
-        // other processes will wait here
-        generate_regions(hdfpath, REGION_LENGTH, &num_region, &regions);
-        sprintf(msg, "%d regions are generated, each region has size %ld bytes", num_region, region_memory_size);
-        my_message(msg, rank);
+        // validate the path
+        if( access( hdfpath, F_OK ) == -1){
+            sprintf(msg, "path %s does not exist", hdfpath);
+            my_message(msg, rank);
+            exit(-1);
+        }else{
+            generate_regions(hdfpath, REGION_LENGTH, &num_region, &regions);
+            sprintf(msg, "%d regions are generated, each region has size %ld bytes", num_region, region_memory_size);
+            my_message(msg, rank);
+        }
         
-
-
 		//Name the Data that will be writen
 		char var_name[128];
 		sprintf(var_name, "region_data");

@@ -2831,7 +2831,8 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
   int counter_pass = 0; 
   do /* Start the loop */
   { 
-      printf("\nstart No.%d run\n", ++counter_pass);
+      ++counter_pass;
+      //printf("\nstart No.%d run\n", ++counter_pass);
       double total = DBL_MAX;
 
     int counter = 0;
@@ -2872,7 +2873,9 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
         }
         total += distance;
       }
+#ifdef debug
       printf("recenter No.%d, previous total dist: %.3lf, current total dist: %.3lf\n",counter, previous, total);
+#endif
       if (total>=previous) break;
 
       /* total>=previous is FALSE on some machines even if total and previous

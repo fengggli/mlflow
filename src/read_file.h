@@ -7,8 +7,8 @@
 //#define FILE        "data/test_1_2_3_4.h5"
 //#define FILE        "data/isotropic_255_255_5.h5"
 #define DATASET_NAME
-#define DATASET_P "p00000" // dataset name for pressure
-#define DATASET_U "u00000" // dataset name for velocity 
+//#define DATASET_P "p00000" // dataset name for pressure
+//#define DATASET_U "u00000" // dataset name for velocity 
 
 #define RANK         4 // four dims: x y z and time 
 #define p_malloc_error(I) {printf("malloc failuren at %d",I);exit(-1);} 

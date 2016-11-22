@@ -13,6 +13,7 @@
  * */
 
 #include <stdint.h>
+#include <unistd.h>
 #include "dataspaces.h"
 #include "run_with_dspaces.h"
 #include "mpi.h"

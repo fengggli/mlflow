@@ -4,7 +4,7 @@
 
 int generate_regions(char *hdfpath, int region_length, int *p_num_region, float **p_regions){
     
-    printf("    read data to buffer\n");
+    printf("    read data from %s to buffer\n", hdfpath);
 
     int dim1, dim2, dim3;
     
