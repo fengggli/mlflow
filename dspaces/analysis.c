@@ -41,9 +41,21 @@ int main(int argc, char **argv)
 	// Timestep notation left in to demonstrate how this can be adjusted
 	int timestep=0;
 
+    char lock_name_regions[STRING_LENGTH];
+    char lock_name_divs[STRING_LENGTH];
+
+
+    char output_path[STRING_LENGTH];
+    /*
+        snprintf(lock_name_regions, STRING_LENGTH, "region_lock_same");
+        snprintf(lock_name_divs, STRING_LENGTH, "div_lock_same");
+        */
+
     // we will receive each timestamp
-	while(timestep<=MAX_VERSION){
-		timestep++;
+    while(timestep < MAX_VERSION){
+        timestep++;
+        snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
+        snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
 
             if(rank == 0){
                 sprintf(msg, "\n********************timestep %d now start!\n",timestep);
@@ -57,7 +69,7 @@ int main(int argc, char **argv)
             uint64_t lb_div[3] = {0}, ub_div[3] = {0};
             // save divergence in a 1-d array! this will save space
             int ndim_div = 3;
-            char var_name_div[128];
+            char var_name_div[STRING_LENGTH];
             sprintf(var_name_div, "div_data");
             uint64_t gdim_div[3] = {10000,1,1};
             dspaces_define_gdim(var_name_div, 3,gdim_div);
@@ -68,16 +80,6 @@ int main(int argc, char **argv)
 
             // now anlysis
             // get the clustering done here
-
-            // every rank need at least acquire the lock
-            
-            sprintf(msg, "try to acquired div read lock");
-            my_message(msg, rank);
-
-            dspaces_lock_on_read("div_lock", &gcomm);
-            sprintf(msg, "acquired div read lock");
-            my_message(msg, rank);
-
 
             //reconstruct the divergence matrix, this is a ragged matrix, only le 
             //see the distancematrix function in cluster.c 
@@ -114,8 +116,26 @@ int main(int argc, char **argv)
             lb_div[0] = 0; 
             ub_div[0] = num_tasks-1;
 
+            // every rank need at least acquire the lock
+            sprintf(msg, "try to acquired div read lock %s", lock_name_divs);
+            my_message(msg, rank);
+
+            dspaces_lock_on_read(lock_name_divs, &gcomm);
+            sprintf(msg, "acquired div read lock");
+            my_message(msg, rank);
+
+
+
             t1 = MPI_Wtime();
             ret_get = dspaces_get(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, all_divs);
+            t2 = MPI_Wtime();
+
+            dspaces_unlock_on_read(lock_name_divs, &gcomm);
+
+            sprintf(msg, "divergence read lock released ");
+            my_message(msg, rank);
+            
+            // reconstruct the matrix
             if(ret_get != 0){
                         error_flag  = 1;
                         exit(-1);
@@ -123,13 +143,10 @@ int main(int argc, char **argv)
             sprintf(msg, "all the divergence is read from dataspaces");
             my_message(msg, rank);
 
-            // reconstruct the matrix
-            t2 = MPI_Wtime();
             for(i = 1; i < num_region; i++){
                 for(j = 0; j < i;j++){
                     // its the same order as when its saved
                     matrix[i][j] = all_divs[count];
-                    
                     count +=1;
                 }
             }
@@ -167,7 +184,7 @@ int main(int argc, char **argv)
                 my_message(msg, rank);
 
                 // save cluster results into file
-                char *output_path = "data/clusterid_201_1.txt";
+                snprintf(output_path, STRING_LENGTH,"data/clustering_results/%d_t_%d.txt", POINTS_SIDE, timestep);
                 FILE * f_clusterid = fopen(output_path, "w");
                 if(f_clusterid == NULL){
                     perror("file open error");                                                                                                                                                            
@@ -189,10 +206,7 @@ int main(int argc, char **argv)
                 free(matrix);
                 printf("distance matrix freed\n");
             }
-            dspaces_unlock_on_read("div_lock", &gcomm);
-
-            sprintf(msg, "divergence read lock released ");
-            my_message(msg, rank);
+            
 	}
 
     sprintf(msg, "now finalize the dspaces and exit");

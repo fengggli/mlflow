@@ -1,6 +1,7 @@
 #ifndef REGION_DEF_H
 #define REGION_DEF_H
 // define data block size, region size
+// version number is from 1,2,3,4... MAX_VERSION
 #define MAX_VERSION (5)
 
 // side length(points num -1) in each region
@@ -11,6 +12,9 @@
 #define POINTS_SIDE (51)
 #define NUM_REGION (25)
 #define TIMING
+
+// max length of a string
+#define STRING_LENGTH (80)
 
 // frequency when print divergence result
 #define PER_FREQ (5)

@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 	// Addt'l parameters: Placeholder for future arguments, currently NULL.
 	dspaces_init(1, 1, &gcomm, NULL);
 
-    char msg[80];
+    char msg[STRING_LENGTH];
 
     sprintf(msg, "dataspaces init successfully");
     my_message(msg, rank);
@@ -41,26 +41,28 @@ int main(int argc, char **argv)
 	// Timestep notation left in to demonstrate how this can be adjusted
 	int timestep=0;
 
+    //Name the Data that will be writen
+    char var_name[STRING_LENGTH];
+    sprintf(var_name, "region_data");
+
+    char lock_name_regions[STRING_LENGTH];
+    char lock_name_divs[STRING_LENGTH];
+
+    /*
+        snprintf(lock_name_regions, STRING_LENGTH, "region_lock_same");
+        snprintf(lock_name_divs, STRING_LENGTH, "div_lock_same", timestep);
+        */
     // we will receive each timestamp
-	while(timestep<=MAX_VERSION){
-		timestep++;
+    while(timestep < MAX_VERSION){
+        timestep++;
+        
+        snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
+        snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
 
             if(rank == 0){
                 sprintf(msg, "\n********************timestep %d now start!\n",timestep);
                 my_message(msg, rank);
             }
-
-            // DataSpaces: Lock Mechanism
-            // Usage: Prevent other process from modifying 
-            // 	  data at the same time as ours
-            sprintf(msg, "try to acquired the region write lock");
-            my_message(msg, rank);
-
-            dspaces_lock_on_write("region_lock", &gcomm);
-            sprintf(msg, "acquired the region write lock");
-            my_message(msg, rank);
-
-
 
             //char * hdfpath = "data/isotropic_201_201_1.h5";
             char hdfpath[80];
@@ -89,9 +91,6 @@ int main(int argc, char **argv)
                 my_message(msg, rank);
             }
             
-            //Name the Data that will be writen
-            char var_name[128];
-            sprintf(var_name, "region_data");
 
             // each "cell" is a region 
             // ndim: Dimensions for application data domain
@@ -105,9 +104,27 @@ int main(int argc, char **argv)
             // Bounds: 0,0,0 to 127,0,0
             ub[0] = num_region-1;
 
+            // DataSpaces: Lock Mechanism
+            // Usage: Prevent other process from modifying 
+            // 	  data at the same time as ours
+            sprintf(msg, "try to acquired the region write lock %s", lock_name_regions);
+            my_message(msg, rank);
+
+            dspaces_lock_on_write(lock_name_regions, &gcomm);
+            sprintf(msg, "acquired the region write lock");
+            my_message(msg, rank);
+
+
             // DataSpaces: Put data array into the space
             // 1 integer in each box, fill boxes 0,0,0 to 127,0,0
             ret_put = dspaces_put(var_name, timestep, region_memory_size, ndim, lb, ub, regions);
+
+            // DataSpaces: Release our lock on the data
+            dspaces_unlock_on_write(lock_name_regions, &gcomm);
+            sprintf(msg, "released the region write lock");
+            my_message(msg, rank);
+
+
             if(ret_put == 0){
                 sprintf(msg, "%d regions are written into Dspaces",num_region);
             }
@@ -117,14 +134,7 @@ int main(int argc, char **argv)
             my_message(msg, rank);
 
             free(regions);
-            // DataSpaces: Release our lock on the data
-            dspaces_unlock_on_write("region_lock", &gcomm);
-            
-
-            sprintf(msg, "released the region write lock");
-            my_message(msg, rank);
-
-        
+                    
 	}
 
     sprintf(msg, "now finalize the dspaces and exit");

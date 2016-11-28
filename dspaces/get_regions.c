@@ -66,11 +66,11 @@ int main(int argc, char **argv)
 
 
  	// Name our data.
-	char var_name[128];
+	char var_name[STRING_LENGTH];
 	sprintf(var_name, "region_data");
 
 
-    char msg[80];
+    char msg[STRING_LENGTH];
         
     
     // region definition
@@ -87,8 +87,6 @@ int main(int argc, char **argv)
     int num_region =side_num_region*side_num_region ;
     
 
-    // how many neareast neighbours: 3
-    int k = 3;
 
     // !!!feng: we should know how many regions in total so that we can asign the pairs
     // MPI_receive here?
@@ -159,14 +157,24 @@ int main(int argc, char **argv)
     // every time read all the regions
     float *buffer_all_regions;
 
-
+    // k-nearest neighbours
+    int k = 3;
 
     // use L2 divergence
     int div_func = 1;
 
     int timestep=0;
-    while(timestep <= MAX_VERSION){
+    char lock_name_regions[STRING_LENGTH];
+    char lock_name_divs[STRING_LENGTH];
+
+    /*
+    snprintf(lock_name_regions, STRING_LENGTH, "region_lock_same");
+    snprintf(lock_name_divs, STRING_LENGTH, "div_lock_same");
+        */
+    while(timestep < MAX_VERSION){
         timestep++;
+        snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
+        snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
 
         if(rank == 0){
             sprintf(msg, "\n********************timestep %d now start!\n",timestep);
@@ -195,16 +203,10 @@ int main(int argc, char **argv)
         }
 
 
-        // read regions from dataspaces
+        // prepare to read regions from dataspaces
+        lb[0] = 0;
+        ub[0] = num_region - 1;
         
-        sprintf(msg, "try to acquired the region read lock");
-        my_message(msg, rank);
-
-        dspaces_lock_on_read("region_lock", &gcomm);
-
-        sprintf(msg, "get the  the region read lock");
-        my_message(msg, rank);
-
 
         // this is the to prefetch all regions
         // note that the regions a rank need may be not continous
@@ -214,12 +216,24 @@ int main(int argc, char **argv)
             exit(-1);
         }
 
+        sprintf(msg, "try to acquired the region read lock %s", lock_name_regions );
+        my_message(msg, rank);
+        dspaces_lock_on_read(lock_name_regions, &gcomm);
+
+        sprintf(msg, "get the  the region read lock");
+        my_message(msg, rank);
+
         // read all regions in once
         t1 = MPI_Wtime();
 
-        lb[0] = 0;
-        ub[0] = num_region - 1;
         ret_get_0 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_all_regions);
+
+        t2 = MPI_Wtime();
+
+        // now we can release region lock
+        dspaces_unlock_on_read(lock_name_regions, &gcomm);
+        sprintf(msg, "release the region read lock");
+        my_message(msg, rank);
 
         if(ret_get_0 != 0){
             perror("get all regions error, now exit");
@@ -230,15 +244,9 @@ int main(int argc, char **argv)
         }
 
         // read all regions in once
-        t2 = MPI_Wtime();
         time_comm += t2 -t1;
 
-        // now we can release region lock
-        dspaces_unlock_on_read("region_lock", &gcomm);
-
-        sprintf(msg, "release the region read lock");
-        my_message(msg, rank);
-
+        
         for(i = pair_index_l; i<= pair_index_h; i++){
 
             // get the region index of that pair
@@ -287,15 +295,29 @@ int main(int argc, char **argv)
         free(buffer_all_regions);
 
 
-        dspaces_lock_on_write("div_lock", &gcomm);
-        // write div information into div variable
+        lb_div[0] = pair_index_l, ub_div[0] = pair_index_h;
+
+        // div variable operation
+        sprintf(msg, "try to acquired the div write lock %s",lock_name_divs);
+        my_message(msg, rank);
+        dspaces_lock_on_write(lock_name_divs, &gcomm);
+
+        sprintf(msg, "get div write lock");
+        my_message(msg, rank);
 
         //!!!! pay attention to the order of dimensions!
-        lb_div[0] = pair_index_l, ub_div[0] = pair_index_h;
 
         t1 = MPI_Wtime();
         ret_put = dspaces_put(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, divs_this_rank);
         t2 = MPI_Wtime();
+
+        // write div information into div variable
+        dspaces_unlock_on_write(lock_name_divs, &gcomm);
+
+        sprintf(msg, " div write lock is released");
+        my_message(msg, rank);
+
+
 
         // how about the symmetric part?
 
@@ -307,7 +329,6 @@ int main(int argc, char **argv)
         my_message(msg, rank);
 
 
-        dspaces_unlock_on_write("div_lock", &gcomm);
 
         // now the divs buffer can be freed
         if(divs_this_rank != NULL){
@@ -322,16 +343,12 @@ int main(int argc, char **argv)
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
         my_message(msg, rank);
     }
-
 	
     if(table != NULL);
     free_lookup_table(table);
 
-
     sprintf(msg, "now finalize the dspaces and exit");
     my_message(msg, rank);
-
-
 
 	// DataSpaces: Finalize and clean up DS process
 	dspaces_finalize();
