@@ -13,7 +13,7 @@ DS_INC=-I ${DS_ROOT}/include -I${H5_ROOT}/include -Icluster -Isrc -Idspaces
 DS_LIB=-L ${DS_ROOT}/lib -L $(H5_ROOT)/lib -ldspaces -ldscommon -ldart -lrdmacm -libverbs -lm -lpthread
 
 CC=mpicc                       
-.PHONY: clean get_regions put_regions
+.PHONY: clean get_regions put_regions all analysis
 
 %.o : %.c $(DEPS_DS)
 	    $(CC) -c -o $@ $< $(DS_INC) $(CCFLAGS)
@@ -28,6 +28,8 @@ put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/rea
 
 analysis: dspaces/analysis.o cluster/cluster.o
 	    $(CC) -o $(BIN)/analysis  $^ $(DS_LIB) $(LDFLAGS)
+
+all: get_regions put_regions analysis
 
 clean:
 	$(RM) cluster/*.o

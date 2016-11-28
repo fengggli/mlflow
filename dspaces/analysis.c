@@ -195,6 +195,9 @@ int main(int argc, char **argv)
             my_message(msg, rank);
 	}
 
+    sprintf(msg, "now finalize the dspaces and exit");
+    my_message(msg, rank);
+
 	// DataSpaces: Finalize and clean up DS process
 	dspaces_finalize();
 

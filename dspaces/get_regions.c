@@ -273,19 +273,6 @@ int main(int argc, char **argv)
             sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
             my_message(msg, rank);
 #endif
-            // output each 5% progress
-            /*
-            if(PER_FREQ != 0){
-                int slice = tasks_per_proc*PER_FREQ/100;
-                int quot = (i-pair_index_l + 1)/slice;
-                int remainer =(i-pair_index_l + 1)%slice;
-
-                if(remainer == 0){
-                    sprintf(msg, "divergence has completed %d%%", quot*PER_FREQ );
-                    my_message(msg, rank);
-                }
-            }
-            */
 
             t3 = MPI_Wtime();
 
@@ -339,6 +326,12 @@ int main(int argc, char **argv)
 	
     if(table != NULL);
     free_lookup_table(table);
+
+
+    sprintf(msg, "now finalize the dspaces and exit");
+    my_message(msg, rank);
+
+
 
 	// DataSpaces: Finalize and clean up DS process
 	dspaces_finalize();
