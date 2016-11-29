@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 	// Addt'l parameters: Placeholder for future arguments, currently NULL.
 	dspaces_init(1, 3, &gcomm, NULL);
 
-    char msg[80];
+    char msg[STRING_LENGTH];
 
     sprintf(msg, "dataspaces init successfully");
     my_message(msg, rank);

@@ -42,4 +42,15 @@ if [ ! -f $FILE_601 ] ; then
         wget http://dsp033.pha.jhu.edu/jhtdb/getcutout/com.gmail.lf921227-069b89fb/isotropic1024coarse/p,u/0,1/0,1/0,601/0,601/hdf5 -O $FILE_601 
 fi
 
+# how many points in each side
+POINTS_SIDE=201
+for timestep in {1..10}
+do
+    file_name=isotropic_${POINTS_SIDE}_${POINTS_SIDE}_1_t_${timestep}.h5
+    if [ ! -f $file_name ] ; then
+        wget http://dsp033.pha.jhu.edu/jhtdb/getcutout/com.gmail.lf921227-069b89fb/isotropic1024coarse/p,u/${timestep},1/0,1/0,${POINTS_SIDE}/0,${POINTS_SIDE}/hdf5 -O $file_name
+        echo "download ${POINTS_SIDE}*${POINTS_SIDE}*1 data cut in timestep ${timestep}"
+    fi
+done
+
 echo 'all data files are present in data/ folder'

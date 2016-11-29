@@ -6,17 +6,24 @@ import matplotlib.gridspec as gridspec
 # show clustering result
 sideLength = 20
 matrix = np.zeros((sideLength, sideLength), dtype=int)
-f1 = open('data/clusterid.txt', 'r')
+f1 = open('../data/clustering_results/201_t_1.txt', 'r')
 i = 0
 j = 0
+
+all_classes=[]
 for line in f1:
     tmp = int(line)
-    if tmp == 194:
+    if tmp not in all_classes:
+        all_classes.append(tmp)
+
+for line in f1:
+    tmp = int(line)
+    if tmp == all_classes[0]:
         matrix[i,j] = 1
-    elif tmp == 309:
-        matrix[i,j] = 3
-    else:
+    elif tmp == all_classes[1]:
         matrix[i,j] = 2
+    else:
+        matrix[i,j] = 3
 
     j = j + 1
     if j == sideLength:

@@ -12,5 +12,8 @@ dspaces_server:
 put_regions
     generate the regions(by hdf5 file) and put into dspaces
 get_regions
-    get from regions and calculate divgernce, clustering
+    get from regions and calculate divergence
+analysis part
+    Using the divergence results from 'get_regions', clustering
+    
 
