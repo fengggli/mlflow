@@ -1,6 +1,5 @@
 #include "analysis.h"
 
-
 void my_message(char *msg, int rank){
     printf("**rank %d: %s\n", rank, msg);
 }
