@@ -1,21 +1,4 @@
 #include "sequential_run.h"
-#include "divide.h"
-#include "read_file.h"
-#include "get_divs.h"
-#include "cluster.h"
-
-double get_cur_time() {
-      struct timeval   tv;
-     struct timezone  tz;
-       double cur_time;
-
-         gettimeofday(&tv, &tz);
-           cur_time = tv.tv_sec + tv.tv_usec / 1000000.0;
-
-             return cur_time;
-             } 
-
-
 // read a block cutout from hdf file
 // divide into regions
 // for each region get the density list
@@ -56,7 +39,7 @@ int main(){
 
     if(experiment_set == 0){
         file_name = "data/isotropic_201_201_1.h5";
-        region_length = 10;
+        region_length = REGION_LENGTH;
         if(use_lg == 1){
             dist_path = "data/all_dist_201_lg.txt";
         }
@@ -152,6 +135,8 @@ int main(){
 
     
     for(i = 0; i< num_region; i++){
+
+        fprintf(stderr, "\t processing divs between region %d and others\n", i);
         for(j = i; j < num_region ; j++){
             time_old = time_current;
 
@@ -162,12 +147,10 @@ int main(){
             }
 
             time_current = get_cur_time();
+#ifdef debug
             printf("\t divergence between region %d and %d is %.3f\n", i, j, div);
-            // also print to std error
-            fprintf(stderr, "\t divergence between region %d and %d is %.3f\n", i, j, div);
-
             printf("\t %.3lf s time is used for div\n", time_current - time_old);
-            fprintf(stderr, "\t %.3lf s time is used for div\n", time_current - time_old);
+#endif
             fprintf(f_dist,"%f\n",div);
             /*
             distance[i][j] = div;

@@ -24,4 +24,7 @@
 // frequency when print divergence result
 #define PER_FREQ (5)
 
+// sequential run
+#define SEQ
+
 #endif

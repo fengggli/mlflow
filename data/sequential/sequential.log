@@ -1,7 +1,12 @@
  read data to buffer
-pressure dataset rank -1, dimensions 20 x 0 x 0 x 139637861117767 
- velocity dataset rank -1, dimensions 139637864420832 x 139637864420832 x 20 x 4265656 
+pressure dataset rank 4, dimensions 201 x 201 x 1 x 1 
+ velocity dataset rank 4, dimensions 201 x 201 x 1 x 3 
+pressure data is  thunked
+velocity data is  thunked
 
  pressure Dataset: 
-data is read, dimension is -112306720 * -112306720 * 20
-not pefect division, try different region size of datacut size
+data is read, dimension is 201 * 201 * 1
+    400 x 121 x 3 x sizeof(float) space is allocated to region
+distance matrix is saved in data/sequential/all_dist_201.txt
+	 518.701 s time is used for all divsdiv
+buffer freed
