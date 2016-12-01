@@ -27,7 +27,7 @@ int main(){
     /*********************
      * user definition ends here
      */
-    char *dist_path = NULL;
+    char dist_path[STRING_LENGTH];
     // set 1: 201*201*1 data cutout, region_length 10
     // set 2: 601*601*1 data cutout, region_length 30
     //const char *file_name = "data/test_1_2_3_4.h5";
@@ -35,25 +35,9 @@ int main(){
 
     // divide configrations, length of 10 region will have 11*11 121 points
     int region_length;
-    const char *file_name;
+    char file_name[STRING_LENGTH];
 
-    if(experiment_set == 0){
-        file_name = "data/isotropic_201_201_1.h5";
-        region_length = REGION_LENGTH;
-        if(use_lg == 1){
-            dist_path = "data/all_dist_201_lg.txt";
-        }
-        else{
-            // this is the output
-            dist_path = "data/sequential/all_dist_201.txt";
-        }
-    }
-    else{
-        file_name = "data/isotropic_601_601_1.h5";
-        region_length = 30;
-        dist_path = "data/all_dist_601.txt";
-    }
-
+    
     float *pressure, *velocity;
     int dim1, dim2, dim3;
 
@@ -62,6 +46,26 @@ int main(){
     // how many clusters 
     int ncluster = 3;
     int npass = 1;
+
+    // find k=5 nearest neighbours to determine the density
+    int k = 3;
+
+    if(experiment_set == 0){
+        sprintf(file_name,"data/isotropic_201_201_1.h5");
+        region_length = REGION_LENGTH;
+        if(use_lg == 1){
+            sprintf(dist_path,"data/all_dist_201_lg.txt");
+        }
+        else{
+            // this is the output
+            sprintf(dist_path, "data/sequential/all_dist_201_k_%d.txt", k);
+        }
+    }
+    else{
+        sprintf(file_name, "data/isotropic_601_601_1.h5");
+        region_length = 30;
+        sprintf(dist_path, "data/all_dist_601.txt");
+    }
 
     // clustering result
     /*
@@ -117,8 +121,6 @@ int main(){
     // distance matrix can be very large
     
     float  div;
-    // find k=5 nearest neighbours to determine the density
-    int k = 5;
     // use L-2 divergence
     int div_func = 1;
 

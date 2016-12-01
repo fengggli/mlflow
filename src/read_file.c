@@ -45,6 +45,8 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
     static int marker = 0;
     char name_dataset_p[20];
     char name_dataset_u[20];
+
+    // note: you will need to change this in a more intelligent way
     sprintf(name_dataset_p,"p000%d0", marker);
     sprintf(name_dataset_u,"u000%d0", marker);
 

@@ -40,7 +40,7 @@ fi
 
 # how many points in each side
 POINTS_SIDE=201
-for timestep in {1..10}
+for timestep in {0..9}
 do
     file_name=isotropic_${POINTS_SIDE}_${POINTS_SIDE}_1_t_${timestep}.h5
     vtk_name=isotropic_${POINTS_SIDE}_${POINTS_SIDE}_1_t_${timestep}.vti

@@ -66,7 +66,9 @@ int main(int argc, char **argv)
 
             //char * hdfpath = "data/isotropic_201_201_1.h5";
             char hdfpath[80];
-            sprintf(hdfpath, "data/isotropic_%d_%d_1_t_%d.h5",POINTS_SIDE,POINTS_SIDE, timestep);
+
+            // 
+            sprintf(hdfpath, "data/isotropic_%d_%d_1_t_%d.h5",POINTS_SIDE,POINTS_SIDE, timestep-1);
 
             //int region_length = 10;
             int num_region = -1;
