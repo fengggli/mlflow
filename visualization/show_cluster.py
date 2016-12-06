@@ -33,9 +33,9 @@ else:
         if tmp == all_classes[0]:
             matrix[i,j] = 1
         elif tmp == all_classes[1]:
-            matrix[i,j] = 2
-        else:
             matrix[i,j] = 3
+        else:
+            matrix[i,j] = 2
 
         j = j + 1
         if j == sideLength:

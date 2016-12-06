@@ -42,15 +42,15 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
      * Open the file and the dataset.
      */
     file = H5Fopen(file_name, H5F_ACC_RDONLY, H5P_DEFAULT);
-    static int marker = 0;
+    static int timestep = 0;
     char name_dataset_p[20];
     char name_dataset_u[20];
 
     // note: you will need to change this in a more intelligent way
-    sprintf(name_dataset_p,"p000%d0", marker);
-    sprintf(name_dataset_u,"u000%d0", marker);
+    sprintf(name_dataset_p,"p000%d0", timestep);
+    sprintf(name_dataset_u,"u000%d0", timestep);
 
-    marker+=1;
+    timestep+=1;
     dataset_p = H5Dopen(file, name_dataset_p, H5P_DEFAULT);
     dataset_u = H5Dopen(file, name_dataset_u, H5P_DEFAULT);
  

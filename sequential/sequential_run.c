@@ -43,22 +43,20 @@ int main(){
 
     int i,j,ii, jj, p, q, ret;
 
-    // how many clusters 
-    int ncluster = 3;
-    int npass = 1;
+    int timestep = 0;
 
     // find k=5 nearest neighbours to determine the density
-    int k = 3;
+    int k_npdiv = K_NPDIV;
 
     if(experiment_set == 0){
-        sprintf(file_name,"data/isotropic_201_201_1.h5");
+        sprintf(file_name,"data/isotropic_201_201_1_t_%d.h5", timestep);
         region_length = REGION_LENGTH;
         if(use_lg == 1){
             sprintf(dist_path,"data/all_dist_201_lg.txt");
         }
         else{
             // this is the output
-            sprintf(dist_path, "data/sequential/all_dist_201_k_%d.txt", k);
+            sprintf(dist_path, "data/sequential/all_dist_201_k_%d_t_%d.txt", k_npdiv, timestep);
         }
     }
     else{
@@ -83,8 +81,6 @@ int main(){
     printf("data is read, dimension is %d * %d * %d\n", dim1, dim2, dim3);
     fprintf(stderr, "data is read, dimension is %d * %d * %d\n", dim1, dim2, dim3);
     
-
-
 	// split the slice into regions
     // since we know each region's exact size, we only need record the starting address
     int num_region;
@@ -143,7 +139,7 @@ int main(){
             time_old = time_current;
 
             // starting address of each region as input
-            div = get_divs( regions + i*d2*d3 , regions + j*d2*d3, region_length, k, div_func);
+            div = get_divs( regions + i*d2*d3 , regions + j*d2*d3, region_length, k_npdiv, div_func);
             if(use_lg == 1){
                 div = log(div + 1);
             }

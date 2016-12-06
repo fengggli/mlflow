@@ -2,7 +2,7 @@ OPT=
 CCFLAGS = ${OPT}  
 LDFLAGS = ${OPT} 
 
-SQ_DEPS=src/divide.h cluster/cluster.h src/get_divs.h src/read_file.h src/do_clustering.h src/common_utility.h
+SQ_DEPS=src/divide.h cluster/cluster.h src/get_divs.h src/read_file.h sequential/do_clustering.h src/common_utility.h sequential/sequential_run.h
 RM= rm -rf
 BIN = bin
 
@@ -14,10 +14,10 @@ CC=h5cc
 %.o : %.c $(SEQ_DEPS)
 	    $(CC) -c -o $@ $< $(SQ_INC) $(CCFLAGS)
 
-sequential:src/sequential_run.o src/divide.o src/read_file.o src/get_divs.o src/common_utility.o
+sequential:sequential/sequential_run.o src/divide.o src/read_file.o src/get_divs.o src/common_utility.o
 		$(CC) -o bin/sequential_run $^ $(SQ_LIB) $(LDFLAGS)
 
-clustering:src/do_clustering.o src/common_utility.o cluster/cluster.o 
+clustering:sequential/do_clustering.o src/common_utility.o cluster/cluster.o 
 		$(CC) -o bin/seq_clustering $^ $(SQ_LIB) $(LDFLAGS)
 
 all: sequential clustering
@@ -25,4 +25,5 @@ all: sequential clustering
 clean:
 	$(RM) cluster/*.o
 	$(RM) src/*.o
+	$(RM) sequential/*.o
 	$(RM) bin/*

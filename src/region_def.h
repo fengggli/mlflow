@@ -2,7 +2,7 @@
 #define REGION_DEF_H
 // define data block size, region size
 // version number is from 1,2,3,4... MAX_VERSION
-#define MAX_VERSION (10)
+#define MAX_VERSION (1)
 
 // side length(points num -1) in each region
 #define REGION_LENGTH (10)
@@ -26,5 +26,19 @@
 
 // sequential run
 #define SEQ
+
+/*
+ * NPDIV related
+ */
+// this is the k in density estimation
+#define K_NPDIV (5)
+
+/*
+ * clustering related
+ */
+#
+#define NCLUSTERS (3)
+// clustering
+#define NPASS (100)
 
 #endif

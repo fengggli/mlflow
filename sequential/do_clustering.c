@@ -70,8 +70,15 @@ void run_clustering (int nclusters, int num_region, char *dist_path,
 
 
 int main(){
-    char *dist_path = "data/sequential/all_dist_201.txt";
-    char *output_path = "data/sequential/clusterid_201.txt";
+    // how many neighbors we need to look at in divs
+    int k_npdiv = K_NPDIV;
+    // what is the current timestep
+    int timestep = 0;
+
+    char dist_path[STRING_LENGTH]; 
+    char output_path[STRING_LENGTH]; 
+    sprintf(dist_path, "data/sequential/all_dist_201_k_%d_t_%d.txt", k_npdiv, timestep);
+    sprintf(output_path, "data/sequential/clusterid_201_k_%d_t_%d.txt", k_npdiv, timestep);
     /*
     char *dist_path = "data/all_dist_201_lg.txt";
     char *output_path = "data/clusterid_201_lg_1.txt";
@@ -82,9 +89,9 @@ int main(){
     // timer
     double time_start, time_current;
 
-    nclusters = 3;
-    num_region = 400; 
-    npass =100;
+    nclusters = NCLUSTERS;
+    num_region =NUM_REGION ; 
+    npass =NPASS;
 
     //int clusterid[num_region];
 
