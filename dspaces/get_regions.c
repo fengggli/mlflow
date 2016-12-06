@@ -158,7 +158,7 @@ int main(int argc, char **argv)
     float *buffer_all_regions;
 
     // k-nearest neighbours
-    int k = 5;
+    int k_npdiv = K_NPDIV;
 
     // use L2 divergence
     int div_func = 1;
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 #endif
                 
             // we can get the divergence now!
-            div = get_divs( buffer_a , buffer_b, region_length, k, div_func);
+            div = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
 
 #ifdef debug
             sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);

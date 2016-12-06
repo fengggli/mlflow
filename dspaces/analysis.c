@@ -27,7 +27,15 @@ int main(int argc, char **argv)
 	// Addt'l parameters: Placeholder for future arguments, currently NULL.
 	dspaces_init(1, 3, &gcomm, NULL);
 
+    /*
+     * npdiv parameter
+     */
+    int k_npdiv = K_NPDIV;
+
     char msg[STRING_LENGTH];
+
+    sprintf(msg, "k = %d, max_timestep= %d", K_NPDIV,MAX_VERSION );
+    my_message(msg, rank);
 
     sprintf(msg, "dataspaces init successfully");
     my_message(msg, rank);
@@ -50,10 +58,24 @@ int main(int argc, char **argv)
         snprintf(lock_name_divs, STRING_LENGTH, "div_lock_same");
         */
 
+
+    // save all the divergence
+    char divs_path[STRING_LENGTH];
+    FILE * f_divs;
+
     // we will receive each timestamp
     while(timestep < MAX_VERSION){
         snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
         snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
+
+        snprintf(divs_path, STRING_LENGTH,"data/parallel/divs_results/all_dist_%d_k_%d_t_%d.txt", POINTS_SIDE,k_npdiv, timestep);
+
+        FILE * f_divs = fopen(divs_path, "w");
+
+        if(f_divs == NULL){
+            perror("cannot access the dist_path file");
+            exit(-1);
+        }
 
             if(rank == 0){
                 sprintf(msg, "\n********************timestep %d now start!\n",timestep);
@@ -141,10 +163,13 @@ int main(int argc, char **argv)
             sprintf(msg, "all the divergence is read from dataspaces");
             my_message(msg, rank);
 
+
             for(i = 1; i < num_region; i++){
                 for(j = 0; j < i;j++){
                     // its the same order as when its saved
                     matrix[i][j] = all_divs[count];
+                    // also write to divergence file
+                    fprintf(f_divs, "%d\t %d\t %f\n", i, j, all_divs[count]);
                     count +=1;
                 }
             }
@@ -182,7 +207,7 @@ int main(int argc, char **argv)
                 my_message(msg, rank);
 
                 // save cluster results into file
-                snprintf(output_path, STRING_LENGTH,"data/clustering_results/%d_t_%d.txt", POINTS_SIDE, timestep);
+                snprintf(output_path, STRING_LENGTH,"data/parallel/clustering_results/clusterid_%d_k_%d_t_%d.txt", POINTS_SIDE,k_npdiv, timestep);
                 FILE * f_clusterid = fopen(output_path, "w");
                 if(f_clusterid == NULL){
                     perror("file open error");                                                                                                                                                            
@@ -204,6 +229,9 @@ int main(int argc, char **argv)
                 free(matrix);
                 printf("distance matrix freed\n");
             }
+
+        if(f_divs != NULL)
+            fclose(f_divs);
             
 
         timestep++;
