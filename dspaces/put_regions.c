@@ -54,7 +54,6 @@ int main(int argc, char **argv)
         */
     // we will receive each timestamp
     while(timestep < MAX_VERSION){
-        timestep++;
         
         snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
         snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
@@ -68,7 +67,7 @@ int main(int argc, char **argv)
             char hdfpath[80];
 
             // 
-            sprintf(hdfpath, "data/isotropic_%d_%d_1_t_%d.h5",POINTS_SIDE,POINTS_SIDE, timestep-1);
+            sprintf(hdfpath, "data/isotropic_%d_%d_1_t_%d.h5",POINTS_SIDE,POINTS_SIDE, timestep);
 
             //int region_length = 10;
             int num_region = -1;
@@ -137,6 +136,8 @@ int main(int argc, char **argv)
 
             free(regions);
                     
+
+        timestep++;
 	}
 
     sprintf(msg, "now finalize the dspaces and exit");

@@ -52,7 +52,6 @@ int main(int argc, char **argv)
 
     // we will receive each timestamp
     while(timestep < MAX_VERSION){
-        timestep++;
         snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
         snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
 
@@ -164,8 +163,8 @@ int main(int argc, char **argv)
             else{
 
                 // clustering parameters
-                int nclusters = 3;
-                int npass = 100;
+                int nclusters = NCLUSTERS;
+                int npass = NPASS;
                 int clusterid[num_region];
                 double error;
                 int ifound;
@@ -206,6 +205,8 @@ int main(int argc, char **argv)
                 printf("distance matrix freed\n");
             }
             
+
+        timestep++;
 	}
 
     sprintf(msg, "now finalize the dspaces and exit");

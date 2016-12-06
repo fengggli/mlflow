@@ -158,7 +158,7 @@ int main(int argc, char **argv)
     float *buffer_all_regions;
 
     // k-nearest neighbours
-    int k = 3;
+    int k = 5;
 
     // use L2 divergence
     int div_func = 1;
@@ -172,7 +172,6 @@ int main(int argc, char **argv)
     snprintf(lock_name_divs, STRING_LENGTH, "div_lock_same");
         */
     while(timestep < MAX_VERSION){
-        timestep++;
         snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
         snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
 
@@ -342,6 +341,8 @@ int main(int argc, char **argv)
 
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
         my_message(msg, rank);
+
+        timestep++;
     }
 	
     if(table != NULL);
