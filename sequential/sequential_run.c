@@ -28,6 +28,7 @@ int main(){
      * user definition ends here
      */
     char dist_path[STRING_LENGTH];
+    char divs_path[STRING_LENGTH];
     // set 1: 201*201*1 data cutout, region_length 10
     // set 2: 601*601*1 data cutout, region_length 30
     //const char *file_name = "data/test_1_2_3_4.h5";
@@ -56,7 +57,10 @@ int main(){
         }
         else{
             // this is the output
-            sprintf(dist_path, "data/sequential/all_dist_201_k_%d_t_%d.txt", k_npdiv, timestep);
+            //sprintf(dist_path, "data/sequential/all_dist_201_k_%d_t_%d.txt", k_npdiv, timestep);
+            //sprintf(divs_path, "data/sequential/all_divs_201_k_%d_t_%d.txt", k_npdiv, timestep);
+            sprintf(dist_path, "data/sequential/all_dist_201_k_%d_t_%d_ragged.txt", k_npdiv, timestep);
+            sprintf(divs_path, "data/sequential/all_divs_201_k_%d_t_%d_ragged.txt", k_npdiv, timestep);
         }
     }
     else{
@@ -121,6 +125,7 @@ int main(){
     int div_func = 1;
 
     FILE * f_dist = fopen(dist_path, "w");
+    FILE * f_divs = fopen(divs_path, "w");
     if(f_dist == NULL){
         perror("cannot access the dist_path file");
         exit(-1);
@@ -132,10 +137,10 @@ int main(){
     time_current = time_start;
 
     
-    for(i = 0; i< num_region; i++){
+    for(i = 1; i< num_region; i++){
 
         fprintf(stderr, "\t processing divs between region %d and others\n", i);
-        for(j = i; j < num_region ; j++){
+        for(j = 0; j < i ; j++){
             time_old = time_current;
 
             // starting address of each region as input
@@ -150,6 +155,7 @@ int main(){
             printf("\t %.3lf s time is used for div\n", time_current - time_old);
 #endif
             fprintf(f_dist,"%f\n",div);
+            fprintf(f_divs, "%d\t %d\t %f\n", i, j, div);
             /*
             distance[i][j] = div;
             if(i != j){
@@ -163,6 +169,7 @@ int main(){
     printf("\t %.3lf s time is used for all divsdiv\n", time_current - time_start);
     fprintf(stderr, "\t %.3lf s time is used for all divsdiv\n", time_current - time_start);
     fclose(f_dist);
+    fclose(f_divs);
 
     // do clustering
     //kmedoid(nclusters, nelements, distance, npass, clusterid, &error, &ifound);
