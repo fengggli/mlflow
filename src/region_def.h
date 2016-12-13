@@ -27,6 +27,7 @@
 // sequential run
 #define SEQ
 
+
 /*
  * NPDIV related
  */
@@ -40,5 +41,6 @@
 #define NCLUSTERS (3)
 // clustering
 #define NPASS (100)
+
 
 #endif
