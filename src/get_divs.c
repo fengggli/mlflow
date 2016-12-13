@@ -1,4 +1,8 @@
 #include "get_divs.h"
+#define debug_1
+
+// parallel version and sequential version have different divergence
+#define DEBUG_REGION_MAPPING
 
 /*
  * this is basically a sort function
@@ -97,8 +101,16 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     // the estimated density 
     float den_a, den_b;
 
+
+    printf("matrix A:\n");
+
     // get all the pair-wise distances between all the points 
-    for(i = 0; i < num_cell; i++)
+    for(i = 0; i < num_cell; i++){
+        // bug here, but why!!!!!
+#ifdef debug_1
+        printf("\t point %d: (%.3f %.3f %.3f)\n", i, *(A + 3*i+ 0), *(A +3*i + 1),*(A + 3*i +2)); 
+#endif
+
         for(j = i; j < num_cell; j++){
             if(j == i) 
                 DisMatrixA[i*num_cell+j] = LARGE_NUMBER ;
@@ -110,6 +122,7 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
             //printf("A: distance(%d, %d)is %.4f\n",i,j, DisMatrixA[i*num_cell +j]);
             //print_matrix(DisMatrixA, num_cell);
         }
+    }
 
     // also get distances in region B
 #ifdef debug
@@ -128,7 +141,7 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
         }
 
 #ifdef debug
-    printf("distance matrix region at %p is calculated\n", (void *)(B);
+    printf("distance matrix region at %p is calculated\n", (void *)(B));
     print_matrix(DisMatrixA, num_cell, num_cell);
     print_matrix(DisMatrixB, num_cell, num_cell);
 #endif
@@ -143,7 +156,7 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
         den_a = k/((4/3)*(num_cell -1)*PI*pow(k_dist_a, 3));
         den_b = k/((4/3)*(num_cell -1)*PI*pow(k_dist_b,3));
 
-#ifdef debug
+#ifdef debug_1
         printf("\tpoint %d dist in lh %lf, dist in rh %lf;density in lh: %lf, in rh: %lf\n", i, k_dist_a,k_dist_b,den_a, den_b);
 #endif
         

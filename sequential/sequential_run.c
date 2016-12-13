@@ -24,13 +24,14 @@ int get_all_divs(float *regions,int num_region, int d2, int d3, int region_lengt
         fprintf(stderr, "\t processing divs between region %d and others\n", i);
         for(j = 0; j < i ; j++){
 
+            printf("***processing divs between region %d and %d\n", i, j);
+
             // starting address of each region as input
             div = get_divs( regions + i*d2*d3 , regions + j*d2*d3, region_length, k_npdiv, div_func);
 
-#ifdef debug
-            printf("\t divergence between region %d and %d is %.3f\n", i, j, div);
+            printf("***divergence between region %d and %d is %.3f\n", i, j, div);
            // printf("\t %.3lf s time is used for div\n", time_current - time_old);
-#endif
+           
             //fprintf(f_dist,"%f\n",div);
 
             matrix[i][j] = div;
@@ -87,15 +88,15 @@ int main(){
 
     // input file
     char file_name[STRING_LENGTH];
-    sprintf(file_name,"data/isotropic_201_201_1_t_%d.h5", timestep);
+    sprintf(file_name,"data/isotropic_%d_%d_1_t_%d.h5",POINTS_SIDE ,POINTS_SIDE, timestep);
 
     // divs output file
     char divs_path[STRING_LENGTH];
-    sprintf(divs_path, "data/sequential/all_divs_201_k_%d_t_%d_ragged.txt", k_npdiv, timestep);
+    sprintf(divs_path, "data/sequential/all_divs_%d_k_%d_t_%d_ragged.txt", POINTS_SIDE, k_npdiv, timestep);
 
     // clustering output file
     char output_path[STRING_LENGTH]; 
-    sprintf(output_path, "data/sequential/clusterid_201_k_%d_t_%d_ragged.txt", k_npdiv, timestep);
+    sprintf(output_path, "data/sequential/clusterid_%d_k_%d_t_%d_ragged.txt", POINTS_SIDE, k_npdiv, timestep);
 
     /*
      * user definition ends here
@@ -103,16 +104,7 @@ int main(){
 
 
     // timer
-    double time_start,time_old,time_current;
-
-    /*
-     * Part I obtain all the divs
-     */
-    // set 1: 201*201*1 data cutout, region_length 10
-    // set 2: 601*601*1 data cutout, region_length 30
-    //const char *file_name = "data/test_1_2_3_4.h5";
-    //
-
+    double time_start,time_old,time_current; /* * Part I obtain all the divs */ // set 1: 201*201*1 data cutout, region_length 10 // set 2: 601*601*1 data cutout, region_length 30 //const char *file_name = "data/test_1_2_3_4.h5"; // 
     // divide configrations, length of 10 region will have 11*11 121 points
     int region_length;
 
@@ -150,7 +142,8 @@ int main(){
     divide(velocity, d1, region_length, &num_region, &regions);
 
     if(num_region != NUM_REGION){
-        perror("you should define the NUM_REGION in conf file");
+        printf("you should define the NUM_REGION in conf file");
+        exit(-1);
     }
 
     printf("generate %d regions\n", num_region);

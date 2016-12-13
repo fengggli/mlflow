@@ -9,13 +9,13 @@
 
 // points in each side  of this data block from hdf5 file
 // 51 or 201
-/*
 #define POINTS_SIDE (51)
 #define NUM_REGION (25)
-*/
 
+/*
 #define POINTS_SIDE (201)
 #define NUM_REGION (400)
+*/
 #define TIMING
 
 // max length of a string
@@ -26,6 +26,7 @@
 
 // sequential run
 #define SEQ
+
 
 /*
  * NPDIV related
@@ -40,5 +41,6 @@
 #define NCLUSTERS (3)
 // clustering
 #define NPASS (100)
+
 
 #endif
