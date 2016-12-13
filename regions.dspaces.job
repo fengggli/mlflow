@@ -3,7 +3,7 @@
 #SBATCH -o "results/%j.out"  
 #SBATCH -A prd157
 #SBATCH -p shared
-#SBATCH -n 13
+#SBATCH -n 4
 #SBATCH -N 1
 #SBATCH --export=ALL  
 #SBATCH -t 00:20:00  
@@ -40,7 +40,7 @@ lock_type = 2
 " > dataspaces.conf
 
 ## Run DataSpaces servers
-ibrun -n 1 ${DS_SERVER} -s 1 -c 12  >& ${PBS_RESULTDIR}/server.log &
+ibrun -n 1 ${DS_SERVER} -s 1 -c 3  >& ${PBS_RESULTDIR}/server.log &
 ## Give some time for the servers to load and startup
 while [ ! -f conf ]; do
     sleep 1s
@@ -52,7 +52,7 @@ ibrun -n 1 bin/put_regions >& ${PBS_RESULTDIR}/producer.log &
 
 
 ## Run region reader application
-ibrun -n 10 bin/get_regions >& ${PBS_RESULTDIR}/consumer.log &
+ibrun -n 1 bin/get_regions >& ${PBS_RESULTDIR}/consumer.log &
 
 ## the analysis application
 ibrun -n 1 bin/analysis >& ${PBS_RESULTDIR}/analysis.log &

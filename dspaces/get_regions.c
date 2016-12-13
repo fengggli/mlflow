@@ -1,9 +1,6 @@
 #include "get_regions.h"
 
 
-void my_message(char *msg, int rank){
-    printf("**rank %d: %s\n", rank, msg);
-}
 void generate_lookup_table(int num_region, int **p_table){
     int i, j, count;
 
@@ -106,6 +103,7 @@ int main(int argc, char **argv)
     double time_comm = 0;
     double time_cal = 0;
 	
+    // assign tasks to each rank
 	if(rank<tasks_left_over){
 		pair_index_l = rank*(tasks_per_proc+1);
 		pair_index_h = pair_index_l + tasks_per_proc;
@@ -225,7 +223,7 @@ int main(int argc, char **argv)
         // read all regions in once
         t1 = MPI_Wtime();
 
-        ret_get_0 = dspaces_get(var_name, 1, region_memory_size, ndim, lb, ub, buffer_all_regions);
+        ret_get_0 = dspaces_get(var_name, timestep, region_memory_size, ndim, lb, ub, buffer_all_regions);
 
         t2 = MPI_Wtime();
 
@@ -276,10 +274,8 @@ int main(int argc, char **argv)
             // we can get the divergence now!
             div = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
 
-#ifdef debug
             sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
             my_message(msg, rank);
-#endif
 
             t3 = MPI_Wtime();
 

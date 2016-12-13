@@ -7,8 +7,6 @@
 
 #include "divide.h"
 
-// get current time
-double get_cur_time();
 
 // read a block cutout from hdf file
 // divide into regions

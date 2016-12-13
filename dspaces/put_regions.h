@@ -18,6 +18,7 @@
 #include "run_with_dspaces.h"
 #include "mpi.h"
 #include "region_def.h"
+#include "common_utility.h"
 // Size of array, if changing
 // MUST also change in minmax_reader.c
 #define ARRAY_SIZE 128

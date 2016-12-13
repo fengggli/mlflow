@@ -19,11 +19,11 @@ CC=mpicc
 	    $(CC) -c -o $@ $< $(DS_INC) $(CCFLAGS)
 
 
-get_regions: dspaces/get_regions.o  src/get_divs.o
+get_regions: dspaces/get_regions.o  src/get_divs.o src/common_utility.o
 	    $(CC) -o $(BIN)/get_regions $^ $(DS_LIB) $(LDFLAGS)
 
     
-put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/read_file.o src/divide.o 
+put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/read_file.o src/divide.o  src/common_utility.o
 	    h5pcc -o $(BIN)/put_regions $^ $(DS_LIB)  $(LDFLAGS)
 
 analysis: dspaces/analysis.o cluster/cluster.o

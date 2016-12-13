@@ -12,7 +12,11 @@ double get_cur_time() {
 } 
 
 void my_message(char *msg, int rank){
-    ;
+    if(rank <0)
+        printf("**sequential: %s\n", msg);
+    
+    else
+        printf("**rank %d: %s\n", rank, msg);
 }
 
 

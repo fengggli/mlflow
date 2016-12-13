@@ -1,11 +1,6 @@
 #include "put_regions.h"
 
 
-void my_message(char *msg, int rank){
-    printf("**rank %d: %s\n", rank, msg);
-}
-
-
 int main(int argc, char **argv)
 {
 	int err;
