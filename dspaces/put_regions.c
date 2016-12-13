@@ -1,4 +1,5 @@
 #include "put_regions.h"
+//#define debug_1
 
 
 int main(int argc, char **argv)
@@ -113,6 +114,21 @@ int main(int argc, char **argv)
 
             // DataSpaces: Put data array into the space
             // 1 integer in each box, fill boxes 0,0,0 to 127,0,0
+
+            // check the variables 
+#ifdef debug_1
+            int ii;
+            printf("contents of the points in regions 1 before dividing:\n");
+            int num_cell = (REGION_LENGTH+1)*(REGION_LENGTH +1);
+            int region_id = 1;
+            float* A;
+            A = regions + region_id*(num_cell*3);
+            for(ii == 0 ; ii <  num_cell; ii++){
+                printf("\t point %d: (%.3f %.3f %.3f)\n", ii, *(A + 3*ii+ 0), *(A +3*ii + 1),*(A + 3*ii +2)); 
+            }
+#endif
+
+
             ret_put = dspaces_put(var_name, timestep, region_memory_size, ndim, lb, ub, regions);
 
             // DataSpaces: Release our lock on the data

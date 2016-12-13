@@ -137,7 +137,9 @@ int main(){
     // dim1 = dim2 = 201, in a region, 11 points in each side, thus length 10, the whole block has length 201-1 = 200. So (200/10)^2 400 regions
     // d1 d2 d3 is the 3-dimension matrix 
     int d1 = dim1;
-    int d2 = region_length*region_length;;
+    // fixed on Dec 13
+    //int d2 = region_length*region_length;;
+    int d2 = (region_length + 1)*(region_length+1);
     int d3 = 3;
     divide(velocity, d1, region_length, &num_region, &regions);
 
