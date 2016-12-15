@@ -11,6 +11,13 @@ int main(int argc, char **argv)
 	int nprocs, rank;
 	MPI_Comm gcomm;
 
+    char result_path[STRING_LENGTH]="";
+
+    // output results into a folded specified with a slurm jobid
+    if(argc == 2){
+        strcpy(result_path, argv[1]);
+    }
+
     
     // MPI communicator
 	MPI_Init(&argc, &argv);
@@ -68,12 +75,18 @@ int main(int argc, char **argv)
         snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
         snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
 
-        snprintf(divs_path, STRING_LENGTH,"data/parallel/divs_results/all_dist_%d_k_%d_t_%d.txt", POINTS_SIDE,k_npdiv, timestep);
 
+        if(argc == 2){
+            snprintf(divs_path, STRING_LENGTH,"%s/all_divs_%d_k_%d_t_%d.txt",result_path,  POINTS_SIDE,k_npdiv, timestep);
+        }
+        else{
+            snprintf(divs_path, STRING_LENGTH,"data/parallel/divs_results/all_dist_%d_k_%d_t_%d.txt", POINTS_SIDE,k_npdiv, timestep);
+
+        }
         FILE * f_divs = fopen(divs_path, "w");
 
         if(f_divs == NULL){
-            perror("cannot access the dist_path file");
+            printf("file %s not found, exit", divs_path);
             exit(-1);
         }
 
@@ -181,7 +194,7 @@ int main(int argc, char **argv)
             t3 = MPI_Wtime();
 
 
-            sprintf(msg, "divergence matrix read %.3f s,filled in %.3f s time", t2-t1, t3- t2);
+            sprintf(msg, "divergence matrix read %.3f s,filled in %.3f s time,also saved in %s", t2-t1, t3- t2, divs_path);
             my_message(msg, rank);
 
             if(error_flag == 1){
@@ -211,11 +224,20 @@ int main(int argc, char **argv)
                 my_message(msg, rank);
 
                 // save cluster results into file
-                snprintf(output_path, STRING_LENGTH,"data/parallel/clustering_results/clusterid_%d_k_%d_t_%d.txt", POINTS_SIDE,k_npdiv, timestep);
+                if(argc == 2){
+                    snprintf(output_path, STRING_LENGTH,"%s/clusterid_%d_k_%d_t_%d.txt",result_path,  POINTS_SIDE,k_npdiv, timestep);
+                }
+                else{
+                    snprintf(output_path, STRING_LENGTH,"data/parallel/clustering_results/clusterid_%d_k_%d_t_%d.txt", POINTS_SIDE,k_npdiv, timestep);
+                }
                 FILE * f_clusterid = fopen(output_path, "w");
                 if(f_clusterid == NULL){
-                    perror("file open error");                                                                                                                                                            
+                    printf("file %s not found, exit", output_path);
                     exit(-1);
+                }
+                else{
+                    sprintf(msg, "clustering results saved  in %s", output_path);
+                    my_message(msg, rank);
                 }
 
                 for(i = 0; i < num_region; i++){

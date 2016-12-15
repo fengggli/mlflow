@@ -51,6 +51,15 @@ int main(int argc, char **argv)
 	int nprocs, rank;
 	MPI_Comm gcomm;
 
+    char result_path[STRING_LENGTH]="";
+
+    // output results into a folded specified with a slurm jobid
+    if(argc == 2){
+        strcpy(result_path, argv[1]);
+    }
+
+
+
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);

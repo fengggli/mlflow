@@ -20,7 +20,7 @@
 #define TIMING
 
 // max length of a string
-#define STRING_LENGTH (80)
+#define STRING_LENGTH (160)
 
 // frequency when print divergence result
 #define PER_FREQ (5)

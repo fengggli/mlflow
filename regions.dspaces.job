@@ -52,10 +52,10 @@ ibrun -n 1 bin/put_regions >& ${PBS_RESULTDIR}/producer.log &
 
 
 ## Run region reader application
-ibrun -n 10 bin/get_regions >& ${PBS_RESULTDIR}/consumer.log &
+ibrun -n 10 bin/get_regions ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
 
 ## the analysis application
-ibrun -n 1 bin/analysis >& ${PBS_RESULTDIR}/analysis.log &
+ibrun -n 1 bin/analysis ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/analysis.log &
 
 ## Wait for the entire workflow to finish
 wait
