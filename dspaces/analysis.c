@@ -91,8 +91,13 @@ int main(int argc, char **argv)
             int ndim_div = 3;
             char var_name_div[STRING_LENGTH];
             sprintf(var_name_div, "div_data");
-            uint64_t gdim_div[3] = {10000,1,1};
+            int num_tasks = num_region*(num_region-1)/2;
+
+            uint64_t gdim_div[3] = {num_tasks,1,1};
             dspaces_define_gdim(var_name_div, 3,gdim_div);
+
+            sprintf(msg, "now div variable has dimention %d",num_tasks);
+            my_message(msg, rank);
 
             double t1, t2, t3;
             int i, j, ret_get;
@@ -130,7 +135,6 @@ int main(int argc, char **argv)
             // get data from dspaces
             // how many pairs
 
-            int num_tasks = num_region*(num_region-1)/2;
             float* all_divs = (float*)malloc(num_tasks*sizeof(float));
 
             lb_div[0] = 0; 

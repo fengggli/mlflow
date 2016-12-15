@@ -33,7 +33,10 @@
  * we can use pair index to lookup this table for region index 
  * each entry like this:
  *  pairindex(key) index_a index_b
- * 
+ *  (1,0),0 
+ *  (2,0),1 (2,1),2
+ *  (3,0),3 (3,1),4 (3,2) 5 
+ *
  */
 void generate_lookup_table(int num_region, int **p_table);
 
@@ -49,7 +52,8 @@ void free_lookup_table(int * table);
  *  i: index of pair
  *  range: how many elements
  * output:
- *  a, b: index of two regions, a<b, start from 0!
+ *  a, b: index of two regions, a>b, start from (1,0)!
+ *  linear time
  */
 void get_pair_index(int *table, int index_pair,int *a, int *b);
 

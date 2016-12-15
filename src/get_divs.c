@@ -102,7 +102,9 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     float den_a, den_b;
 
 
+#ifdef debug_1
     printf("matrix A:\n");
+#endif
 
     // get all the pair-wise distances between all the points 
     for(i = 0; i < num_cell; i++){

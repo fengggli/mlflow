@@ -1,4 +1,5 @@
 #include "get_regions.h"
+#define debug_1
 
 
 void generate_lookup_table(int num_region, int **p_table){
@@ -89,6 +90,9 @@ int main(int argc, char **argv)
     // MPI_receive here?
     int num_tasks = num_region*(num_region-1)/2;
 
+    sprintf(msg, "now div variable has dimention %d",num_tasks);
+    my_message(msg, rank);
+
 
 	// Each process will need to compute its DataSpace index
 	int tasks_per_proc = num_tasks/nprocs;
@@ -143,7 +147,11 @@ int main(int argc, char **argv)
     int ndim_div = 3;
 	char var_name_div[128];
 	sprintf(var_name_div, "div_data");
-    uint64_t gdim_div[3] = {10000,1,1};
+
+    
+    //
+    //uint64_t gdim_div[3] = {10000,1,1};
+    uint64_t gdim_div[3] = {num_tasks ,1,1};
     dspaces_define_gdim(var_name_div, 3,gdim_div);
 
     // return values for regions dspaces operations
@@ -249,7 +257,7 @@ int main(int argc, char **argv)
             // get the region index of that pair
             get_pair_index(table, i, &a, &b);
 
-#ifdef debug
+#ifdef debug_1
             sprintf(msg, "try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
             my_message(msg, rank);
 #endif
@@ -300,7 +308,12 @@ int main(int argc, char **argv)
         sprintf(msg, "get div write lock");
         my_message(msg, rank);
 
-        //!!!! pay attention to the order of dimensions!
+        //pay attention to the order of dimensions!
+        //
+#ifdef debug_1
+        sprintf(msg, "write divergence to index%d~%d",  pair_index_l, pair_index_h);
+        my_message(msg, rank);
+#endif
 
         t1 = MPI_Wtime();
         ret_put = dspaces_put(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, divs_this_rank);
@@ -312,17 +325,13 @@ int main(int argc, char **argv)
         sprintf(msg, " div write lock is released");
         my_message(msg, rank);
 
-
-
         // how about the symmetric part?
-
         if(ret_put == 0){
             sprintf(msg, "divergence of %d pairs have saved into dspaces",pair_index_h - pair_index_l +1);
         }else{
             sprintf(msg, "ERROR when storing divergence of region");
         }
         my_message(msg, rank);
-
 
 
         // now the divs buffer can be freed
@@ -333,6 +342,8 @@ int main(int argc, char **argv)
         // should wait until get all the divergence
         sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm, time_cal, t2 -t1);
         my_message(msg, rank);
+
+        // do we need this barrier?
         MPI_Barrier(gcomm);
 
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");

@@ -3,8 +3,8 @@
 #SBATCH -o "results/%j.out"  
 #SBATCH -A prd157
 #SBATCH -p shared
-#SBATCH -n 4
-#SBATCH -N 13
+#SBATCH -n 13
+#SBATCH -N 1
 #SBATCH --export=ALL  
 #SBATCH -t 00:20:00  
 
