@@ -7,24 +7,25 @@ from paraview.simple import *
 #### disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
 
-for timestep in range(1,9):
+points_side = 201;
+
+for timestep in range(0,9):
 #timestep=1
 
 #input and output path
 #vtipath='data/isotropic_201_201_1_t_'+ str(timestep)+'.vtk'
-    vtipath='data/isotropic_201_201_1_t_' + str(timestep) +'.vti'
-    imagepath='data/result_images/isotropic_201_201_1_t_'+ str(timestep) + '.png'
+
+    # rendering now is completed in client side 
+    path_vti = 'data/isotropic_'+str(points_side) + '_'+ str(points_side) + '_1_t_' + str(timestep) +'.vti'
+    path_flow_img ='data/result_images/isotropic_201_201_1_t_'+ str(timestep) + '.png'
     # create a new 'XML Image Data Reader'
-    isotropic_201_201_1_v_pvti = XMLImageDataReader(FileName=vtipath)
+    isotropic_201_201_1_v_pvti = XMLImageDataReader(FileName=path_vti)
     isotropic_201_201_1_v_pvti.PointArrayStatus = ['Pressure', 'Velocity']
 
     # get active view
     renderView1 = GetActiveViewOrCreate('RenderView')
     # uncomment following to set a specific view size
     #renderView1.ViewSize = [784, 784]
-
-    # reset view to fit data
-    renderView1.ResetCamera()
 
     # reset view to fit data
     renderView1.ResetCamera()
@@ -87,23 +88,6 @@ for timestep in range(1,9):
     glyph1Display.OpacityArray = ['POINTS', 'Pressure']
     glyph1Display.OpacityTransferFunction = 'PiecewiseFunction'
 
-    # show color bar/color legend
-    #glyph1Display.SetScalarBarVisibility(renderView1, True)
-
-    # set scalar coloring
-    #ColorBy(glyph1Display, ('POINTS', 'GlyphVector'))
-
-    # rescale color and/or opacity maps used to include current data range
-    #glyph1Display.RescaleTransferFunctionToDataRange(True)
-
-    # show color bar/color legend
-    #glyph1Display.SetScalarBarVisibility(renderView1, True)
-
-    # get color transfer function/color map for 'GlyphVector'
-    #glyphVectorLUT = GetColorTransferFunction('GlyphVector')
-
-    # get opacity transfer function/opacity map for 'GlyphVector'
-    #glyphVectorPWF = GetOpacityTransferFunction('GlyphVector')
 
     # turn off scalar coloring
     ColorBy(glyph1Display, None)
@@ -119,6 +103,6 @@ for timestep in range(1,9):
     renderView1.CameraParallelScale = 0.8677505524277008
 
     # save screenshot
-    SaveScreenshot(imagepath, magnification=1, quality=100, view=renderView1)
-    print('image is saved in', imagepath
+    SaveScreenshot(path_flow_img, magnification=1, quality=100, view=renderView1)
+    print('image of timestep '+str(timestep)+ 'is saved in',path_flow_img)
 

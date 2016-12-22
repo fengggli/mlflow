@@ -3,6 +3,7 @@
 #define COMMON_UTILITY_H
 
 #include <sys/time.h>
+#include <stdio.h>
 
 /*******************************
  * for sequential use

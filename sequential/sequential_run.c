@@ -75,7 +75,7 @@ int run_clustering (int nclusters, int num_region, double **matrix,
 
 int main(){
     
-    printf(" read data to buffer, now use ragged matrix\n");
+    printf(" start.\n");
 
     /**********************
      * user definition starts here
@@ -88,163 +88,169 @@ int main(){
 
     // input file
     char file_name[STRING_LENGTH];
-    sprintf(file_name,"data/isotropic_%d_%d_1_t_%d.h5",POINTS_SIDE ,POINTS_SIDE, timestep);
 
-    // divs output file
-    char divs_path[STRING_LENGTH];
-    sprintf(divs_path, "data/sequential/all_divs_%d_k_%d_t_%d_ragged.txt", POINTS_SIDE, k_npdiv, timestep);
+    for(timestep = 0; timestep< MAX_VERSION; timestep++  ){
 
-    // clustering output file
-    char output_path[STRING_LENGTH]; 
-    sprintf(output_path, "data/sequential/clusterid_%d_k_%d_t_%d_ragged.txt", POINTS_SIDE, k_npdiv, timestep);
+        fprintf(stderr, "timestep %d started \n", timestep);
 
-    /*
-     * user definition ends here
-     ***************************/
+        sprintf(file_name,"data/isotropic_%d_%d_1_t_%d.h5",POINTS_SIDE ,POINTS_SIDE, timestep);
 
+        // divs output file
+        char divs_path[STRING_LENGTH];
+        sprintf(divs_path, "data/sequential/all_divs_%d_k_%d_t_%d_ragged.txt", POINTS_SIDE, k_npdiv, timestep);
 
-    // timer
-    double time_start,time_old,time_current; /* * Part I obtain all the divs */ // set 1: 201*201*1 data cutout, region_length 10 // set 2: 601*601*1 data cutout, region_length 30 //const char *file_name = "data/test_1_2_3_4.h5"; // 
-    // divide configrations, length of 10 region will have 11*11 121 points
-    int region_length;
+        // clustering output file
+        char output_path[STRING_LENGTH]; 
+        sprintf(output_path, "data/sequential/clusterid_%d_k_%d_t_%d_ragged.txt", POINTS_SIDE, k_npdiv, timestep);
 
-    
-    float *pressure, *velocity;
-    int dim1, dim2, dim3;
+        /*
+         * user definition ends here
+         ***************************/
 
-    int i,j, p, q, ret;
+        // timer
+        double time_start,time_old,time_current; /* * Part I obtain all the divs */ // set 1: 201*201*1 data cutout, region_length 10 // set 2: 601*601*1 data cutout, region_length 30 //const char *file_name = "data/test_1_2_3_4.h5"; // 
+        // divide configrations, length of 10 region will have 11*11 121 points
+        int region_length;
 
-
-
-    region_length = REGION_LENGTH;
-
-
-    // read data to buffer
-    read_data(file_name, &pressure, &velocity, &dim1, &dim2, &dim3);
-    //print_p_data(pressure, dim1, dim2, dim3);
-    //save visualized result
-    
-    printf("data is read, dimension is %d * %d * %d\n", dim1, dim2, dim3);
-    fprintf(stderr, "data is read, dimension is %d * %d * %d\n", dim1, dim2, dim3);
-    
-	// split the slice into regions
-    // since we know each region's exact size, we only need record the starting address
-    int num_region;
-
-    // num_regions* points_in_region*3
-    float  *regions;
-
-    // dim1 = dim2 = 201, in a region, 11 points in each side, thus length 10, the whole block has length 201-1 = 200. So (200/10)^2 400 regions
-    // d1 d2 d3 is the 3-dimension matrix 
-    int d1 = dim1;
-    // fixed on Dec 13
-    //int d2 = region_length*region_length;;
-    int d2 = (region_length + 1)*(region_length+1);
-    int d3 = 3;
-    divide(velocity, d1, region_length, &num_region, &regions);
-
-    if(num_region != NUM_REGION){
-        printf("you should define the NUM_REGION in conf file");
-        exit(-1);
-    }
-
-    printf("generate %d regions\n", num_region);
-
-	
-	// caculate the divergence between all regions
-    // distance matrix can be very large
-    
-    // use L-2 divergence
-    int div_func = 1;
-
-    // allocate space the distance matrix
-    double **matrix = malloc(num_region*sizeof(double *)); 
-
-    if(matrix == NULL){
-        perror("malloc for div matrix");
-        exit(-1);
-    }
-    matrix[0] = NULL;
-    for(i = 1; i< num_region; i++){
-        matrix[i] = malloc(i*sizeof(double));
-        if(matrix[i] == NULL) break;
-    }
-    if(i< num_region){
-        for(j = 0 ;j< i; j++)
-            free(matrix[j]);
-        perror("malloc 2 for div matrix");
-        exit(-2);
-    }
-
-
-    // timer for divergence calculation
-    time_start = get_cur_time();
-    //time_current = time_start;
-
-
-    ret =  get_all_divs(regions, num_region,  d2, d3, region_length, matrix, divs_path, k_npdiv, div_func);
-    if(ret != 0){
-        perror("divergence calculation error");
-        exit(-1);
-    }else{
-        // give time
         
+        float *pressure, *velocity;
+        int dim1, dim2, dim3;
+
+        int i,j, p, q, ret;
+
+
+
+        region_length = REGION_LENGTH;
+
+
+        // read data to buffer
+        read_data(file_name, &pressure, &velocity, &dim1, &dim2, &dim3);
+        //print_p_data(pressure, dim1, dim2, dim3);
+        //save visualized result
+        
+        printf("data is read, dimension is %d * %d * %d\n", dim1, dim2, dim3);
+        fprintf(stderr, "data is read, dimension is %d * %d * %d\n", dim1, dim2, dim3);
+        
+        // split the slice into regions
+        // since we know each region's exact size, we only need record the starting address
+        int num_region;
+
+        // num_regions* points_in_region*3
+        float  *regions;
+
+        // dim1 = dim2 = 201, in a region, 11 points in each side, thus length 10, the whole block has length 201-1 = 200. So (200/10)^2 400 regions
+        // d1 d2 d3 is the 3-dimension matrix 
+        int d1 = dim1;
+        // fixed on Dec 13
+        //int d2 = region_length*region_length;;
+        int d2 = (region_length + 1)*(region_length+1);
+        int d3 = 3;
+        divide(velocity, d1, region_length, &num_region, &regions);
+
+        if(num_region != NUM_REGION){
+            printf("you should define the NUM_REGION in conf file");
+            exit(-1);
+        }
+
+        printf("generate %d regions\n", num_region);
+
+        
+        // caculate the divergence between all regions
+        // distance matrix can be very large
+        
+        // use L-2 divergence
+        int div_func = 1;
+
+        // allocate space the distance matrix
+        double **matrix = malloc(num_region*sizeof(double *)); 
+
+        if(matrix == NULL){
+            perror("malloc for div matrix");
+            exit(-1);
+        }
+        matrix[0] = NULL;
+        for(i = 1; i< num_region; i++){
+            matrix[i] = malloc(i*sizeof(double));
+            if(matrix[i] == NULL) break;
+        }
+        if(i< num_region){
+            for(j = 0 ;j< i; j++)
+                free(matrix[j]);
+            perror("malloc 2 for div matrix");
+            exit(-2);
+        }
+
+
+        // timer for divergence calculation
+        time_start = get_cur_time();
+        //time_current = time_start;
+
+
+        ret =  get_all_divs(regions, num_region,  d2, d3, region_length, matrix, divs_path, k_npdiv, div_func);
+        if(ret != 0){
+            perror("divergence calculation error");
+            exit(-1);
+        }else{
+            // give time
+            
+            time_current = get_cur_time();
+            printf("distance matrix is saved in matrix");
+            printf("\t %.3lf s time is used for all divsdiv\n", time_current - time_start);
+            fprintf(stderr, "\t %.3lf s time is used for all divsdiv\n", time_current - time_start);
+        }
+
+        //FILE * f_dist = fopen(dist_path, "w");
+        // if regions are just pointers, no need to free 
+        if(regions != NULL)
+            free(regions);
+        // free buffer
+        if(pressure != NULL|| velocity != NULL)
+            free_data(pressure, velocity);
+        // also free pdata block
+
+
+        /*
+         * Part II kmedoids clustering
+         */
+
+
+        int nclusters ,npass, ifound;
+        double error;
+
+        // timer
+
+        nclusters = NCLUSTERS;
+        num_region =NUM_REGION ; 
+        npass =NPASS;
+
+        //int clusterid[num_region];
+
+
+        time_start = get_cur_time();
+
+        //call the divergence function
+        printf("starting clustering , num_regions is %d\n",  num_region );
+        run_clustering (nclusters,num_region, matrix,npass,output_path, &error,&ifound);
+
         time_current = get_cur_time();
-        printf("distance matrix is saved in matrix");
-        printf("\t %.3lf s time is used for all divsdiv\n", time_current - time_start);
-        fprintf(stderr, "\t %.3lf s time is used for all divsdiv\n", time_current - time_start);
+        printf("clustering completed, result  is stored in %s\n", output_path);
+        fprintf(stderr, "clustering completed, result  is stored in %s\n", output_path);
+        printf("%.4f time is used for clustering\n", time_current - time_start );
+        printf("error is %.3lf, num of runs is %d\n", error, ifound);
+
+
+        // free the divergence buffer
+        for(i = 1; i< num_region; i++){
+            if(matrix[i] != NULL) free(matrix[i]);
+        }
+        if(matrix != NULL) {
+            free(matrix);
+            printf("distance matrix freed\n");
+        }
+
+        // end of the timestep
     }
 
-    //FILE * f_dist = fopen(dist_path, "w");
-    // if regions are just pointers, no need to free 
-    if(regions != NULL)
-	    free(regions);
-    // free buffer
-    if(pressure != NULL|| velocity != NULL)
-        free_data(pressure, velocity);
-    // also free pdata block
-
-
-    /*
-     * Part II kmedoids clustering
-     */
-
-
-    int nclusters ,npass, ifound;
-    double error;
-
-    // timer
-
-    nclusters = NCLUSTERS;
-    num_region =NUM_REGION ; 
-    npass =NPASS;
-
-    //int clusterid[num_region];
-
-
-    time_start = get_cur_time();
-
-    //call the divergence function
-    printf("starting clustering , num_regions is %d\n",  num_region );
-    run_clustering (nclusters,num_region, matrix,npass,output_path, &error,&ifound);
-
-    time_current = get_cur_time();
-    printf("clustering completed, result  is stored in %s\n", output_path);
-    fprintf(stderr, "clustering completed, result  is stored in %s\n", output_path);
-    printf("%.4f time is used for clustering\n", time_current - time_start );
-    printf("error is %.3lf, num of runs is %d\n", error, ifound);
-
-
-    // free the divergence buffer
-    for(i = 1; i< num_region; i++){
-        if(matrix[i] != NULL) free(matrix[i]);
-    }
-    if(matrix != NULL) {
-        free(matrix);
-        printf("distance matrix freed\n");
-    }
-
-    // end of the timestep
    	    
     return 1;
 }
