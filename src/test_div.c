@@ -2,7 +2,7 @@
 // test the divgence caculation
 int main(){
     float  div;
-    int i, region_length=3;
+    int i, region_length=2;
     // this is a special region
     /*
     double S[9][3];
@@ -88,7 +88,7 @@ int main(){
         }else if(i == 1){
             printf("*****L2 divergence********\n");
         }
-        else if( i = 2){
+        else if( i == 2){
             printf("*****KL divergence********\n");
         }
         else{
@@ -97,29 +97,29 @@ int main(){
         }
 
         
-        printf("all matrix are 3*3, use %d-nearest neighbours\n\n",k);
+        printf("all matrix are %dx%d, use %d-nearest neighbours\n\n",(region_length+1), (region_length +1), k);
         //printf("A and A:\n");
-        a_a = get_divs(A, A, 3, k, i); 
+        a_a = get_divs(A, A, region_length, k, i); 
         //printf("non-turbulence itself is %lf\n\n", a_a );
 
 
         //printf("A and B:\n");
-        a_b = get_divs(A, B, 3,k, i);
+        a_b = get_divs(A, B, region_length ,k, i);
         //printf("the divergence of non-turbulence vs turbulence  is %lf\n\n", a_b);
 
 
         //printf("A and C\n");
-        a_c= get_divs(A, C, 3, k ,i);
+        a_c= get_divs(A, C, region_length, k ,i);
 
         //printf("A and D\n");
-        a_d= get_divs(A, D, 3, k ,i);
+        a_d= get_divs(A, D, region_length, k ,i);
 
         //printf("B and A:\n");
-        b_a = get_divs(B, A, 3,k, i);
+        b_a = get_divs(B, A, region_length,k, i);
         //printf("turbulence vs non-turbulence is %lf\n\n", b_a);
 
         //printf("B and B:\n");
-        b_b = get_divs(B, B, 3,k, i);
+        b_b = get_divs(B, B, region_length,k, i);
         //printf("turbulence itself is %lf\n\n",b_b );
 
 
@@ -127,38 +127,38 @@ int main(){
 
         // how about two turbulence in oppsite direction?
         //printf("B and C:\n");
-        b_c= get_divs(B, C, 3,k, i);
+        b_c= get_divs(B, C, region_length,k, i);
         //printf(" two turbulence in opposite direction, div is %lf\n\n", b_c);
 
 
         //printf("B and D:\n");
-        b_d= get_divs(B, D, 3,k, i);
+        b_d= get_divs(B, D, region_length,k, i);
         //printf("turbulence vs certain pattern, div is %lf\n\n", b_d);
 
         //printf("C and A\n");
-        c_a= get_divs(C, A, 3, k ,i);
+        c_a= get_divs(C, A, region_length, k ,i);
 
         //printf("C and B\n");
-        c_b= get_divs(C, B, 3, k ,i);
+        c_b= get_divs(C, B, region_length, k ,i);
 
         //printf("C and C:\n");
-        c_c= get_divs(C, C, 3,k, i);
+        c_c= get_divs(C, C, region_length,k, i);
         //printf("C itself, div is %lf\n\n", c_c);
 
         //printf("C and D:\n");
-        c_d= get_divs(C, D, 3, k ,i);
+        c_d= get_divs(C, D, region_length, k ,i);
 
         //printf("D and A:\n");
-        d_a= get_divs(D, A, 3, k ,i);
+        d_a= get_divs(D, A, region_length, k ,i);
 
         //printf("D and B:\n");
-        d_b= get_divs(D, B, 3, k ,i);
+        d_b= get_divs(D, B, region_length, k ,i);
 
         //printf("D and C:\n");
-        d_c= get_divs(D, C, 3, k ,i);
+        d_c= get_divs(D, C, region_length, k ,i);
 
         //printf("D and D:\n");
-        d_d= get_divs(D, D, 3, k ,i);
+        d_d= get_divs(D, D, region_length, k ,i);
         printf("summary\n");
         printf("%.4f\t%.4f\t%.4f\t%.4f\t\n", a_a, a_b, a_c, a_d);
         printf("%.4f\t%.4f\t%.4f\t%.4f\t\n", b_a, b_b, b_c, b_d);

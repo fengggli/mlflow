@@ -2,10 +2,26 @@
 #define REGION_DEF_H
 // define data block size, region size
 // version number is from 1,2,3,4... MAX_VERSION
-#define MAX_VERSION (1)
 
-// side length(points num -1) in each region
-#define REGION_LENGTH (10)
+// use synthetic data to verify
+#define USE_SYNTHETIC 
+
+#ifdef USE_SYNTHETIC
+    #define MAX_VERSION (1)
+    #define MAX_VELOCITY (0.5)
+    #define REGION_LENGTH (2)
+
+    #define POINTS_SIDE (41)
+    #define NUM_REGION (400)
+
+#else
+    #define MAX_VERSION (10)
+    // side length(points num -1) in each region
+    #define REGION_LENGTH (10)
+    #define POINTS_SIDE (201)
+    #define NUM_REGION (400)
+#endif
+
 
 // points in each side  of this data block from hdf5 file
 // 51 or 201
@@ -14,8 +30,6 @@
 #define NUM_REGION (25)
 */
 
-#define POINTS_SIDE (201)
-#define NUM_REGION (400)
 
 #define TIMING
 
