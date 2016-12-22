@@ -13,7 +13,6 @@
 #define RANK         4 // four dims: x y z and time 
 #define p_malloc_error(I) {printf("malloc failuren at %d",I);exit(-1);} 
 
-
 /*
  * * Get datatype and dataspace identifiers and then query
  * * read only one time slice

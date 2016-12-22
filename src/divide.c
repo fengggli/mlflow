@@ -170,8 +170,9 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
     }
 
     // this is how we divide all the region areas
-    int index_1_3 = side_num_region/3;//6  
+    int index_1_3 = side_num_region/3.0;//6  
     int index_2_3 = 2*index_1_3;
+    fprintf(stderr, "two index: %d and %d\n", index_1_3, index_2_3);
 
 
     // generate all the sample regions
@@ -191,6 +192,7 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
 
     this_region = regions;
 
+    int count =0;
     for(p = 0; p < side_num_region; p++){
 
         //assign regions for sythetic data
@@ -207,10 +209,13 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
 
 
         if(p < index_1_3){
+            fprintf(stderr, "row %d is type 0, one direction\n", p);
             type_region = 0;}
         else if(p < index_2_3){
+            fprintf(stderr, "row %d is type 1, circle\n", p);
             type_region = 1;}
         else{
+            fprintf(stderr, "row %d is type 2, division\n", p);
             type_region = 2;
         }
         for( q = 0; q < side_num_region; q++){
@@ -222,6 +227,7 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
 
             // fill different patterns in each region
             memcpy(this_region, sample_regions[type_region], region_memory_size);
+            fprintf(stderr, "No.%d region has type %d\n", count++, type_region);
             
            //get the start address of this region
             this_region += (region_length+1)*(region_length+1)*3 ;

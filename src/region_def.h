@@ -14,12 +14,17 @@
     #define POINTS_SIDE (41)
     #define NUM_REGION (400)
 
+    #define K_NPDIV (4)
+
 #else
     #define MAX_VERSION (10)
     // side length(points num -1) in each region
     #define REGION_LENGTH (10)
     #define POINTS_SIDE (201)
     #define NUM_REGION (400)
+
+    // this is the k in density estimation
+    #define K_NPDIV (5)
 #endif
 
 
@@ -46,8 +51,6 @@
 /*
  * NPDIV related
  */
-// this is the k in density estimation
-#define K_NPDIV (5)
 
 /*
  * clustering related

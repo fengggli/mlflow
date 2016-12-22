@@ -21,7 +21,7 @@ int get_all_divs(float *regions,int num_region, int d2, int d3, int region_lengt
     
     for(i = 1; i< num_region; i++){
 
-        fprintf(stderr, "\t processing divs between region %d and others\n", i);
+        //fprintf(stderr, "\t processing divs between region %d and others\n", i);
         for(j = 0; j < i ; j++){
 
             printf("***processing divs between region %d and %d\n", i, j);
@@ -29,10 +29,15 @@ int get_all_divs(float *regions,int num_region, int d2, int d3, int region_lengt
             // starting address of each region as input
             div = get_divs( regions + i*d2*d3 , regions + j*d2*d3, region_length, k_npdiv, div_func);
 
+#ifdef USE_SYNTHETIC
+            div = div;
+#endif
+
             printf("***divergence between region %d and %d is %.3f\n", i, j, div);
            // printf("\t %.3lf s time is used for div\n", time_current - time_old);
            
             //fprintf(f_dist,"%f\n",div);
+
 
             matrix[i][j] = div;
             fprintf(f_divs, "%d\t %d\t %f\n", i, j, div);
@@ -93,6 +98,17 @@ int main(){
 
         fprintf(stderr, "timestep %d started \n", timestep);
 
+
+#ifdef USE_SYNTHETIC
+       // divs output file
+        char divs_path[STRING_LENGTH];
+        sprintf(divs_path, "data/sequential/all_divs_%d_k_%d_t_%d_syn.txt", POINTS_SIDE, k_npdiv, timestep);
+
+        // clustering output file
+        char output_path[STRING_LENGTH]; 
+        sprintf(output_path, "data/sequential/clusterid_%d_k_%d_t_%d_syn.txt", POINTS_SIDE, k_npdiv, timestep);
+
+#else
         sprintf(file_name,"data/isotropic_%d_%d_1_t_%d.h5",POINTS_SIDE ,POINTS_SIDE, timestep);
 
         // divs output file
@@ -102,6 +118,7 @@ int main(){
         // clustering output file
         char output_path[STRING_LENGTH]; 
         sprintf(output_path, "data/sequential/clusterid_%d_k_%d_t_%d_ragged.txt", POINTS_SIDE, k_npdiv, timestep);
+#endif
 
         /*
          * user definition ends here
@@ -118,18 +135,26 @@ int main(){
 
         int i,j, p, q, ret;
 
-
-
         region_length = REGION_LENGTH;
 
 
         // read data to buffer
+
+#ifdef USE_SYNTHETIC
+        dim1 = 41;
+        dim2 = 41;
+        dim3 = 1;
+
+        printf("synthetic data dimension is %d * %d * %d\n", dim1, dim2, dim3);
+#else
         read_data(file_name, &pressure, &velocity, &dim1, &dim2, &dim3);
         //print_p_data(pressure, dim1, dim2, dim3);
         //save visualized result
         
         printf("data is read, dimension is %d * %d * %d\n", dim1, dim2, dim3);
         fprintf(stderr, "data is read, dimension is %d * %d * %d\n", dim1, dim2, dim3);
+
+#endif
         
         // split the slice into regions
         // since we know each region's exact size, we only need record the starting address
@@ -145,7 +170,14 @@ int main(){
         //int d2 = region_length*region_length;;
         int d2 = (region_length + 1)*(region_length+1);
         int d3 = 3;
+
+
+
+#ifdef USE_SYNTHETIC
+        divide_synthetic(d1, region_length, &num_region, &regions);
+#else
         divide(velocity, d1, region_length, &num_region, &regions);
+#endif
 
         if(num_region != NUM_REGION){
             printf("you should define the NUM_REGION in conf file");
@@ -204,8 +236,10 @@ int main(){
         if(regions != NULL)
             free(regions);
         // free buffer
+#ifndef USE_SYNTHETIC
         if(pressure != NULL|| velocity != NULL)
             free_data(pressure, velocity);
+#endif
         // also free pdata block
 
 

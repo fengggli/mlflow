@@ -1,4 +1,4 @@
-OPT= 
+OPT= -g
 CCFLAGS = ${OPT}  
 LDFLAGS = ${OPT} 
 

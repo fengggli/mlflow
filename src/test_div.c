@@ -62,8 +62,6 @@ int main(){
         0.2, 0.2, 2};
 
 
-
-
     // this is a 3*3 matrix with each has three features
     /*
     for(i = 0; i< 9;i++){
