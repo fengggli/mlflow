@@ -11,6 +11,14 @@ int generate_regions(char *hdfpath, int region_length, int *p_num_region, float 
     float *pressure, *velocity;
 
     // read data into buffer
+    // sythetic data to verify
+#ifdef USE_SYTHETIC
+    dim1 = POINTS_SIDE; // x and y all have dimension size of 201
+
+    // generate fake data
+    divide_synthetic(&velocity, dim1, regions_length, p_num_regions, p_regions);
+
+#else
     read_data(hdfpath, &pressure, &velocity, &dim1, &dim2, &dim3);
 
     // dim1 is the dimension of x, we assume that the datacut is a square: dim1 = dim2
@@ -21,6 +29,9 @@ int generate_regions(char *hdfpath, int region_length, int *p_num_region, float 
     // free buffer
     free_data(pressure, velocity);
     printf("    tmp buffer freeed, now prepare to flush into dataspaces\n ");
+#endif
+
+    
     return 1;
 }
 

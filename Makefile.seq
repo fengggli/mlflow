@@ -1,4 +1,4 @@
-OPT= 
+OPT= -g
 CCFLAGS = ${OPT}  
 LDFLAGS = ${OPT} 
 
@@ -17,6 +17,8 @@ CC=h5cc
 sequential:sequential/sequential_run.o src/divide.o src/read_file.o src/get_divs.o src/common_utility.o cluster/cluster.o 
 		$(CC) -o bin/sequential_run $^ $(SQ_LIB) $(LDFLAGS)
 
+test_div: src/test_div.o src/get_divs.o
+	$(CC) -o bin/test_div $^ $(SQ_LIB) $(LDFLAGS)
 
 all: sequential clustering
 
