@@ -16,6 +16,11 @@
 
     #define K_NPDIV (4)
 
+    // clustering
+    //#define NPASS (1)
+    #define NPASS (100)
+
+
 #else
     #define MAX_VERSION (10)
     // side length(points num -1) in each region
@@ -25,6 +30,9 @@
 
     // this is the k in density estimation
     #define K_NPDIV (5)
+
+    // clustering
+    #define NPASS (100)
 #endif
 
 
@@ -57,8 +65,6 @@
  */
 #
 #define NCLUSTERS (3)
-// clustering
-#define NPASS (100)
 
 
 #endif

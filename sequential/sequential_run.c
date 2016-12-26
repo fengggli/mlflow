@@ -270,7 +270,7 @@ int main(){
         printf("clustering completed, result  is stored in %s\n", output_path);
         fprintf(stderr, "clustering completed, result  is stored in %s\n", output_path);
         printf("%.4f time is used for clustering\n", time_current - time_start );
-        printf("error is %.3lf, num of runs is %d\n", error, ifound);
+        printf("error is %.3lf, %d times/ %d passes give the best results\n", error, ifound, npass);
 
 
         // free the divergence buffer

@@ -34,11 +34,9 @@ void free_region_samples(float **sample_regions, int num_types);
 /*
  * fill up regions with specific patters
  * input:
- *  this region: 
- *  type region: 0,1,2, see .c file for more details
- *  region length: , 10 for default
  */
-void fill_region(float *this_region, int type_region, int region_length );
+
+void fill_region(float* to, float *from, size_t region_memory_size);
 
 /*
  * Dec 22

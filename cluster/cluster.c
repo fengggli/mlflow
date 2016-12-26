@@ -2333,17 +2333,30 @@ centroid.
 ========================================================================
 */
 { int i, j, k;
+    // save error in each cluster
   for (j = 0; j < nclusters; j++) errors[j] = DBL_MAX;
   for (i = 0; i < nelements; i++)
   { double d = 0.0;
+
+      // if this point is center
+      // the cluster id of this point
     j = clusterid[i];
+
+    // k is another element
     for (k = 0; k < nelements; k++)
     { if (i==k || clusterid[k]!=j) continue;
+      // only count different points with the same class id
+      // will be the accumulated distance if i is the center
       d += (i < k ? distance[k][i] : distance[i][k]);
-      if (d > errors[j]) break;
+      if (d > errors[j]) {
+          // we only want to find smallest errors.
+          break;
+      }
     }
     if (d < errors[j])
-    { errors[j] = d;
+    {
+        // this this center has smaller error, make it centroids
+      errors[j] = d;
       centroids[j] = i;
     }
   }
@@ -2831,6 +2844,7 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
   int counter_pass = 0; 
   do /* Start the loop */
   { 
+      printf("\n start No.%d run\n", ipass+1);
       ++counter_pass;
       //printf("\nstart No.%d run\n", ++counter_pass);
       double total = DBL_MAX;
@@ -2866,6 +2880,9 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
             break;
           }
           tdistance = (i > j) ? distmatrix[i][j] : distmatrix[j][i];
+
+          // bugs here
+          // since centers are belong to the same class in synthetic data, it will be always assigned to the first center 
           if (tdistance < distance)
           { distance = tdistance;
             tclusterid[i] = icluster;
@@ -2873,15 +2890,23 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
         }
         total += distance;
       }
-#ifdef debug
+//#ifdef debug
       printf("recenter No.%d, previous total dist: %.3lf, current total dist: %.3lf\n",counter, previous, total);
-#endif
-      if (total>=previous) break;
+//#endif
+      if (total>=previous){
+         // printout added by feng
+         printf("total dist doesn't change anymore, now exit\n");
+         break;
+      }
 
       /* total>=previous is FALSE on some machines even if total and previous
        * are bitwise identical. */
       for (i = 0; i < nelements; i++)
-        if (saved[i]!=tclusterid[i]) break;
+        if (saved[i]!=tclusterid[i]){
+         printf("tcluster id not equal to saved, now exit\n");
+         break;
+        }
+
       if (i==nelements)
         break; /* Identical solution found; break out of this loop */
     }

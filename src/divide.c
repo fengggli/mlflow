@@ -1,6 +1,22 @@
 # include "divide.h"
 
 
+void fill_region(float* to, float *from, size_t region_memory_size){
+    // add some noise instead of simply memcoy
+    int i;
+    float noise;
+    float noise_range = 0.05;
+
+    // better performance if thunck by thunck
+    for(i = 0; i*sizeof(float) < region_memory_size; i++){
+
+        //noise
+        noise = (float)rand()/(float)(RAND_MAX/noise_range);
+
+        *to = *from+ noise;
+    }
+}
+
 void gen_region_samples(float **sample_regions, int num_types, int region_length){
     // allocate
     int i;
@@ -227,6 +243,9 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
 
             // fill different patterns in each region
             memcpy(this_region, sample_regions[type_region], region_memory_size);
+            // I need to add some noise here:
+            fill_region(this_region, sample_regions[type_region], region_memory_size);
+            //
             fprintf(stderr, "No.%d region has type %d\n", count++, type_region);
             
            //get the start address of this region
