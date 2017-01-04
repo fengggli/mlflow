@@ -65,6 +65,8 @@ int main(int argc, char **argv)
     char divs_path[STRING_LENGTH];
     FILE * f_divs;
 
+    int side_num_region = (POINTS_SIDE -1)/REGION_LENGTH; // this will be (201-1)/10 = 20
+
     // we will receive each timestamp
     while(timestep < MAX_VERSION){
         snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
@@ -239,8 +241,15 @@ int main(int argc, char **argv)
                     my_message(msg, rank, LOG_CRITICAL);
                 }
 
-                for(i = 0; i < num_region; i++){
-                    fprintf(f_clusterid, "%d\n",clusterid[i]);
+                //print the header
+                fprintf(f_clusterid, "z y x clusterid\n");
+
+                int count1 = 0;
+                //for(i = 0; i < num_region; i++){
+                for(i = 0; i < side_num_region;i++ ){
+                    for(j = 0; j< side_num_region; j++){
+                        fprintf(f_clusterid, "%d %d %d %d\n",i, j, 0, clusterid[count1++]);
+                    }
                 }
                 
                 fclose(f_clusterid);

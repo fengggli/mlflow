@@ -53,7 +53,7 @@
 #define PER_FREQ (5)
 
 // sequential run
-#define SEQ
+//#define SEQ
 
 
 /*
