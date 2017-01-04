@@ -25,6 +25,11 @@ PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${SLURM_JOBID}
 mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR
 
+mkdir -pv ${PBS_RESULTDIR}/clusterids
+mkdir -pv ${PBS_RESULTDIR}/all_divs
+
+
+
 ## Clean up
 rm -f conf *.log srv.lck
 rm -f dataspaces.conf
@@ -34,7 +39,7 @@ rm -f dataspaces.conf
 echo "## Config file for DataSpaces
 ndim = 3
 dims = 500, 500, 500
-max_versions = 10
+max_versions = 100
 max_readers = 20
 lock_type = 2
 " > dataspaces.conf

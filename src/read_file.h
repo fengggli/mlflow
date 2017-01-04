@@ -3,6 +3,7 @@
 
 #include "hdf5.h"
 #include <stdlib.h>
+#include <region_def.h>
 //#include "read_file.h"
 //#define FILE        "data/test_1_2_3_4.h5"
 //#define FILE        "data/isotropic_255_255_5.h5"

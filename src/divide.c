@@ -182,7 +182,7 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
         perror("    allocate space for regions");
         exit(-1);
     }else{
-        printf("    %d x %d  bytes space is allocated to region\n", d1, region_memory_size );
+        printf("    %d x %ld  bytes space is allocated to region\n", d1, region_memory_size );
     }
 
     // this is how we divide all the region areas

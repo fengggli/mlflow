@@ -4,7 +4,7 @@
 // version number is from 1,2,3,4... MAX_VERSION
 
 // use synthetic data to verify
-#define USE_SYNTHETIC 
+//#define USE_SYNTHETIC 
 
 #ifdef USE_SYNTHETIC
     #define MAX_VERSION (1)
@@ -22,7 +22,7 @@
 
 
 #else
-    #define MAX_VERSION (10)
+    #define MAX_VERSION (100)
     // side length(points num -1) in each region
     #define REGION_LENGTH (10)
     #define POINTS_SIDE (201)

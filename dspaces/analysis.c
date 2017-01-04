@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
 
         if(argc == 2){
-            snprintf(divs_path, STRING_LENGTH,"%s/all_divs_%d_k_%d_t_%d.txt",result_path,  POINTS_SIDE,k_npdiv, timestep);
+            snprintf(divs_path, STRING_LENGTH,"%s/all_divs/%d_k_%d_t_%d.txt",result_path,  POINTS_SIDE,k_npdiv, timestep);
         }
         else{
             snprintf(divs_path, STRING_LENGTH,"data/parallel/divs_results/all_dist_%d_k_%d_t_%d.txt", POINTS_SIDE,k_npdiv, timestep);
@@ -223,9 +223,13 @@ int main(int argc, char **argv)
                 sprintf(msg, "finished clustering in %.3lf s  time", t2 -t1);
                 my_message(msg, rank);
 
+                sprintf(msg, "error is %.3lf, %d times/ %d passes give the best results\n", error, ifound, npass);
+
+                my_message(msg, rank);
+
                 // save cluster results into file
                 if(argc == 2){
-                    snprintf(output_path, STRING_LENGTH,"%s/clusterid_%d_k_%d_t_%d.txt",result_path,  POINTS_SIDE,k_npdiv, timestep);
+                    snprintf(output_path, STRING_LENGTH,"%s/clusterids/%d_k_%d_t_%d.txt",result_path,  POINTS_SIDE,k_npdiv, timestep);
                 }
                 else{
                     snprintf(output_path, STRING_LENGTH,"data/parallel/clustering_results/clusterid_%d_k_%d_t_%d.txt", POINTS_SIDE,k_npdiv, timestep);

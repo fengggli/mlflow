@@ -291,7 +291,7 @@ int main(int argc, char **argv)
             // we can get the divergence now!
             div = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
 
-            sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
+            //sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
             my_message(msg, rank);
 
             t3 = MPI_Wtime();
