@@ -57,13 +57,6 @@ void free_lookup_table(int * table);
  */
 void get_pair_index(int *table, int index_pair,int *a, int *b);
 
-/*
- * print message from different ranks
- * input:
- *  string to show
- *  current rank
- */
-void my_message(char *msg, int rank);
 
 
 #endif

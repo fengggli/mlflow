@@ -26,7 +26,7 @@ get_regions: dspaces/get_regions.o  src/get_divs.o src/common_utility.o
 put_regions: $(OBJ_PUT) dspaces/put_regions.o dspaces/run_with_dspaces.o src/read_file.o src/divide.o  src/common_utility.o
 	    h5pcc -o $(BIN)/put_regions $^ $(DS_LIB)  $(LDFLAGS)
 
-analysis: dspaces/analysis.o cluster/cluster.o
+analysis: dspaces/analysis.o cluster/cluster.o src/common_utility.o
 	    $(CC) -o $(BIN)/analysis  $^ $(DS_LIB) $(LDFLAGS)
 
 all: get_regions put_regions analysis

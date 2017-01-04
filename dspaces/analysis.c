@@ -1,10 +1,5 @@
 #include "analysis.h"
 
-void my_message(char *msg, int rank){
-    printf("**rank %d: %s\n", rank, msg);
-}
-
-
 int main(int argc, char **argv)
 {
 	int err;
@@ -42,10 +37,10 @@ int main(int argc, char **argv)
     char msg[STRING_LENGTH];
 
     sprintf(msg, "k = %d, max_timestep= %d", K_NPDIV,MAX_VERSION );
-    my_message(msg, rank);
+    my_message(msg, rank, LOG_CRITICAL);
 
     sprintf(msg, "dataspaces init successfully");
-    my_message(msg, rank);
+    my_message(msg, rank, LOG_CRITICAL);
 
         /*
     sprintf(msg, "dataspaces init complete");
@@ -92,7 +87,7 @@ int main(int argc, char **argv)
 
             if(rank == 0){
                 sprintf(msg, "\n********************timestep %d now start!\n",timestep);
-                my_message(msg, rank);
+                my_message(msg, rank, LOG_WARNING);
             }
 
             int num_region = NUM_REGION;
@@ -110,7 +105,7 @@ int main(int argc, char **argv)
             dspaces_define_gdim(var_name_div, 3,gdim_div);
 
             sprintf(msg, "now div variable has dimention %d",num_tasks);
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
             double t1, t2, t3;
             int i, j, ret_get;
@@ -143,7 +138,7 @@ int main(int argc, char **argv)
             int error_flag = 0;
 
             sprintf(msg, "divergence matrix constructed, now try to fill all the values");
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
             // get data from dspaces
             // how many pairs
@@ -155,11 +150,11 @@ int main(int argc, char **argv)
 
             // every rank need at least acquire the lock
             sprintf(msg, "try to acquired div read lock %s", lock_name_divs);
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
             dspaces_lock_on_read(lock_name_divs, &gcomm);
             sprintf(msg, "acquired div read lock");
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
 
 
@@ -170,7 +165,7 @@ int main(int argc, char **argv)
             dspaces_unlock_on_read(lock_name_divs, &gcomm);
 
             sprintf(msg, "divergence read lock released ");
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
             
             // reconstruct the matrix
             if(ret_get != 0){
@@ -178,7 +173,7 @@ int main(int argc, char **argv)
                         exit(-1);
                     }
             sprintf(msg, "all the divergence is read from dataspaces");
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
 
             for(i = 1; i < num_region; i++){
@@ -195,11 +190,11 @@ int main(int argc, char **argv)
 
 
             sprintf(msg, "divergence matrix read %.3f s,filled in %.3f s time,also saved in %s", t2-t1, t3- t2, divs_path);
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
             if(error_flag == 1){
                 sprintf(msg, "ERROR when read divergence from Dspaces");
-                my_message(msg, rank);
+                my_message(msg, rank, LOG_CRITICAL);
             }
             // if everything is fine we start clustering
             else{
@@ -213,7 +208,7 @@ int main(int argc, char **argv)
 
 
                 sprintf(msg, "start clustering");
-                my_message(msg, rank);
+                my_message(msg, rank, LOG_WARNING);
 
                 t1 = MPI_Wtime();
                 kmedoids(nclusters, num_region, matrix, npass, clusterid, &error, &ifound);
@@ -221,11 +216,11 @@ int main(int argc, char **argv)
                 t2 = MPI_Wtime();
 
                 sprintf(msg, "finished clustering in %.3lf s  time", t2 -t1);
-                my_message(msg, rank);
+                my_message(msg, rank, LOG_WARNING);
 
                 sprintf(msg, "error is %.3lf, %d times/ %d passes give the best results\n", error, ifound, npass);
 
-                my_message(msg, rank);
+                my_message(msg, rank, LOG_WARNING);
 
                 // save cluster results into file
                 if(argc == 2){
@@ -241,7 +236,7 @@ int main(int argc, char **argv)
                 }
                 else{
                     sprintf(msg, "clustering results saved  in %s", output_path);
-                    my_message(msg, rank);
+                    my_message(msg, rank, LOG_CRITICAL);
                 }
 
                 for(i = 0; i < num_region; i++){
@@ -268,7 +263,7 @@ int main(int argc, char **argv)
 	}
 
     sprintf(msg, "now finalize the dspaces and exit");
-    my_message(msg, rank);
+    my_message(msg, rank, LOG_CRITICAL);
 
 	// DataSpaces: Finalize and clean up DS process
 	dspaces_finalize();

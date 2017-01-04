@@ -18,13 +18,13 @@
 #include "run_with_dspaces.h"
 #include "mpi.h"
 #include "region_def.h"
+#include "common_utility.h"
 // Size of array, if changing
 // MUST also change in minmax_reader.c
 //#define ARRAY_SIZE 128
 
 // read hdffile and generate all the regions
 extern int generate_regions(char *hdfpath, int region_length, int *p_num_region, float **p_regions);
-void my_message(char *msg, int rank);
 
 #endif
 

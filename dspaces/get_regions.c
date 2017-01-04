@@ -1,5 +1,5 @@
 #include "get_regions.h"
-#define debug_1
+//#define debug_1
 
 
 void generate_lookup_table(int num_region, int **p_table){
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     int num_tasks = num_region*(num_region-1)/2;
 
     sprintf(msg, "now div variable has dimention %d",num_tasks);
-    my_message(msg, rank);
+    my_message(msg, rank, LOG_CRITICAL);
 
 
 	// Each process will need to compute its DataSpace index
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     int *table;
     generate_lookup_table(num_region, &table);
     sprintf(msg,"pair lookup table generated, I am responsible for P%d to P%d", pair_index_l, pair_index_h);
-    my_message(msg, rank);
+    my_message(msg, rank, LOG_CRITICAL);
 //    printf("index_h = %d, index_l = %d", pair_index_h, pair_index_l);
 
     // the index of the two pairs
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
 
         if(rank == 0){
             sprintf(msg, "\n********************timestep %d now start!\n",timestep);
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
         }
         // I should wait after all regions are placed into dspaces
 
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
         // prepare buffer for divs
         int size_div = (pair_index_h - pair_index_l+1)*sizeof(float);
         sprintf(msg, "div buffer has size %d", size_div);
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_WARNING);
 
         divs_this_rank = (float *)malloc(size_div);
         if(divs_this_rank == NULL){
@@ -231,11 +231,11 @@ int main(int argc, char **argv)
         }
 
         sprintf(msg, "try to acquired the region read lock %s", lock_name_regions );
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_WARNING);
         dspaces_lock_on_read(lock_name_regions, &gcomm);
 
         sprintf(msg, "get the  the region read lock");
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_WARNING);
 
         // read all regions in once
         t1 = MPI_Wtime();
@@ -247,14 +247,14 @@ int main(int argc, char **argv)
         // now we can release region lock
         dspaces_unlock_on_read(lock_name_regions, &gcomm);
         sprintf(msg, "release the region read lock");
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_WARNING);
 
         if(ret_get_0 != 0){
             perror("get all regions error, now exit");
             exit(-1);
         }else{
             sprintf(msg, "read %d regions from dspaces, each has %ld bytes", num_region, region_memory_size);
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
         }
 
         // read all regions in once
@@ -266,10 +266,8 @@ int main(int argc, char **argv)
             // get the region index of that pair
             get_pair_index(table, i, &a, &b);
 
-#ifdef debug_1
-            sprintf(msg, "try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
-            my_message(msg, rank);
-#endif
+            snprintf(msg, STRING_LENGTH,"try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
+            my_message(msg, rank, LOG_VERB);
 
             buffer_a = buffer_all_regions + a*region_num_cell*3;
             buffer_b = buffer_all_regions + b*region_num_cell*3;
@@ -284,7 +282,7 @@ int main(int argc, char **argv)
 
             if(aa == 1 && bb == 1){
                 sprintf(msg, "No.%d/%d pair, region %d(%p) and %d(%p) is validate",i - pair_index_l, pair_index_h - pair_index_l +1, a,(void*)buffer_a, b,(void *)buffer_b);
-                my_message(msg, rank);
+                my_message(msg, rank, LOG_VERB);
             }
 #endif
                 
@@ -292,7 +290,7 @@ int main(int argc, char **argv)
             div = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
 
             //sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
-            my_message(msg, rank);
+            //my_message(msg, rank);
 
             t3 = MPI_Wtime();
 
@@ -311,18 +309,16 @@ int main(int argc, char **argv)
 
         // div variable operation
         sprintf(msg, "try to acquired the div write lock %s",lock_name_divs);
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_WARNING);
         dspaces_lock_on_write(lock_name_divs, &gcomm);
 
         sprintf(msg, "get div write lock");
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_WARNING);
 
         //pay attention to the order of dimensions!
         //
-#ifdef debug_1
         sprintf(msg, "write divergence to index%d~%d",  pair_index_l, pair_index_h);
-        my_message(msg, rank);
-#endif
+        my_message(msg, rank, LOG_WARNING);
 
         t1 = MPI_Wtime();
         ret_put = dspaces_put(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, divs_this_rank);
@@ -332,7 +328,7 @@ int main(int argc, char **argv)
         dspaces_unlock_on_write(lock_name_divs, &gcomm);
 
         sprintf(msg, " div write lock is released");
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_WARNING);
 
         // how about the symmetric part?
         if(ret_put == 0){
@@ -340,7 +336,7 @@ int main(int argc, char **argv)
         }else{
             sprintf(msg, "ERROR when storing divergence of region");
         }
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_CRITICAL);
 
 
         // now the divs buffer can be freed
@@ -350,13 +346,13 @@ int main(int argc, char **argv)
 
         // should wait until get all the divergence
         sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm, time_cal, t2 -t1);
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_CRITICAL);
 
         // do we need this barrier?
         MPI_Barrier(gcomm);
 
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
-        my_message(msg, rank);
+        my_message(msg, rank, LOG_CRITICAL);
 
         timestep++;
     }
@@ -365,7 +361,7 @@ int main(int argc, char **argv)
     free_lookup_table(table);
 
     sprintf(msg, "now finalize the dspaces and exit");
-    my_message(msg, rank);
+    my_message(msg, rank, LOG_CRITICAL);
 
 	// DataSpaces: Finalize and clean up DS process
 	dspaces_finalize();

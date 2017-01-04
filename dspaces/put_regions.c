@@ -27,12 +27,8 @@ int main(int argc, char **argv)
     char msg[STRING_LENGTH];
 
     sprintf(msg, "dataspaces init successfully");
-    my_message(msg, rank);
+    my_message(msg, rank, LOG_CRITICAL);
 
-        /*
-    sprintf(msg, "dataspaces init complete");
-    my_message(msg, rank);
-    */
 
 	// Timestep notation left in to demonstrate how this can be adjusted
 	int timestep=0;
@@ -56,7 +52,7 @@ int main(int argc, char **argv)
 
             if(rank == 0){
                 sprintf(msg, "\n********************timestep %d now start!\n",timestep);
-                my_message(msg, rank);
+                my_message(msg, rank, LOG_WARNING);
             }
 
             //char * hdfpath = "data/isotropic_201_201_1.h5";
@@ -80,12 +76,12 @@ int main(int argc, char **argv)
             // validate the path
             if( access( hdfpath, F_OK ) == -1){
                 sprintf(msg, "path %s does not exist", hdfpath);
-                my_message(msg, rank);
+                my_message(msg, rank, LOG_CRITICAL);
                 exit(-1);
             }else{
                 generate_regions(hdfpath, REGION_LENGTH, &num_region, &regions);
                 sprintf(msg, "%d regions are generated, each region has size %ld bytes", num_region, region_memory_size);
-                my_message(msg, rank);
+                my_message(msg, rank, LOG_WARNING );
             }
             
 
@@ -105,11 +101,11 @@ int main(int argc, char **argv)
             // Usage: Prevent other process from modifying 
             // 	  data at the same time as ours
             sprintf(msg, "try to acquired the region write lock %s", lock_name_regions);
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
             dspaces_lock_on_write(lock_name_regions, &gcomm);
             sprintf(msg, "acquired the region write lock");
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
 
             // DataSpaces: Put data array into the space
@@ -134,7 +130,7 @@ int main(int argc, char **argv)
             // DataSpaces: Release our lock on the data
             dspaces_unlock_on_write(lock_name_regions, &gcomm);
             sprintf(msg, "released the region write lock");
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
 
             if(ret_put == 0){
@@ -143,7 +139,7 @@ int main(int argc, char **argv)
             else{
                 sprintf(msg, "ERROR when writing regions into dspacs");
             }
-            my_message(msg, rank);
+            my_message(msg, rank, LOG_WARNING);
 
             free(regions);
                     
@@ -152,7 +148,7 @@ int main(int argc, char **argv)
 	}
 
     sprintf(msg, "now finalize the dspaces and exit");
-    my_message(msg, rank);
+    my_message(msg, rank, LOG_CRITICAL);
 
 	// DataSpaces: Finalize and clean up DS process
 	dspaces_finalize();

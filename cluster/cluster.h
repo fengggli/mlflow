@@ -41,7 +41,8 @@
 #define CLUSTERVERSION "1.52a"
 
 // added by lifeng
-#define debug_1
+#include <common_utility.h>
+//#define debug_1
 
 /* Chapter 2 */
 double clusterdistance (int nrows, int ncolumns, double** data, int** mask,

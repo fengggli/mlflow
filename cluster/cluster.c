@@ -2799,12 +2799,18 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
 
 ========================================================================
 */
-{ int i, j, icluster;
+{
+  // log buffer added by lifeng
+  char msg[STRING_LENGTH];
+  int rank = RANK_SEQUENTIAL;
+    
+  int i, j, icluster;
   int* tclusterid;
   int* saved;
   int* centroids;
   double* errors;
   int ipass = 0;
+
 
   if (nelements < nclusters)
   { *ifound = 0;
@@ -2846,7 +2852,9 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
   int counter_pass = 0; 
   do /* Start the loop */
   { 
-      printf("\n start No.%d run\n", ipass+1);
+      snprintf(msg, STRING_LENGTH, "\n start No.%d run\n", ipass+1);
+      my_message(msg, rank, LOG_VERB );
+      
       ++counter_pass;
       //printf("\nstart No.%d run\n", ++counter_pass);
       double total = DBL_MAX;
@@ -2892,12 +2900,13 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
         }
         total += distance;
       }
-//#ifdef debug
-      printf("recenter No.%d, previous total dist: %.3lf, current total dist: %.3lf\n",counter, previous, total);
-//#endif
+      snprintf(msg, STRING_LENGTH,"recenter No.%d, previous total dist: %.3lf, current total dist: %.3lf\n",counter, previous, total);
+      my_message(msg, rank, LOG_VERB);
+
       if (total>=previous){
          // printout added by feng
-         printf("total dist doesn't change anymore, now exit\n");
+         snprintf(msg, STRING_LENGTH, "total dist doesn't change anymore, now exit\n");
+         my_message(msg, rank, LOG_VERB);
          break;
       }
 
@@ -2905,7 +2914,8 @@ to 0. If kmedoids fails due to a memory allocation error, ifound is set to -1.
        * are bitwise identical. */
       for (i = 0; i < nelements; i++)
         if (saved[i]!=tclusterid[i]){
-         printf("tcluster id not equal to saved, now exit\n");
+         snprintf(msg, STRING_LENGTH, "tcluster id not equal to saved\n");
+         my_message(msg, rank, LOG_VERB);
          break;
         }
 

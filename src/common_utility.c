@@ -11,10 +11,14 @@ double get_cur_time() {
     return cur_time;
 } 
 
-void my_message(char *msg, int rank){
+void my_message(char *msg, int rank, int level){
+    // only log high-priority level
+    if(level > LOG_FILTER){
+        return;
+    }
+
     if(rank <0)
         printf("**sequential: %s\n", msg);
-    
     else
         printf("**rank %d: %s\n", rank, msg);
 }
