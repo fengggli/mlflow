@@ -17,6 +17,7 @@
 #include "dataspaces.h"
 #include "run_with_dspaces.h"
 #include "mpi.h"
+#include "cluster.h"
 #include "region_def.h"
 #include "common_utility.h"
 // Size of array, if changing

@@ -12,7 +12,7 @@ int generate_regions(char *hdfpath, int region_length, int *p_num_region, float 
 
     // read data into buffer
     // sythetic data to verify
-#ifdef USE_SYTHETIC
+#ifdef USE_SYNTHETIC
     dim1 = POINTS_SIDE; // x and y all have dimension size of 201
 
     // generate fake data

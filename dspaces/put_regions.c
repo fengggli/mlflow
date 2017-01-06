@@ -22,9 +22,12 @@ int main(int argc, char **argv)
 	// Application ID: Unique idenitifier (integer) for application
 	// Pointer to the MPI Communicator, allows DS Layer to use MPI barrier func
 	// Addt'l parameters: Placeholder for future arguments, currently NULL.
+    char msg[STRING_LENGTH];
+    sprintf(msg, "try to init dataspaces");
+    my_message(msg, rank, LOG_CRITICAL);
+
 	dspaces_init(1, 1, &gcomm, NULL);
 
-    char msg[STRING_LENGTH];
 
     sprintf(msg, "dataspaces init successfully");
     my_message(msg, rank, LOG_CRITICAL);
@@ -75,9 +78,11 @@ int main(int argc, char **argv)
 
             // validate the path
             if( access( hdfpath, F_OK ) == -1){
+#ifndef USE_SYNTHETIC
                 sprintf(msg, "path %s does not exist", hdfpath);
                 my_message(msg, rank, LOG_CRITICAL);
                 exit(-1);
+#endif
             }else{
                 generate_regions(hdfpath, REGION_LENGTH, &num_region, &regions);
                 sprintf(msg, "%d regions are generated, each region has size %ld bytes", num_region, region_memory_size);
