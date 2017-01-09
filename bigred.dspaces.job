@@ -2,8 +2,8 @@
 #PBS -N npdiv_isotro
 #PBS -q cpu 
 #PBS -j oe
-#PBS -l walltime=00:5:00
-#PBS -l nodes=4:ppn=10
+#PBS -l walltime=00:20:00
+#PBS -l nodes=4:ppn=32
 #PBS -o results/$PBS_JOBID.output
 
 

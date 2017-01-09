@@ -1,0 +1,17 @@
+#!/bin/bash  
+#PBS -N paraview_feng
+#PBS -q gpu 
+#PBS -j oe
+#PBS -l walltime=00:15:00
+#PBS -l nodes=1:ppn=4
+#PBS -o results/${PBS_JOBID}_pv.log
+
+
+#This job runs with 3 nodes  
+#ibrun in verbose mode will give binding detail  
+
+cd $PBS_O_WORKDIR
+
+## Run paraview server
+aprun -n 4  pvserver -rc --client-host=140.182.0.241
+## Give some time for the servers to load and startup
