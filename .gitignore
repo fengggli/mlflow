@@ -2,7 +2,6 @@
 *.h5
 *.vti
 *.vtk
-*.txt
 *.png
 *.PNG
 *.log

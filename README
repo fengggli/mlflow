@@ -15,5 +15,13 @@ get_regions
     get from regions and calculate divergence
 analysis part
     Using the divergence results from 'get_regions', clustering
+
+
+Notes:
+
+position need to be modified when change pe number:
+    1. aprun ds_server -c 
+    2. max_reader
+    
     
 
