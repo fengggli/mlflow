@@ -25,7 +25,7 @@
 //#define ARRAY_SIZE 128
 
 // read hdffile and generate all the regions
-extern int generate_regions(char *hdfpath, int region_length, int *p_num_region, float **p_regions);
+//extern int generate_regions(char *hdfpath, int region_length, int *p_num_region, float **p_regions);
 
 #endif
 

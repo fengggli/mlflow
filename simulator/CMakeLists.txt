@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 set(CMAKE_EXE_LINKER_FLAGS "-dynamic ${CMAKE_EXE_LINKER_FLAGS}" CACHE STRING "link flags")
 set(USE_CATALYST ON CACHE BOOL "Link the simulator with Catalyst")
-set(ParaView_DIR "/N/soft/cle4/paraview/ParaView-v4.1.0/Build-mpi" CACHE PATH "The path to paraview.")
-set(DS_DIR "/N/u/lifen/BigRed2/Dataspacesroot" CACHE PATH "The path to dataspaces.")                                                                  
 #set(CMAKE_LIBRARY_PATH "${DS_DIR}/lib" CACHE STRING "library path")
 
 

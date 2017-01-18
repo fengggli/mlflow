@@ -27,10 +27,10 @@
 */
 
 
-int generate_regions_hdf(char *hdfpath, int region_length, int *p_num_region, float **p_regions);
+int generate_regions(char *hdfpath, int region_length, int *p_num_region, float **p_regions);
 
 // g
-int generate_regions(float *pressureData, int region_length, int *p_num_region, float ** p_regions);
+//int generate_regions(float *pressureData, int region_length, int *p_num_region, float ** p_regions);
     // this will generate simulation code and put into dataspaces
 
 
