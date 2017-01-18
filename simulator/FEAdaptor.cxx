@@ -68,6 +68,9 @@ namespace
       */
     vtkFloatArray* velocity = vtkFloatArray::SafeDownCast(
       VTKGrid->GetPointData()->GetArray("velocity"));
+
+    // feng: I will store velocity attributes as vtk format instead
+
     // The velocity array is ordered as vx0,vx1,vx2,..,vy0,vy1,vy2,..,vz0,vz1,vz2,..
     // so we need to create a full copy of it with VTK's ordering of
     // vx0,vy0,vz0,vx1,vy1,vz1,..

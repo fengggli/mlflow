@@ -12,6 +12,7 @@ Grid::Grid()
 
 
 // generate the grid
+// partition happens here
 void Grid::Initialize(const unsigned int numPoints[3], const double spacing[3] )
 {
   if(numPoints[0] == 0 || numPoints[1] == 0 || numPoints[2] == 0)
@@ -103,6 +104,7 @@ void Attributes::Initialize(Grid* grid)
 // update points of this partition
 void Attributes::UpdateFields(double time)
 {
+    // how many points in this partition
   unsigned int numPoints = this->GridPtr->GetNumberOfLocalPoints();
   this->Velocity.resize(numPoints*3);
   for(unsigned int pt=0;pt<numPoints;pt++)
@@ -116,7 +118,7 @@ void Attributes::UpdateFields(double time)
     this->Velocity[pt] = coord[1]*time;
     }
 
-  // Feng fill the second and third with 0
+  // Feng fill the second and third dim  with 0
   std::fill(this->Velocity.begin()+numPoints, this->Velocity.end(), 0.);
   //unsigned int numCells = this->GridPtr->GetNumberOfLocalCells();
 

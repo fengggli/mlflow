@@ -1,40 +1,21 @@
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8)
 set(CMAKE_EXE_LINKER_FLAGS "-dynamic ${CMAKE_EXE_LINKER_FLAGS}" CACHE STRING "link flags")
-
-project(CatalystCxxImageDataExample)
-
 set(USE_CATALYST ON CACHE BOOL "Link the simulator with Catalyst")
 set(ParaView_DIR "/N/soft/cle4/paraview/ParaView-v4.1.0/Build-mpi" CACHE PATH "The path to paraview.")
-if(USE_CATALYST)
-  find_package(ParaView 4.1 REQUIRED COMPONENTS vtkPVPythonCatalyst)
-  include("${PARAVIEW_USE_FILE}")
-  set(Adaptor_SRCS
-    FEAdaptor.cxx
-    )
-  add_library(CxxImageDataExampleAdaptor ${Adaptor_SRCS})
-  target_link_libraries(CxxImageDataExampleAdaptor vtkPVPythonCatalyst)
-  add_definitions("-DUSE_CATALYST")
-  if(NOT PARAVIEW_USE_MPI)
-    message(SEND_ERROR "ParaView must be built with MPI enabled")
-  endif()
-else()
-  find_package(MPI REQUIRED)
-  include_directories(${MPI_CXX_INCLUDE_PATH})
-endif()
+set(DS_DIR "/N/u/lifen/BigRed2/Dataspacesroot" CACHE PATH "The path to dataspaces.")                                                                  
+#set(CMAKE_LIBRARY_PATH "${DS_DIR}/lib" CACHE STRING "library path")
 
-add_executable(CxxImageDataExample FEDriver.cxx FEDataStructures.cxx)
-if(USE_CATALYST)
-  target_link_libraries(CxxImageDataExample LINK_PRIVATE CxxImageDataExampleAdaptor)
-  include(vtkModuleMacros)
-  include(vtkMPI)
-  vtk_mpi_link(CxxImageDataExample)
-else()
-  target_link_libraries(CxxImageDataExample LINK_PRIVATE ${MPI_LIBRARIES})
-endif()
 
-option(BUILD_TESTING "Build Testing" OFF)
-# Setup testing.
-if (BUILD_TESTING)
-  include(CTest)
-  add_test(CxxImageDataExampleTest CxxImageDataExample ${CMAKE_CURRENT_SOURCE_DIR}/SampleScripts/feslicescript.py)
-endif()
+
+# project(Simulator)
+
+add_executable(sim_gen sim_gen.c)                                                                                                                     
+include_directories("${CMAKE_SOURCE_DIR}/src" ${DS_DIR}/include)                                                                                                       
+find_library(DSPACES dspaces ${DS_DIR}/lib)
+find_library(DSCOMMON dscommon ${DS_DIR}/lib)
+find_library(DART dart ${DS_DIR}/lib)
+
+target_link_libraries(sim_gen ${DSPACES} ${DSCOMMON} ${DART} UTILITY)
+
+
+

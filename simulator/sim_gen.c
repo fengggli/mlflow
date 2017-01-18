@@ -1,12 +1,15 @@
-#include "FEDataStructures.h"
+//#include "FEDataStructures.h"
 #include <mpi.h>
+#include <stdlib.h>
 
-#include "FEAdaptor.h"
+//#include "FEAdaptor.h"
 #include "region_def.h"
 #include "common_utility.h"
+#include "dataspaces.h"
 
 
-void update_attributes(int timeStep, int *dim,float *vel_data, float*p_data){
+
+void update_attributes(int timeStep, int *dims,float *vel_data, float*p_data){
     int i, j, k;
 
     // writers
@@ -38,7 +41,7 @@ void update_attributes(int timeStep, int *dim,float *vel_data, float*p_data){
 
 int main(int argc, char* argv[])
 {
-    int i, j ,k;
+    int i, j ,k, ret_put;
 
     // dataspaces preparation
     int err;
@@ -93,7 +96,7 @@ int main(int argc, char* argv[])
   }
   float * pres_data = (float *)malloc(num_points* sizeof(float));
 
-  if(p_data == NULL){
+  if(pres_data == NULL){
       perror("pressure data allocated error");
       exit(-1);
   }
@@ -123,7 +126,7 @@ int main(int argc, char* argv[])
         dspaces_unlock_on_write(lock_name_vel, &gcomm);
 
         if(ret_put == 0){
-                    sprintf(msg, "%d vel are written into Dspaces",num_region);
+                    sprintf(msg, "%d vel are written into Dspaces",num_points);
                 }
         else{
             sprintf(msg, "ERROR when writing vel into dspacs");

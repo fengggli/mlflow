@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <vector>
 
+// this will store all the local information in each partition
 class Grid
 {
 public:
@@ -21,6 +22,7 @@ private:
   double Spacing[3];
 };
 
+// this is for each partition
 class Attributes
 {
 // A class for generating and storing point and cell fields.
