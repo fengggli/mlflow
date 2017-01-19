@@ -87,9 +87,9 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
     printf(" velocity dataset rank %d, dimensions %lu x %lu x %lu x %lu \n",
        rank_u, (unsigned long)(dims_u[0]),(unsigned long)(dims_u[1]),(unsigned long)(dims_u[2]), (unsigned long)(dims_u[3]));
 
-    *dim1 = dims_u[0];
-    *dim2 = dims_u[1];
-    *dim3 = dims_u[2];
+    *dim1 = dims_u[0];// z
+    *dim2 = dims_u[1];// y
+    *dim3 = dims_u[2];// x
 
     // float  data_u[dims_u[0]][dims_u[1]][dims_u[2]][3];  /* buffer for velocity to be read */
     float * data_u = (float *)malloc(sizeof(float)*dims_u[0]*dims_u[1]*dims_u[2]*3);  /* buffer for velocity to be read */

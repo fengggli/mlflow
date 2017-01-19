@@ -264,6 +264,14 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
  *      [201][201][3], row and colomn dimension are 201, each position has vx, vy, vz
  *  after mapping:
  *      [20][20][121][3], there will be 20*20 regions, each region has 121 points, each points will have vx, vy, and distance to center
+ *
+ *
+ *  for simulation generated data
+ *  before mapping
+ *      slowest in the x and fastest in the z directions
+ *      vel data will be aligned in format as: vx0, vy0, vz0, vx1, vy1, vz1
+ *  after mapping
+ *      
  */
 void divide(float *pdata, int dim, int l, int *p_num_region, float **p_regions){
     int p,q,ii,jj, side_num_region;

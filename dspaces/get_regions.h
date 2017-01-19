@@ -29,6 +29,17 @@
 #define ARRAY_SIZE 128
 
 
+typedef struct{
+    int region_length;
+    int side_num_region;
+    int num_region;
+    int region_num_cell;
+    size_t region_memory_size;
+}Region_Def;
+
+
+//region definition
+void fill_region_def(Def *p_region_def);
 /*
  * we can use pair index to lookup this table for region index 
  * each entry like this:
@@ -56,6 +67,8 @@ void free_lookup_table(int * table);
  *  linear time
  */
 void get_pair_index(int *table, int index_pair,int *a, int *b);
+
+void cal_local_divs(float *buffer_all_regions,int region_length, int k_npdiv, int div_func, int *table, int  pair_index_l,int  pair_index_h,  int rank, float** p_div_this_rank, double *time_used);
 
 
 

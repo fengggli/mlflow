@@ -1,6 +1,27 @@
 #include "get_regions.h"
 //#define debug_1
 
+void fill_region_def(Def *p_region_def){
+    // some pre-definition
+    p_region_def->region_length = REGION_LENGTH;
+    p_region_def->side_num_region = (POINTS_SIDE - 1)/REGION_LENGTH;
+    p_region_def-> num_region =side_num_region*side_num_region ;
+
+    p_region_def->region_num_cell = (region_length+1)*(region_length+1);
+    // attention here: this is used only when malloc
+    p_region_def->region_memory_size = region_num_cell*3*sizeof(float);
+}
+
+void extract_region_def(Region_Def *p_region_def, int *p_region_length,int * p_side_num_region, int *p_num_region,int * p_region_num_cell, int *p_region_memory_size){
+    *p_region_length = p_region_def->region_length;
+    *p_side_num_region = p_region_def->side_num_region;
+    *p_num_region = p_region_def->num_region ;
+    *p_region_num_cell = p_region_def->region_num_cell;
+    // attention here: this is used only when malloc
+    *p_region_memory_size = p_region_def->region_memory_size;
+}
+
+
 
 void generate_lookup_table(int num_region, int **p_table){
     int i, j, count;
@@ -33,6 +54,131 @@ void get_pair_index(int *table, int index_pair,int *a, int *b){
     *b = table[2*index_pair +1];
 }
 
+void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_npdiv, int div_func, int *table, int  pair_index_l,int  pair_index_h,  int rank, float** p_divs_this_rank, double *time_used){
+    int i;
+    float *a, *b, div;
+    char msg[STRING_LENGTH];
+
+    // some pre-definition
+    int region_length, side_num_region,num_region,region_num_cell;
+    size_t region_memory_size;
+
+    // extract those 
+    extract_region_def(p_region_def, &region_length, &side_num_region,&num_region,&region_num_cell, &region_memory_size);
+
+    // timer
+    double t2, t3;
+    float* divs_this_rank;
+
+    // prepare buffer for divs
+    int size_div = (pair_index_h - pair_index_l+1)*sizeof(float);
+    sprintf(msg, "div buffer has size %d", size_div);
+    my_message(msg, rank, LOG_WARNING);
+
+    divs_this_rank = (float *)malloc(size_div);
+    if(divs_this_rank == NULL){
+        perror("malloc error for div buffer, now exit");
+        exit(-1);
+    }
+        for(i = pair_index_l; i<= pair_index_h; i++){
+
+            // get the region index of that pair
+            get_pair_index(table, i, &a, &b);
+
+            snprintf(msg, STRING_LENGTH,"try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
+            my_message(msg, rank, LOG_VERB);
+
+            buffer_a = buffer_all_regions + a*region_num_cell*3;
+            buffer_b = buffer_all_regions + b*region_num_cell*3;
+
+            t2 = MPI_Wtime();
+
+#ifdef debug
+            int aa, bb;
+            // validate the two regions
+            aa =  validate_regions(buffer_a,region_memory_size);
+            bb = validate_regions(buffer_b, region_memory_size);
+
+            if(aa == 1 && bb == 1){
+                sprintf(msg, "No.%d/%d pair, region %d(%p) and %d(%p) is validate",i - pair_index_l, pair_index_h - pair_index_l +1, a,(void*)buffer_a, b,(void *)buffer_b);
+                my_message(msg, rank, LOG_VERB);
+            }
+#endif
+                
+            // we can get the divergence now!
+            div = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
+
+            //sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
+            //my_message(msg, rank);
+
+            t3 = MPI_Wtime();
+
+            // save it into buffer first
+            divs_this_rank[i - pair_index_l] = div;
+
+            // record the time for communication and calculation
+            *time_used = t3 -t2;
+        }
+        *p_divs_this_rank = divs_dis_rank;
+}
+
+void get_region_buffer(int timestep, Region_Def *p_region_def, int  rank, float ** p_buffer_all_regions, double * time_used){
+    char msg[STRING_LENGTH];
+
+// prepare to read regions from dataspaces
+        lb[0] = 0;
+        ub[0] = num_region - 1;
+        
+
+    char lock_name_regions[STRING_LENGTH];
+     snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
+
+     int ret_get = -1;
+
+    // some pre-definition
+    int region_length, side_num_region,num_region,region_num_cell;
+    size_t region_memory_size;
+
+    // extract those 
+    extract_region_def(p_region_def, &region_length, &side_num_region,&num_region,&region_num_cell, &region_memory_size);
+
+
+        float * buffer_all_regions = (float*)malloc(region_num_cell*sizeof(float)*3*num_region);
+        if(buffer_all_regions == NULL){
+            perror("malloc error for regions buffer, now exit");
+            exit(-1);
+        }
+
+        sprintf(msg, "try to acquired the region read lock %s", lock_name_regions );
+        my_message(msg, rank, LOG_WARNING);
+        dspaces_lock_on_read(lock_name_regions, &gcomm);
+
+        sprintf(msg, "get the  the region read lock");
+        my_message(msg, rank, LOG_WARNING);
+
+        // read all regions in once
+        t1 = MPI_Wtime();
+
+        ret_get = dspaces_get(var_name, timestep, region_memory_size, ndim, lb, ub, buffer_all_regions);
+
+        t2 = MPI_Wtime();
+
+        // now we can release region lock
+        dspaces_unlock_on_read(lock_name_regions, &gcomm);
+        sprintf(msg, "release the region read lock");
+        my_message(msg, rank, LOG_WARNING);
+
+        if(ret_get != 0){
+            perror("get all regions error, now exit");
+            exit(-1);
+        }else{
+            sprintf(msg, "read %d regions from dspaces, each has %ld bytes", num_region, region_memory_size);
+            my_message(msg, rank, LOG_WARNING);
+        }
+
+        *p_buffer_all_regions = buffer_all_regions;
+        *time_used = t2-t1;
+}
 
 // test segmentation fault
 /*
@@ -74,7 +220,7 @@ int main(int argc, char **argv)
 
  	// Name our data.
 	char var_name[STRING_LENGTH];
-	sprintf(var_name, "region_data");
+	sprintf(var_name_vel, "");
 
 
     char msg[STRING_LENGTH];
@@ -89,11 +235,19 @@ int main(int argc, char **argv)
     int region_length = 10;
     int num_region = 400;
     */
-    int region_length = REGION_LENGTH;
-    int side_num_region = (POINTS_SIDE - 1)/REGION_LENGTH;
-    int num_region =side_num_region*side_num_region ;
-    
 
+    // wrap all info for regions
+    Region_Def region_def;
+    Region_Def *p_region_def = &region_def;
+
+    fill_region_def(p_region_def);
+
+    // some pre-definition
+    int region_length, side_num_region,num_region,region_num_cell;
+    size_t region_memory_size;
+
+    // extract those 
+    extract_region_def(p_region_def, &region_length, &side_num_region,&num_region,&region_num_cell, &region_memory_size);
 
     // !!!feng: we should know how many regions in total so that we can asign the pairs
     // MPI_receive here?
@@ -127,11 +281,7 @@ int main(int argc, char **argv)
     if(rank == 0)
         printf("--rank%d:num_tasks=%d, tasks_per_proc=%d,tasks_left_over=%d\n", rank,num_tasks, tasks_per_proc, tasks_left_over);
 
-    int region_num_cell = (region_length+1)*(region_length+1);
-    // attention here: this is used only when malloc
-    size_t  region_memory_size = region_num_cell*3*sizeof(float);
-
-    // generate pair lookup table;
+        // generate pair lookup table;
     int *table;
     generate_lookup_table(num_region, &table);
     sprintf(msg,"pair lookup table generated, I am responsible for P%d to P%d", pair_index_l, pair_index_h);
@@ -163,11 +313,9 @@ int main(int argc, char **argv)
     uint64_t gdim_div[3] = {num_tasks ,1,1};
     dspaces_define_gdim(var_name_div, 3,gdim_div);
 
-    // return values for regions dspaces operations
-    int ret_get_0, ret_get_1;
 
     // return values for div dspaces operations
-    int ret_put, ret_get;
+    int ret_put;
     
     // every time read all the regions
     float *buffer_all_regions;
@@ -179,7 +327,6 @@ int main(int argc, char **argv)
     int div_func = 1;
 
     int timestep=0;
-    char lock_name_regions[STRING_LENGTH];
     char lock_name_divs[STRING_LENGTH];
 
     /*
@@ -187,122 +334,36 @@ int main(int argc, char **argv)
     snprintf(lock_name_divs, STRING_LENGTH, "div_lock_same");
         */
     while(timestep < MAX_VERSION){
-        snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
         snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
 
         if(rank == 0){
             sprintf(msg, "\n********************timestep %d now start!\n",timestep);
             my_message(msg, rank, LOG_WARNING);
         }
-        // I should wait after all regions are placed into dspaces
 
-        // return values for regions dspaces operations
-        ret_get_0 = -1;
-        ret_get_1 = -1;
-
-        // return values for div dspaces operations
-        ret_put = -1;
-        ret_get = -1;
-
-
-        // prepare buffer for divs
-        int size_div = (pair_index_h - pair_index_l+1)*sizeof(float);
-        sprintf(msg, "div buffer has size %d", size_div);
-        my_message(msg, rank, LOG_WARNING);
-
-        divs_this_rank = (float *)malloc(size_div);
-        if(divs_this_rank == NULL){
-            perror("malloc error for div buffer, now exit");
-            exit(-1);
-        }
-
-
-        // prepare to read regions from dataspaces
-        lb[0] = 0;
-        ub[0] = num_region - 1;
         
-
         // this is the to prefetch all regions
         // note that the regions a rank need may be not continous
-        buffer_all_regions = (float*)malloc(region_num_cell*sizeof(float)*3*num_region);
-        if(buffer_all_regions == NULL){
-            perror("malloc error for regions buffer, now exit");
-            exit(-1);
-        }
+        get_region_buffer(int timestep,int  rank, float ** p_buffer_all_regions);
 
-        sprintf(msg, "try to acquired the region read lock %s", lock_name_regions );
-        my_message(msg, rank, LOG_WARNING);
-        dspaces_lock_on_read(lock_name_regions, &gcomm);
-
-        sprintf(msg, "get the  the region read lock");
-        my_message(msg, rank, LOG_WARNING);
-
-        // read all regions in once
-        t1 = MPI_Wtime();
-
-        ret_get_0 = dspaces_get(var_name, timestep, region_memory_size, ndim, lb, ub, buffer_all_regions);
-
-        t2 = MPI_Wtime();
-
-        // now we can release region lock
-        dspaces_unlock_on_read(lock_name_regions, &gcomm);
-        sprintf(msg, "release the region read lock");
-        my_message(msg, rank, LOG_WARNING);
-
-        if(ret_get_0 != 0){
-            perror("get all regions error, now exit");
-            exit(-1);
-        }else{
-            sprintf(msg, "read %d regions from dspaces, each has %ld bytes", num_region, region_memory_size);
-            my_message(msg, rank, LOG_WARNING);
-        }
 
         // read all regions in once
         time_comm += t2 -t1;
 
         
-        for(i = pair_index_l; i<= pair_index_h; i++){
+        double time_used;
 
-            // get the region index of that pair
-            get_pair_index(table, i, &a, &b);
+        cal_local_divs(buffer_all_regions,region_length,k_npdiv, div_func, table, pair_index_l, pair_index_h, rank, &div_this_rank, &time_used);
 
-            snprintf(msg, STRING_LENGTH,"try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
-            my_message(msg, rank, LOG_VERB);
+        time_cal += time_used;
 
-            buffer_a = buffer_all_regions + a*region_num_cell*3;
-            buffer_b = buffer_all_regions + b*region_num_cell*3;
-
-            t2 = MPI_Wtime();
-
-#ifdef debug
-            int aa, bb;
-            // validate the two regions
-            aa =  validate_regions(buffer_a,region_memory_size);
-            bb = validate_regions(buffer_b, region_memory_size);
-
-            if(aa == 1 && bb == 1){
-                sprintf(msg, "No.%d/%d pair, region %d(%p) and %d(%p) is validate",i - pair_index_l, pair_index_h - pair_index_l +1, a,(void*)buffer_a, b,(void *)buffer_b);
-                my_message(msg, rank, LOG_VERB);
-            }
-#endif
-                
-            // we can get the divergence now!
-            div = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
-
-            //sprintf(msg, "No.%d/%d pair, region %d and %d: %.3f",i - pair_index_l, pair_index_h - pair_index_l +1, a, b, div);
-            //my_message(msg, rank);
-
-            t3 = MPI_Wtime();
-
-            // save it into buffer first
-            divs_this_rank[i - pair_index_l] = div;
-
-            // record the time for communication and calculation
-            time_cal += t3 -t2;
-        }
 
 
         free(buffer_all_regions);
+
+        // return values for div dspaces operations
+        ret_put = -1;
+        ret_get = -1;
 
 
         lb_div[0] = pair_index_l, ub_div[0] = pair_index_h;
