@@ -39,7 +39,11 @@ typedef struct{
 
 
 //region definition
-void fill_region_def(Def *p_region_def);
+void fill_region_def(Region_Def *p_region_def);
+
+// extract region definition
+void extract_region_def(Region_Def *p_region_def, int *p_region_length,int * p_side_num_region, int *p_num_region,int * p_region_num_cell, size_t *p_region_memory_size);
+
 /*
  * we can use pair index to lookup this table for region index 
  * each entry like this:
@@ -68,7 +72,25 @@ void free_lookup_table(int * table);
  */
 void get_pair_index(int *table, int index_pair,int *a, int *b);
 
-void cal_local_divs(float *buffer_all_regions,int region_length, int k_npdiv, int div_func, int *table, int  pair_index_l,int  pair_index_h,  int rank, float** p_div_this_rank, double *time_used);
+
+/* 
+ * modified on Jan 19
+ * calculate all the divergence for this rank
+ */
+void cal_local_divs(float *buffer_all_regions,Region_Def * p_region_def, int k_npdiv, int div_func, int *table, int  pair_index_l,int  pair_index_h,  int rank, float** p_div_this_rank, double *time_used);
+
+/* 
+ * modified on Jan 19
+ * get region info from dspaces
+ */
+void get_region_buffer(int timestep, Region_Def *p_region_def, int  rank, MPI_Comm * p_gcomm,  float ** p_buffer_all_regions, double * time_used);
+
+
+/*
+ * modified on Jan 19
+ * put divergence into into dspaces
+ */
+void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h , int num_tasks, int rank, MPI_Comm *p_gcomm, float ** p_divs_this_rank, double* time_used);
 
 
 

@@ -41,10 +41,9 @@ void update_attributes(int timeStep, int *dims,float *vel_data, float*p_data){
 
 int main(int argc, char* argv[])
 {
-    int i, j ,k, ret_put;
+    int ret_put;
 
     // dataspaces preparation
-    int err;
 	int nprocs, rank;
 	MPI_Comm gcomm;
 

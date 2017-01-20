@@ -28,13 +28,16 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
 
     //hsize_t     nx=4, ny=3,nz=2;
 
+    // commented by feng Jan 20
     herr_t      status, status_n;                             
 
     //int         chunk_out[2][5];   /* buffer for chunk to be read */
     //int         column[10];        /* buffer for column to be read */
     int         rank_p;
     int         rank_u;
-    hsize_t i, j, k, m;
+
+    // feng commented on Jan 20
+    //hsize_t i, j, k, m;
     
 
  

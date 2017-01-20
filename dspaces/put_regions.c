@@ -4,7 +4,6 @@
 
 int main(int argc, char **argv)
 {
-	int err;
 	int nprocs, rank;
 	MPI_Comm gcomm;
 

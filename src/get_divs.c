@@ -1,5 +1,5 @@
 #include "get_divs.h"
-//#define debug_1
+#define debug_1
 
 // parallel version and sequential version have different divergence
 #define DEBUG_REGION_MAPPING
@@ -14,7 +14,7 @@ void get_kth_dist(float *array_to_sort, int length_to_sort, int k){
     float key;
     for(j = 1; j< length_to_sort; j++){
         key = array_to_sort[j];
-        for(i=j-1;array_to_sort[i] > key&i>=0;i--){
+        for(i=j-1;array_to_sort[i] > key && i>=0;i--){
             array_to_sort[i+1] = array_to_sort[i];
         }
         array_to_sort[i+1] = key;
@@ -52,7 +52,7 @@ float get_bound_dist(int i, float *DisMatrix, int length, int k){
     // actually this is a task to sort all the elements in the i-th row in DisMatrix
 
     // the index of k-th least distance
-    int m,k_dist;
+    int m;
 
     // start point and length of array to sort
     // bug fixed here: used to modify origin matrix!
@@ -96,7 +96,7 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     float k_dist_b;
 
     // u is for gaussian
-    float div= 0, tmp = 0, tmp2, u;
+    float div= 0, tmp = 0;
 
     // the estimated density 
     float den_a, den_b;
@@ -127,10 +127,17 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     }
 
     // also get distances in region B
+#ifdef debug_1
+    printf("matrix B:\n");
+#endif
 #ifdef debug
     printf("distance region matrix at %p is calculated\n", (void *)A);
 #endif
-    for(i = 0; i < num_cell; i++)
+    for(i = 0; i < num_cell; i++){
+
+#ifdef debug_1
+        printf("\t point %d: (%.3f %.3f %.3f)\n", i, *(B + 3*i+ 0), *(B +3*i + 1),*(B + 3*i +2)); 
+#endif
         for(j = i; j < num_cell; j++){
             if(j == i) 
                 DisMatrixB[i*num_cell+j] = LARGE_NUMBER ;
@@ -141,6 +148,7 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
             }
             //printf("B: distance(%d, %d)is %.4f\n",i,j, DisMatrixB[i*num_cell +j]);
         }
+    }
 
 #ifdef debug
     printf("distance matrix region at %p is calculated\n", (void *)(B));
@@ -182,8 +190,12 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
 #endif
 
     // for L_2 divergence, square root is required
+    
     if(div_func == 1){
         div = sqrt(tmp);
+#ifdef debug_1
+        printf("get div = sqrt(%lf) = %lf\n", tmp, div);
+#endif
     }
     free(DisMatrixA);
     free(DisMatrixB);

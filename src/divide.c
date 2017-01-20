@@ -68,8 +68,6 @@ void gen_region_samples(float **sample_regions, int num_types, int region_length
         0.4, 0, 1,
         0.2, 0.2, 2};
 
-    // index inside each region
-    int ii, jj;
 
     float * cur_region;
     size_t region_memory_size = (region_length+1)*(region_length+1)*3*sizeof(float);
@@ -147,16 +145,8 @@ void free_region_samples(float **sample_regions, int num_types){
 
 
 void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_regions){
-    int p,q,ii,jj, side_num_region;
+    int p,q, side_num_region;
 
-    // index inside the logic block 
-    int index_x, index_y;
-
-    // index if translated into the linear bubuffer
-    int linear_index;
-    
-    // velocity of dimension x and y
-    float ux, uy, *tripple_address, dist2;
 
     if((dim - 1)%region_length != 0){
         printf("not pefect division, try different region size of datacut size\n");

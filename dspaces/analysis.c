@@ -2,7 +2,6 @@
 
 int main(int argc, char **argv)
 {
-	int err;
 	int nprocs, rank;
 	MPI_Comm gcomm;
 
@@ -63,7 +62,7 @@ int main(int argc, char **argv)
 
     // save all the divergence
     char divs_path[STRING_LENGTH];
-    FILE * f_divs;
+    //FILE * f_divs;
 
     int side_num_region = (POINTS_SIDE -1)/REGION_LENGTH; // this will be (201-1)/10 = 20
 
@@ -95,7 +94,6 @@ int main(int argc, char **argv)
             int num_region = NUM_REGION;
 
                         // parameter for second variable: div
-            float div;
             uint64_t lb_div[3] = {0}, ub_div[3] = {0};
             // save divergence in a 1-d array! this will save space
             int ndim_div = 3;
@@ -233,7 +231,7 @@ int main(int argc, char **argv)
                 }
                 FILE * f_clusterid = fopen(output_path, "w");
                 if(f_clusterid == NULL){
-                    printf("file %s not found, exit", output_path);
+                    printf("file %s not found, exit\n", output_path);
                     exit(-1);
                 }
                 else{
