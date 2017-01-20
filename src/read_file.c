@@ -71,8 +71,10 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
     rank_p      = H5Sget_simple_extent_ndims(filespace_p);
     //printf("dataset rank %d \n", rank_p);
     status_n  = H5Sget_simple_extent_dims(filespace_p, dims_p, NULL);
-    printf("pressure dataset rank %d, dimensions %lu x %lu x %lu x %lu \n",
+    if(status_n >= 0){
+        printf("pressure dataset rank %d, dimensions %lu x %lu x %lu x %lu \n",
        rank_p, (unsigned long)(dims_p[0]),(unsigned long)(dims_p[1]),(unsigned long)(dims_p[2]), (unsigned long)(dims_p[3]));
+    }
 
     //float  data_p[dims_p[0]][dims_p[1]][dims_p[2]];  /* buffer for pressure to be read */
     float  *data_p = (float *)malloc(sizeof(float)*dims_p[0]*dims_p[1]*dims_p[2]);
@@ -87,8 +89,10 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
     rank_u      = H5Sget_simple_extent_ndims(filespace_u);
     //printf("dataset rank %d \n", rank_u);
     status_n  = H5Sget_simple_extent_dims(filespace_u, dims_u, NULL);
-    printf(" velocity dataset rank %d, dimensions %lu x %lu x %lu x %lu \n",
+    if(status_n >=0){
+        printf(" velocity dataset rank %d, dimensions %lu x %lu x %lu x %lu \n",
        rank_u, (unsigned long)(dims_u[0]),(unsigned long)(dims_u[1]),(unsigned long)(dims_u[2]), (unsigned long)(dims_u[3]));
+    }
 
     *dim1 = dims_u[0];// z
     *dim2 = dims_u[1];// y
@@ -139,10 +143,12 @@ int read_data(const char* file_name, float **pressure, float **velocity, int *di
     
     status = H5Dread(dataset_p, H5T_NATIVE_FLOAT, memspace_p, filespace_p,
              H5P_DEFAULT, data_p);
-    status = H5Dread(dataset_u, H5T_NATIVE_FLOAT, memspace_u, filespace_u,
+    status_n = H5Dread(dataset_u, H5T_NATIVE_FLOAT, memspace_u, filespace_u,
              H5P_DEFAULT, data_u);
-    printf("\n");
-    printf(" pressure Dataset: \n");
+    if(status >=0 && status_n >=0){
+        printf("\n");
+        printf(" pressure Dataset: \n");
+    }
 
     /*
      *

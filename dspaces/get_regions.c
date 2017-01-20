@@ -432,8 +432,9 @@ int main(int argc, char **argv)
         timestep++;
     }
 
-    if(table != NULL);
-    free_lookup_table(table);
+    if(table != NULL){
+        free_lookup_table(table);
+    }
 
     sprintf(msg, "now finalize the dspaces and exit");
     my_message(msg, rank, LOG_CRITICAL);

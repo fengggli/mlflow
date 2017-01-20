@@ -12,7 +12,7 @@
 #define LARGE_NUMBER (999999)
 //#define debug
 
-void get_kth_dist(float *array_to_sort, int length_to_sort, int k);
+void get_ranked_dist(float *array_to_sort, int length_to_sort);
 
 /* print the contant of matrix
  */

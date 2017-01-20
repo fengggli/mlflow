@@ -9,7 +9,7 @@
 
 
 
-void update_attributes(int timeStep, int *dims,float *vel_data, float*p_data){
+void update_attributes(int timestep, int *dims,float *vel_data, float*p_data){
     int i, j, k;
 
     // writers
@@ -20,7 +20,7 @@ void update_attributes(int timeStep, int *dims,float *vel_data, float*p_data){
         for(j = 0; j < dims[1]; j++){
             for(k = 0; k < dims[2]; k++){
                 // vel data
-                tmp_vel[0] = j;
+                tmp_vel[0] = j*timestep;
                 tmp_vel[1] = 0;
                 tmp_vel[2] = 0;
 

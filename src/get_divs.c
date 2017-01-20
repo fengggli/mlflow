@@ -9,7 +9,7 @@
  * insertion sort here
  * input/ output: array_to_sort
  */
-void get_kth_dist(float *array_to_sort, int length_to_sort, int k){
+void get_ranked_dist(float *array_to_sort, int length_to_sort){
     int i,j;
     float key;
     for(j = 1; j< length_to_sort; j++){
@@ -62,7 +62,7 @@ float get_bound_dist(int i, float *DisMatrix, int length, int k){
 
     //float *array_to_sort = DisMatrix + i*length;
     int length_to_sort = length;
-    get_kth_dist(tmp_array, length_to_sort, k);
+    get_ranked_dist(tmp_array, length_to_sort);
 
     // if all the tipple values are the same, nearest neibour distance can be 0
     return tmp_array[k-1];
