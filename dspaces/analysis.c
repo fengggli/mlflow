@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     sprintf(msg, "k = %d, max_timestep= %d", K_NPDIV,MAX_VERSION );
     my_message(msg, rank, LOG_CRITICAL);
 
-    sprintf(msg, "dataspaces init successfully");
+    sprintf(msg, "ds init ok, result path:%s, address: %p,len: %zu\n",result_path, result_path, strlen(result_path) );
     my_message(msg, rank, LOG_CRITICAL);
 
         /*
@@ -62,7 +62,6 @@ int main(int argc, char **argv)
 
     // save all the divergence
     char divs_path[STRING_LENGTH];
-    //FILE * f_divs;
 
     int side_num_region = (POINTS_SIDE -1)/REGION_LENGTH; // this will be (201-1)/10 = 20
 
@@ -223,6 +222,12 @@ int main(int argc, char **argv)
                 my_message(msg, rank, LOG_WARNING);
 
                 // save cluster results into file
+                if(argc == 2){
+                    strcpy(result_path, argv[1]);
+                }
+                sprintf(msg, "tring to write clusterid to parent path:%s,address: %p,len: %zu\n",result_path, result_path, strlen(result_path) );
+                my_message(msg, rank, LOG_CRITICAL);
+
                 if(argc == 2){
                     snprintf(output_path, STRING_LENGTH,"%s/clusterids/%d_k_%d_t_%d.txt",result_path,  POINTS_SIDE,k_npdiv, timestep);
                 }
