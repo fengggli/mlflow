@@ -54,7 +54,7 @@ void get_pair_index(int *table, int index_pair,int *a, int *b){
     *b = table[2*index_pair +1];
 }
 
-void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_npdiv, int div_func, int *table, int  pair_index_l,int  pair_index_h,  int rank, float** p_divs_this_rank, double *time_used){
+void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_npdiv, int div_func, int *table, int  pair_index_l,int  pair_index_h,  int rank, float** p_divs_this_rank, double *p_time_used){
     int i;
     double t2, t3;
     // the index of the two pairs
@@ -63,8 +63,8 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
     float *buffer_a, *buffer_b;
     char msg[STRING_LENGTH];
 
-    if(time_used != 0){
-        time_used =0;
+    if(*p_time_used != 0){
+        *p_time_used =0;
     }
 
     // some pre-definition
@@ -142,12 +142,12 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
         my_message(msg, rank, LOG_WARNING);
 
         // record the time for communication and calculation
-        *time_used += t3 -t2;
+        *p_time_used += t3 -t2;
     }
     *p_divs_this_rank = divs_this_rank;
 }
 
-void get_region_buffer(int timestep, Region_Def *p_region_def, int  rank, MPI_Comm * p_gcomm,  float ** p_buffer_all_regions, double * time_used){
+void get_region_buffer(int timestep, Region_Def *p_region_def, int  rank, MPI_Comm * p_gcomm,  float ** p_buffer_all_regions, double * p_time_used){
     char msg[STRING_LENGTH];
     double t1, t2;
     int ret_get = -1;
@@ -210,10 +210,10 @@ void get_region_buffer(int timestep, Region_Def *p_region_def, int  rank, MPI_Co
     }
 
     *p_buffer_all_regions = buffer_all_regions;
-    *time_used = t2-t1;
+    *p_time_used = t2-t1;
 }
 
-void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_tasks, int rank, MPI_Comm *p_gcomm, float ** p_divs_this_rank, double* time_used){
+void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_tasks, int rank, MPI_Comm *p_gcomm, float ** p_divs_this_rank, double* p_time_used){
 
     char msg[STRING_LENGTH];
     double t1, t2;
@@ -267,7 +267,7 @@ void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_ta
         sprintf(msg, "ERROR when storing divergence of region");
     }
     my_message(msg, rank, LOG_CRITICAL);
-    *time_used = t2-t1;
+    *p_time_used = t2-t1;
 }
 
 // test segmentation fault
@@ -403,8 +403,6 @@ int main(int argc, char **argv)
         get_region_buffer(timestep, &region_def, rank, &gcomm, &buffer_all_regions, &time_used);
         time_comm_regions = time_used;
 
-        sprintf(msg, "buffer starts with %.3f %.3f %.3f %.3f %.3f ", buffer_all_regions[0],buffer_all_regions[1],buffer_all_regions[2],buffer_all_regions[3],buffer_all_regions[4]);
-        my_message(msg, rank, LOG_CRITICAL);
 
         // calculate divergence
         cal_local_divs(buffer_all_regions,&region_def,k_npdiv, div_func, table, pair_index_l, pair_index_h, rank, &divs_this_rank, &time_used);

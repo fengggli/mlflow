@@ -1,5 +1,5 @@
 #include "get_divs.h"
-#define debug_1
+//#define debug_1
 
 // parallel version and sequential version have different divergence
 #define DEBUG_REGION_MAPPING

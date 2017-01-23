@@ -7,8 +7,6 @@
 #include "common_utility.h"
 #include "dataspaces.h"
 
-
-
 void update_attributes(int timestep, int *dims,float *vel_data, float*p_data){
     int i, j, k;
 
@@ -32,8 +30,6 @@ void update_attributes(int timestep, int *dims,float *vel_data, float*p_data){
             }
         }
     }
-
-
 }
 
 
@@ -80,7 +76,7 @@ int main(int argc, char* argv[])
     //char lock_name_pres[STRING_LENGTH];
     //
 
-    size_t elem_size_vel = sizeof(float);
+    size_t elem_size_vel = sizeof(float)*3;
 
 
   // data layout
@@ -130,8 +126,6 @@ int main(int argc, char* argv[])
         else{
             sprintf(msg, "ERROR when writing vel into dspacs");
         }
-
-
     }
 
   // free

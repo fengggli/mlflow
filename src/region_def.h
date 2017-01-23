@@ -23,7 +23,7 @@
 
 
 #else
-    #define MAX_VERSION (2)
+    #define MAX_VERSION (10)
     // side length(points num -1) in each region
     #define REGION_LENGTH (10)
     #define POINTS_SIDE (201)
