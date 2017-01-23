@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     sprintf(msg, "try to init dataspaces");
     my_message(msg, rank, LOG_CRITICAL);
 
-	dspaces_init(1, 4, &gcomm, NULL);
+	dspaces_init(1, 1, &gcomm, NULL);
 
     sprintf(msg, "dataspaces init successfully");
     my_message(msg, rank, LOG_CRITICAL);
@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
 
     char var_name_vel[STRING_LENGTH];
     snprintf(var_name_vel, STRING_LENGTH, "VEL");
+
 
     //char var_name_pres[STRING_LENGTH];
 
@@ -82,6 +83,9 @@ int main(int argc, char* argv[])
   // data layout
   int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
   int num_points = dims[0]*dims[1]*dims[2];
+
+    uint64_t gdim_div[3] = {num_points,1,1};
+    dspaces_define_gdim(var_name_vel, 3,gdim_div);
 
   // prepare space
   float * vel_data = (float *)malloc(num_points* sizeof(float)*3);

@@ -18,6 +18,7 @@ echo "----------------"
 
 #This job runs with 3 nodes  
 #ibrun in verbose mode will give binding detail  
+BUILD=${PBS_O_WORKDIR}/build/bin
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 
@@ -55,18 +56,18 @@ sleep 5s  # wait server to fill up the conf file
 
 
 ## Run region writer
-aprun -n 1  -N 1 bin/put_regions >& ${PBS_RESULTDIR}/producer.log &
+aprun -n 1  -N 1 ${BUILD}/put_regions >& ${PBS_RESULTDIR}/producer.log &
 
 echo "writer applciation lauched"
 
 
 ## Run region reader and divergence cal application
-aprun -n 32 bin/get_regions ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
+aprun -n 32 ${BUILD}/get_regions ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
 
 echo "reader applciation lauched"
 
 ## the analysis application
-aprun -n 1 -N 1 bin/analysis ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/analysis.log &
+aprun -n 1 -N 1 ${BUILD}/analysis ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/analysis.log &
 
 echo "analysis applciation lauched"
 

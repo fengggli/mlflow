@@ -6,6 +6,8 @@
 // use synthetic data to verify
 // only tested in sequential implementation
 //#define USE_SYNTHETIC 
+#include "stdlib.h"
+#include "stdio.h"
 
 #ifdef USE_SYNTHETIC
     #define MAX_VERSION (1)
@@ -66,6 +68,22 @@
  */
 #
 #define NCLUSTERS (3)
+
+typedef struct{
+    int region_length;
+    int side_num_region;
+    int num_region;
+    int region_num_cell;
+    size_t region_memory_size;
+}Region_Def;
+
+
+//region definition
+void fill_region_def(Region_Def *p_region_def);
+
+// extract region definition
+void extract_region_def(Region_Def *p_region_def, int *p_region_length,int * p_side_num_region, int *p_num_region,int * p_region_num_cell, size_t *p_region_memory_size);
+
 
 
 #endif

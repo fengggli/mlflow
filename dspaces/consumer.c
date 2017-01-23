@@ -1,5 +1,8 @@
-#include "get_regions.h"
+#include "consumer.h"
 //#define debug_1
+
+
+
 
 
 void generate_lookup_table(int num_region, int **p_table){
@@ -43,7 +46,7 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
     char msg[STRING_LENGTH];
 
     if(*p_time_used != 0){
-        *p_time_used =0;
+        *p_time_used = 0;
     }
 
     // some pre-definition
@@ -74,12 +77,12 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
         // get the region index of that pair
 
         snprintf(msg, STRING_LENGTH,"i = %d, index_l = %d, index_h = %d\n", i, pair_index_l, pair_index_h);
-        my_message(msg, rank, LOG_VERB);
+        my_message(msg, rank, LOG_WARNING);
 
         get_pair_index(table, i, &a, &b);
 
         snprintf(msg, STRING_LENGTH,"try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
-        my_message(msg, rank, LOG_VERB);
+        my_message(msg, rank, LOG_WARNING);
 
         buffer_a = buffer_all_regions + a*region_num_cell*3;
         buffer_b = buffer_all_regions + b*region_num_cell*3;
@@ -118,7 +121,7 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
         divs_this_rank[i - pair_index_l] = div;
 
         snprintf(msg, STRING_LENGTH,"div written");
-        my_message(msg, rank, LOG_VERB);
+        my_message(msg, rank, LOG_WARNING);
 
         // record the time for communication and calculation
         *p_time_used += t3 -t2;
@@ -126,7 +129,9 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
     *p_divs_this_rank = divs_this_rank;
 }
 
-void get_region_buffer(int timestep, Region_Def *p_region_def, int  rank, MPI_Comm * p_gcomm,  float ** p_buffer_all_regions, double * p_time_used){
+
+
+void get_vel_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm * p_gcomm, float **p_buffer_vel, double *p_time_used){
     char msg[STRING_LENGTH];
     double t1, t2;
     int ret_get = -1;
@@ -138,59 +143,67 @@ void get_region_buffer(int timestep, Region_Def *p_region_def, int  rank, MPI_Co
     // extract those 
     extract_region_def(p_region_def, &region_length, &side_num_region,&num_region,&region_num_cell, &region_memory_size);
 
+    // data layout
+    int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
+    int num_points = dims[0]*dims[1]*dims[2];
+
+    size_t elem_size_vel = sizeof(float)*3;
+    
     // prepare to read regions from dataspaces
     uint64_t lb[3] = {0}, ub[3] = {0};
     lb[0] = 0;
-    ub[0] = num_region - 1;
+    ub[0] = num_points - 1;
 
     // Define the dimensionality of the data to be received 
     int ndim = 3;
 
-    char var_name_regions[STRING_LENGTH];
-    sprintf(var_name_regions, "region_data");
+    char var_name_vel[STRING_LENGTH];
+    sprintf(var_name_vel, "VEL");
+
+    char lock_name_vel[STRING_LENGTH];
+    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
+
+    
+    // prepare space
+    //
+    float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
+    if(vel_data == NULL){
+          perror("vel data allocated error");
+          exit(-1);
+      }
 
 
-    char lock_name_regions[STRING_LENGTH];
-    snprintf(lock_name_regions, STRING_LENGTH, "region_lock_t_%d", timestep);
-
-
-    // freed in get_regions.c main function
-    float * buffer_all_regions = (float*)malloc(region_num_cell*sizeof(float)*3*num_region);
-    if(buffer_all_regions == NULL){
-        perror("malloc error for regions buffer, now exit");
-        exit(-1);
-    }
-
-    sprintf(msg, "try to acquired the region read lock %s", lock_name_regions );
+    sprintf(msg, "try to acquired the vel read lock %s", lock_name_vel );
     my_message(msg, rank, LOG_WARNING);
-    dspaces_lock_on_read(lock_name_regions, p_gcomm);
+    dspaces_lock_on_read(lock_name_vel, p_gcomm);
 
-    sprintf(msg, "get the  the region read lock");
+    sprintf(msg, "get the  the vel read lock");
     my_message(msg, rank, LOG_WARNING);
 
     // read all regions in once
     t1 = MPI_Wtime();
 
-    ret_get = dspaces_get(var_name_regions, timestep, region_memory_size, ndim, lb, ub, buffer_all_regions);
+    ret_get = dspaces_get(var_name_vel, timestep, elem_size_vel, ndim, lb, ub, vel_data);
 
     t2 = MPI_Wtime();
 
     // now we can release region lock
-    dspaces_unlock_on_read(lock_name_regions, p_gcomm);
-    sprintf(msg, "release the region read lock");
+    dspaces_unlock_on_read(lock_name_vel, p_gcomm);
+    sprintf(msg, "release the vel read lock");
     my_message(msg, rank, LOG_WARNING);
 
     if(ret_get != 0){
-        perror("get all regions error, now exit");
+        perror("get all vel error, now exit");
         exit(-1);
     }else{
-        sprintf(msg, "read %d regions from dspaces, each has %ld bytes", num_region, region_memory_size);
+        sprintf(msg, "read %d vel from dspaces, each has %ld bytes", num_points, elem_size_vel);
         my_message(msg, rank, LOG_WARNING);
     }
 
-    *p_buffer_all_regions = buffer_all_regions;
+    *p_buffer_vel = vel_data;
     *p_time_used = t2-t1;
 }
+
 
 void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_tasks, int rank, MPI_Comm *p_gcomm, float ** p_divs_this_rank, double* p_time_used){
 
@@ -353,8 +366,11 @@ int main(int argc, char **argv)
 
     float *divs_this_rank;
 
+    int tmp_num_region = 0; // check divide results
+
     // every time read all the regions
     float *buffer_all_regions;
+    float *buffer_vel;
 
     // k-nearest neighbours
     int k_npdiv = K_NPDIV;
@@ -379,15 +395,24 @@ int main(int argc, char **argv)
 
         // read all regions in once
         // note that the regions a rank need may be not continous
-        get_region_buffer(timestep, &region_def, rank, &gcomm, &buffer_all_regions, &time_used);
-        time_comm_regions = time_used;
+        //get_region_buffer(timestep, &region_def, rank, &gcomm, &buffer_all_regions, &time_used);
+        // read raw data and divide
+        get_vel_buffer(timestep, &region_def,rank, &gcomm, &buffer_vel, &time_used);
+        //divide into regions
+        divide(buffer_vel, POINTS_SIDE,region_length,&tmp_num_region, &buffer_all_regions);
 
+        if(tmp_num_region != num_region){
+            perror("divide not correct");
+            exit(-1);
+        }
+
+        time_comm_regions = time_used;
 
         // calculate divergence
         cal_local_divs(buffer_all_regions,&region_def,k_npdiv, div_func, table, pair_index_l, pair_index_h, rank, &divs_this_rank, &time_used);
         time_cal = time_used;
-        if(buffer_all_regions){
-            free(buffer_all_regions);
+        if(buffer_vel){
+            free(buffer_vel);
         }
 
         // put divs into dataspaces
@@ -424,3 +449,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
