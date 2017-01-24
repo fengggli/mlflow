@@ -131,17 +131,18 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
 
 
 
+/*
+ * this is an template
+ */
 void get_vel_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm * p_gcomm, float **p_buffer_vel, double *p_time_used){
     char msg[STRING_LENGTH];
     double t1, t2;
     int ret_get = -1;
 
-    // some pre-definition
-    int region_length, side_num_region,num_region,region_num_cell;
-    size_t region_memory_size;
-
-    // extract those 
-    extract_region_def(p_region_def, &region_length, &side_num_region,&num_region,&region_num_cell, &region_memory_size);
+    if(p_region_def != NULL){
+        printf("no extra info required\n");
+        exit(-1);
+    }
 
     // data layout
     int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
@@ -165,7 +166,6 @@ void get_vel_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm *
 
     
     // prepare space
-    //
     float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
     if(vel_data == NULL){
           perror("vel data allocated error");
@@ -194,6 +194,7 @@ void get_vel_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm *
 
     if(ret_get != 0){
         perror("get all vel error, now exit");
+        printf("error number %d \n", ret_get);
         exit(-1);
     }else{
         sprintf(msg, "read %d vel from dspaces, each has %ld bytes", num_points, elem_size_vel);
@@ -389,7 +390,7 @@ int main(int argc, char **argv)
     while(timestep < MAX_VERSION){
 
         if(rank == 0){
-            sprintf(msg, "\n********************timestep %d now start!\n",timestep);
+            sprintf(msg, "********************timestep %d now start!\n",timestep);
             my_message(msg, rank, LOG_WARNING);
         }
 
@@ -397,7 +398,7 @@ int main(int argc, char **argv)
         // note that the regions a rank need may be not continous
         //get_region_buffer(timestep, &region_def, rank, &gcomm, &buffer_all_regions, &time_used);
         // read raw data and divide
-        get_vel_buffer(timestep, &region_def,rank, &gcomm, &buffer_vel, &time_used);
+        get_vel_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &time_used);
         //divide into regions
         divide(buffer_vel, POINTS_SIDE,region_length,&tmp_num_region, &buffer_all_regions);
 
