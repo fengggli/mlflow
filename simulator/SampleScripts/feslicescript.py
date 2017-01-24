@@ -83,6 +83,7 @@ def DoCoProcessing(datadescription):
     coprocessor.WriteData(datadescription);
 
     # Write image capture (Last arg: rescale lookup table), if appropriate.
+    # instead we want to render in the sever
     coprocessor.WriteImages(datadescription, rescale_lookuptable=False)
 
     # Live Visualization, if enabled.

@@ -3,9 +3,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.2.2] - 2017
+## [0.2.3] - 2017-01-24
+### Added 
+- new branch: with visual, add catalyst part and corresponding dspaces acess.
+
+### target
+- at least output some pictures
+
+### to do
+- only rank=1 is supported, becase attributes->update is originally designed
+with parallel support
+- add remote server in co-process
+
+## [0.2.2] - 2017-01-23
 ### Added
 - new build dir: build_sim_consumer
+### bugs
+- resource unavailable
 
 
 ## [0.2.1] - 2017-01-23

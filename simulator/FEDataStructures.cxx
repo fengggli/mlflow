@@ -127,6 +127,16 @@ void Attributes::UpdateFields(double time)
   std::fill(this->Pressure.begin(), this->Pressure.end(), 1.);
 }
 
+// update points of this partition
+void Attributes::UpdateFields(double time, float * vel, float * pres)
+{
+    // how many points in this partition
+  unsigned int numPoints = this->GridPtr->GetNumberOfLocalPoints();
+  this->Velocity(vel, std::end(vel));
+
+  this->Pressure.resize(pres, std::end(pres));
+}
+
 float* Attributes::GetVelocityArray()
 {
   if(this->Velocity.empty())

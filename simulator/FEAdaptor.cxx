@@ -81,8 +81,8 @@ namespace
     vtkIdType numTuples = velocity->GetNumberOfTuples();
     for(vtkIdType i=0;i<numTuples;i++)
       {
-      float values[3] = {velocityData[i], velocityData[i+numTuples],
-                          velocityData[i+2*numTuples]};
+      float values[3] = {velocityData[3*i], velocityData[3*i+1],
+                          velocityData[3*i+2]};
       velocity->SetTupleValue(i, values);
       }
 
