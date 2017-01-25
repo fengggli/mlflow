@@ -3,7 +3,7 @@
 #PBS -q cpu 
 #PBS -j oe
 #PBS -l walltime=00:10:00
-#PBS -l nodes=4:ppn=32
+#PBS -l nodes=3:ppn=32
 #PBS -o results/$PBS_JOBID.output
 
 
@@ -11,7 +11,7 @@
 
 #This job runs with 3 nodes  
 #ibrun in verbose mode will give binding detail  
-BUILD=${PBS_O_WORKDIR}/build_sim_consumer/bin
+BUILD=${PBS_O_WORKDIR}/build_sim_catalyst/bin
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 
@@ -47,7 +47,7 @@ lock_type = 2
 " > dataspaces.conf
 
 ## Run DataSpaces servers
-aprun -n 1 -N 1 ${DS_SERVER} -s 1 -c 34  >& ${PBS_RESULTDIR}/server.log &
+aprun -n 1 -N 1 ${DS_SERVER} -s 1 -c 2  >& ${PBS_RESULTDIR}/server.log &
 
 echo "server applciation lauched"
 ## Give some time for the servers to load and startup
@@ -66,6 +66,6 @@ echo "writer applciation lauched"
 
 
 ## Run region reader and divergence cal application
-aprun -n 1 ${BUILD}/catalyst ${SCRIPT_PATH}/feslicescript.py >& ${PBS_RESULTDIR}/consumer.log &                                                                                                                                                        
+aprun -n 1 -N 1 ${BUILD}/catalyst ${SCRIPT_PATH}/feslicescript.py >& ${PBS_RESULTDIR}/catalyst.log &  
 ## Wait for the entire workflow to finish
 wait

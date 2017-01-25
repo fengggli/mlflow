@@ -29,7 +29,7 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
 
     // data layout
     int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
-    int num_points = dims[0]*dims[1]*dims[2];
+    uint64_t num_points = dims[0]*dims[1]*dims[2];
 
     size_t elem_size_vel = sizeof(float)*3;
     size_t elem_size_pres = sizeof(float);
@@ -46,6 +46,13 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     char var_name_pres[STRING_LENGTH];
     sprintf(var_name_vel, "VEL");
     sprintf(var_name_pres, "PRES");
+
+    uint64_t gdim_vel[3] = {num_points,1,1};
+    dspaces_define_gdim(var_name_vel, 3, gdim_vel);
+
+    uint64_t gdim_pres[3] = {num_points,1,1};
+    dspaces_define_gdim(var_name_pres, 3, gdim_pres);
+
 
     char lock_name_vel[STRING_LENGTH];
     snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
@@ -173,7 +180,6 @@ int main(int argc, char* argv[])
 
 
 
-    MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Barrier(MPI_COMM_WORLD);

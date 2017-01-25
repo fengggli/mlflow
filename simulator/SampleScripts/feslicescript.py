@@ -15,7 +15,7 @@ def CreateCoProcessor():
     class Pipeline:
       filename_2_pvti = coprocessor.CreateProducer( datadescription, "input" )
 
-      ParallelImageDataWriter1 = coprocessor.CreateWriter( XMLPImageDataWriter, "sim_results/myfullgrid_%t.pvti", 10 )
+      ParallelImageDataWriter1 = coprocessor.CreateWriter( XMLPImageDataWriter, "results/sim_results/myfullgrid_%t.pvti", 10 )
 
       '''
       SetActiveSource(filename_2_pvti)
