@@ -34,6 +34,7 @@ public:
   Attributes();
   void Initialize(Grid* grid);
   void UpdateFields(double time);
+  void UpdateFields(float *vel, float*pres);
   // commented by feng
   // double* GetVelocityArray();
  

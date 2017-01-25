@@ -5,13 +5,24 @@
 #include "FEAdaptor.h"
 #endif
 
+// added by feng 
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include "dataspaces.h"
+#include "common_utility.h"
+#include "region_def.h"
+#include "string.h"
+
+using namespace std;
+
 // this will get all vel and pres data
-void get_raw_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm * p_gcomm, float **p_buffer_vel,float **p_buffer_pres,  double *p_time_used){
+void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm, float **p_buffer_vel,float **p_buffer_pres,  double *p_time_used){
     char msg[STRING_LENGTH];
     double t1, t2;
     int ret_get = -1;
 
-    if(p_region_def != NULL){
+    if(extra_info != NULL){
         printf("no extra info required\n");
         exit(-1);
     }
@@ -168,7 +179,7 @@ int main(int argc, char* argv[])
     MPI_Barrier(MPI_COMM_WORLD);
     gcomm = MPI_COMM_WORLD;
 
-    char msg[STRING_LENGTH];
+    //char msg[STRING_LENGTH];
 
 // DataSpaces: Initalize and identify application
 // Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
@@ -177,7 +188,7 @@ int main(int argc, char* argv[])
 
 
   // vel and pressure buffer
-  float *buffer_vel, *bufferbuffer__pres;
+  float *buffer_vel, *buffer_pres;
   double time_used;
 
   /*
@@ -190,25 +201,25 @@ int main(int argc, char* argv[])
   FEAdaptor::Initialize(argc, argv);
 #endif
   unsigned int numberOfTimeSteps = 100;
-  for(unsigned int timeStep=0;timeStep<numberOfTimeSteps;timeStep++)
+  for(unsigned int timestep=0;timestep<numberOfTimeSteps;timestep++)
     {
     // use a time step length of 0.1
-    double time = timeStep * 0.1;
+    double time = timestep * 0.1;
 
     // read data from dataspces
     // this will get blocked until new data available
-    get_vel_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &buffer_pres, &time_used);
+    get_raw_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &buffer_pres, &time_used);
 
     //update using vel and pres info, if there is more ranks I need to partition first
-    attributes.UpdateFields(time, vel, pres);
+    attributes.UpdateFields(buffer_vel, buffer_pres);
 
     // free buffer
-    if(vel != NULL){
-        free(vel);
+    if(buffer_vel != NULL){
+        free(buffer_vel);
         cout << "vel is freed" << endl;
     }
-    if(pres != NULL){
-        free(pres);
+    if(buffer_pres != NULL){
+        free(buffer_pres);
         cout << "pres is freed" << endl;
     }
 
@@ -216,7 +227,7 @@ int main(int argc, char* argv[])
     // add one pipeline 
     // show together
 #ifdef USE_CATALYST
-    FEAdaptor::CoProcess(grid, attributes, time, timeStep, timeStep == numberOfTimeSteps-1);
+    FEAdaptor::CoProcess(grid, attributes, time, timestep, timestep == numberOfTimeSteps-1);
 #endif
     }
 

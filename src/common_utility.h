@@ -1,6 +1,10 @@
 // some common functios 
 #ifndef COMMON_UTILITY_H
 #define COMMON_UTILITY_H
+  
+#ifdef __cplusplus                                                                                                                                                                                              
+extern "C" {
+#endif
 
 #include <sys/time.h>
 #include <stdio.h>
@@ -47,4 +51,7 @@ double get_cur_time();
  *******************************/
 void my_message(char *msg, int rank, int level);
 
+#ifdef __cplusplus                                                                                                                                                                                              
+}
+#endif
 #endif

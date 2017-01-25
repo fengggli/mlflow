@@ -6,7 +6,7 @@ add_library(UTILITY common_utility.c divide.c get_divs.c read_file.c region_def.
 
 #find_library(H5 hdf5 ${H5_DIR}/lib/ static)
 
-target_link_libraries(UTILITY)
+#target_link_libraries(UTILITY)
 
 
 

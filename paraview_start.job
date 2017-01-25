@@ -12,6 +12,8 @@
 
 cd $PBS_O_WORKDIR
 
-## Run paraview server
-aprun -n 4  pvserver -rc --client-host=140.182.0.241
+## Run paraview server, reversed connnection.
+## use paraview v4.1 to connect to the server
+aprun -n 4  pvserver -rc --client-host=140.182.19.151
+
 ## Give some time for the servers to load and startup

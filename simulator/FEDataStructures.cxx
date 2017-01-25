@@ -128,13 +128,13 @@ void Attributes::UpdateFields(double time)
 }
 
 // update points of this partition
-void Attributes::UpdateFields(double time, float * vel, float * pres)
+void Attributes::UpdateFields(float * vel, float * pres)
 {
     // how many points in this partition
   unsigned int numPoints = this->GridPtr->GetNumberOfLocalPoints();
-  this->Velocity(vel, std::end(vel));
+  this->Velocity.assign(vel, vel + numPoints);
 
-  this->Pressure.resize(pres, std::end(pres));
+  this->Pressure.assign(pres, pres + 3*numPoints);
 }
 
 float* Attributes::GetVelocityArray()
