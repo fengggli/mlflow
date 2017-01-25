@@ -34,7 +34,7 @@ void update_attributes(int timestep, int *dims,float *vel_data, float*p_data){
 
 
 // this will get all vel and pres data
-void put_raw_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm * p_gcomm, float **p_buffer_vel,float **p_buffer_pres,  double *p_time_used){
+void put_raw_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm * p_gcomm, char *var_name_vel, float **p_buffer_vel, char *var_name_pres, float **p_buffer_pres,  double *p_time_used){
     char msg[STRING_LENGTH];
     double t1, t2;
     int ret_put = -1;
@@ -59,38 +59,16 @@ void put_raw_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm *
     // Define the dimensionality of the data to be received 
     int ndim = 3;
 
-    char var_name_vel[STRING_LENGTH];
-    char var_name_pres[STRING_LENGTH];
-    sprintf(var_name_vel, "VEL");
-    sprintf(var_name_pres, "PRES");
-    uint64_t gdim_vel[3] = {num_points,1,1};
-    dspaces_define_gdim(var_name_vel, 3, gdim_vel);
-
-    uint64_t gdim_pres[3] = {num_points,1,1};
-    dspaces_define_gdim(var_name_pres, 3, gdim_pres);
-
+    
     char lock_name_vel[STRING_LENGTH];
-    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
+    //snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
+    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock");
 
     char lock_name_pres[STRING_LENGTH];
-    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock_t_%d", timestep);
+    //snprintf(lock_name_pres, STRING_LENGTH, "pres_lock_t_%d", timestep);
+    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock");
 
     
-    // prepare sprese
-    float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
-    if(vel_data == NULL){
-          perror("vel data allocated error");
-          exit(-1);
-      }
-
-    // prepare space for pres
-    float * pres_data = (float *)malloc(num_points* sizeof(float));
-    if(pres_data == NULL){
-          perror("pres data allocated error");
-          exit(-1);
-      }
-
-
     sprintf(msg, "try to acquired the vel write lock %s", lock_name_vel );
     my_message(msg, rank, LOG_WARNING);
     dspaces_lock_on_write(lock_name_vel, p_gcomm);
@@ -101,7 +79,7 @@ void put_raw_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm *
     // write all regions in once
     t1 = MPI_Wtime();
 
-    ret_put = dspaces_put(var_name_vel, timestep, elem_size_vel, ndim, lb, ub, vel_data);
+    ret_put = dspaces_put(var_name_vel, timestep, elem_size_vel, ndim, lb, ub, *p_buffer_vel);
 
     t2 = MPI_Wtime();
 
@@ -120,10 +98,10 @@ void put_raw_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm *
     }
 
 
-    *p_buffer_vel = vel_data;
     *p_time_used = t2-t1;
     
     // do the same for pres data
+    /*
     sprintf(msg, "try to acquired the pres write lock %s", lock_name_pres );
     my_message(msg, rank, LOG_WARNING);
     dspaces_lock_on_write(lock_name_pres, p_gcomm);
@@ -134,7 +112,7 @@ void put_raw_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm *
     // write all regions in once
     t1 = MPI_Wtime();
 
-    ret_put = dspaces_put(var_name_pres, timestep, elem_size_pres, ndim, lb, ub, pres_data);
+    ret_put = dspaces_put(var_name_pres, timestep, elem_size_pres, ndim, lb, ub, *p_buffer_pres);
 
     t2 = MPI_Wtime();
 
@@ -152,8 +130,8 @@ void put_raw_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm *
         my_message(msg, rank, LOG_WARNING);
     }
 
-    *p_buffer_pres = pres_data;
     *p_time_used += t2-t1;
+    */
 }
 
 
@@ -162,7 +140,7 @@ int main(int argc, char* argv[])
 {
 
     // dataspaces preparation
-    int nprocs, rank;
+    int nprocs, rank, ret;
     MPI_Comm gcomm;
 
 
@@ -180,10 +158,17 @@ int main(int argc, char* argv[])
     // Pointer to the MPI Communicator, allows DS Layer to use MPI barrier func
     // Addt'l parameters: Placeholder for future arguments, currently NULL.
     char msg[STRING_LENGTH];
-    dspaces_init(1, 1, &gcomm, NULL);
+    ret = dspaces_init(1, 1, &gcomm, NULL);
 
-    sprintf(msg, "dataspaces init successfully");
-    my_message(msg, rank, LOG_CRITICAL);
+    if(ret == 0){
+        sprintf(msg, "dataspaces init successfully");
+        my_message(msg, rank, LOG_CRITICAL);
+    }else{
+        sprintf(msg, "dataspaces init error");
+        my_message(msg, rank, LOG_CRITICAL);
+        exit(-1);
+
+    }
 
     // data layout
     int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
@@ -192,6 +177,18 @@ int main(int argc, char* argv[])
     // time 
     double time_comm_vel;
 
+    
+    char var_name_vel[STRING_LENGTH];
+    char var_name_pres[STRING_LENGTH];
+    sprintf(var_name_vel, "VEL");
+    sprintf(var_name_pres, "PRES");
+    /*
+    uint64_t gdim_vel[3] = {num_points,1,1};
+    dspaces_define_gdim(var_name_vel, 3, gdim_vel);
+
+    uint64_t gdim_pres[3] = {num_points,1,1};
+    dspaces_define_gdim(var_name_pres, 3, gdim_pres);
+    */
     // prepare space
     float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
     if(vel_data == NULL){
@@ -206,6 +203,7 @@ int main(int argc, char* argv[])
     }
 
 
+
     for(unsigned int timestep=0;timestep<MAX_VERSION;timestep++)
     {
 
@@ -216,8 +214,9 @@ int main(int argc, char* argv[])
         // this will simulation process risides
         update_attributes(timestep, dims, vel_data, pres_data);
 
+
         //put_vel_buffer(timestep, NULL,rank, &gcomm, &vel_data, &time_comm_vel);
-        put_raw_buffer(timestep, NULL,rank, &gcomm, &vel_data, &pres_data, &time_comm_vel);
+        put_raw_buffer(timestep, NULL,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_vel);
     }
 
     // free
@@ -227,6 +226,11 @@ int main(int argc, char* argv[])
     if(pres_data != NULL){
         free(pres_data);
     }
+
+    dspaces_finalize();
+
+    MPI_Barrier(gcomm);
+    MPI_Finalize();
     return 0;
 }
 

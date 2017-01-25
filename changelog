@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - now dspaces can complied with catalyst
 ### changed
 - add extern C in common_utility.h
+### note
+1. alocation outside loop
+- free outside the loop
 
 ## [0.2.3] - 2017-01-24
 ### Added 

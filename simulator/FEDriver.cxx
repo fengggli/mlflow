@@ -17,10 +17,12 @@
 using namespace std;
 
 // this will get all vel and pres data
-void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm, float **p_buffer_vel,float **p_buffer_pres,  double *p_time_used){
+void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_vel, float **p_buffer_vel, char * var_name_pres, float **p_buffer_pres,  double *p_time_used){
     char msg[STRING_LENGTH];
     double t1, t2;
     int ret_get = -1;
+
+    float *vel_data = *p_buffer_vel;
 
     if(extra_info != NULL){
         printf("no extra info required\n");
@@ -29,7 +31,7 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
 
     // data layout
     int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
-    uint64_t num_points = dims[0]*dims[1]*dims[2];
+    int num_points = dims[0]*dims[1]*dims[2];
 
     size_t elem_size_vel = sizeof(float)*3;
     size_t elem_size_pres = sizeof(float);
@@ -42,39 +44,17 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     // Define the dimensionality of the data to be received 
     int ndim = 3;
 
-    char var_name_vel[STRING_LENGTH];
-    char var_name_pres[STRING_LENGTH];
-    sprintf(var_name_vel, "VEL");
-    sprintf(var_name_pres, "PRES");
-
-    uint64_t gdim_vel[3] = {num_points,1,1};
-    dspaces_define_gdim(var_name_vel, 3, gdim_vel);
-
-    uint64_t gdim_pres[3] = {num_points,1,1};
-    dspaces_define_gdim(var_name_pres, 3, gdim_pres);
-
+    
 
     char lock_name_vel[STRING_LENGTH];
-    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
+    //snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
+    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock");
 
     char lock_name_pres[STRING_LENGTH];
-    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock_t_%d", timestep);
+    //snprintf(lock_name_pres, STRING_LENGTH, "pres_lock_t_%d", timestep);
+    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock");
 
     
-    // prepare space
-    float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
-    if(vel_data == NULL){
-          perror("vel data allocated error");
-          exit(-1);
-      }
-
-    // prepare space for pres
-    float * pres_data = (float *)malloc(num_points* sizeof(float));
-    if(pres_data == NULL){
-          perror("pres data allocated error");
-          exit(-1);
-      }
-
 
     sprintf(msg, "try to acquired the vel read lock %s", lock_name_vel );
     my_message(msg, rank, LOG_WARNING);
@@ -86,6 +66,7 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     // read all regions in once
     t1 = MPI_Wtime();
 
+    printf("var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d], one data %3.4f", var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2], vel_data[num_points-1]);
     ret_get = dspaces_get(var_name_vel, timestep, elem_size_vel, ndim, lb, ub, vel_data);
 
     t2 = MPI_Wtime();
@@ -100,15 +81,15 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
         printf("error number %d \n", ret_get);
         exit(-1);
     }else{
-        sprintf(msg, "read %d vel from dspaces, each has %ld bytes", num_points, elem_size_vel);
+        sprintf(msg, "read %d vel from dspaces, each has %zu bytes", num_points, elem_size_vel);
         my_message(msg, rank, LOG_WARNING);
     }
 
 
-    *p_buffer_vel = vel_data;
     *p_time_used = t2-t1;
     
     // do the same for pres data
+    /*
     sprintf(msg, "try to acquired the pres read lock %s", lock_name_pres );
     my_message(msg, rank, LOG_WARNING);
     dspaces_lock_on_read(lock_name_pres, p_gcomm);
@@ -133,12 +114,13 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
         printf("error number %d \n", ret_get);
         exit(-1);
     }else{
-        sprintf(msg, "read %d pres from dspaces, each has %ld bytes", num_points, elem_size_pres);
+        sprintf(msg, "read %d pres from dspaces, each has %zu bytes", num_points, elem_size_pres);
         my_message(msg, rank, LOG_WARNING);
     }
 
     *p_buffer_pres = pres_data;
     *p_time_used += t2-t1;
+    */
 }
 // Example of a C++ adaptor for a simulation code
 // where the simulation code has a fixed topology
@@ -156,19 +138,21 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
 int main(int argc, char* argv[])
 {
   MPI_Init(&argc, &argv);
+  /*
   Grid grid;
   unsigned int numPoints[3] = {201, 201, 1};
   double spacing[3] = {1, 1, 0 };
   grid.Initialize(numPoints, spacing);
   Attributes attributes;
   attributes.Initialize(&grid);
+  */
 
 
    /*
    * start of my definition
    */
     // initialize dataspaces
-    int nprocs, rank;
+    int nprocs, rank, ret;
     MPI_Comm gcomm;
 
     char result_path[STRING_LENGTH]="";
@@ -190,12 +174,53 @@ int main(int argc, char* argv[])
 // DataSpaces: Initalize and identify application
 // Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
 // Note: appid for get.c is 2 [for put.c, it was 1]
-    dspaces_init(nprocs, 4, &gcomm, NULL);
+    ret = dspaces_init(1, 2, &gcomm, NULL);
+
+    if(ret == 0){
+        printf("dataspaces init successfully");
+    }else{
+        printf("dataspaces init error");
+        exit(-1);
+
+    }
 
 
   // vel and pressure buffer
-  float *buffer_vel, *buffer_pres;
   double time_used;
+
+    char var_name_vel[STRING_LENGTH];
+    char var_name_pres[STRING_LENGTH];
+    sprintf(var_name_vel, "VEL");
+    sprintf(var_name_pres, "PRES");
+
+
+    int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
+    uint64_t num_points = dims[0]*dims[1]*dims[2];
+    /*
+
+    uint64_t gdim_vel[3] = {num_points,1,1};
+    dspaces_define_gdim(var_name_vel, 3, gdim_vel);
+
+    uint64_t gdim_pres[3] = {num_points,1,1};
+    dspaces_define_gdim(var_name_pres, 3, gdim_pres);
+    */
+    // prepare space
+    float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
+    if(vel_data == NULL){
+          perror("vel data allocated error");
+          exit(-1);
+      }
+
+    // prepare space for pres
+    float * pres_data = (float *)malloc(num_points* sizeof(float));
+    if(pres_data == NULL){
+          perror("pres data allocated error");
+          exit(-1);
+      }
+
+
+
+
 
   /*
    * end of my definition
@@ -204,43 +229,49 @@ int main(int argc, char* argv[])
 
 
 #ifdef USE_CATALYST
-  FEAdaptor::Initialize(argc, argv);
+  //FEAdaptor::Initialize(argc, argv);
 #endif
-  unsigned int numberOfTimeSteps = 100;
-  for(unsigned int timestep=0;timestep<numberOfTimeSteps;timestep++)
+  //unsigned int numberOfTimeSteps = 100;
+  int timestep = 0;
+  for(timestep=0;timestep<MAX_VERSION;timestep++)
     {
     // use a time step length of 0.1
     double time = timestep * 0.1;
 
     // read data from dataspces
     // this will get blocked until new data available
-    get_raw_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &buffer_pres, &time_used);
+    get_raw_buffer(timestep, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres,  &pres_data, &time_used);
 
     //update using vel and pres info, if there is more ranks I need to partition first
-    attributes.UpdateFields(buffer_vel, buffer_pres);
+   // attributes.UpdateFields(buffer_vel, buffer_pres);
 
-    // free buffer
-    if(buffer_vel != NULL){
-        free(buffer_vel);
-        cout << "vel is freed" << endl;
-    }
-    if(buffer_pres != NULL){
-        free(buffer_pres);
-        cout << "pres is freed" << endl;
-    }
+    
 
     // also let the analysis part done.
     // add one pipeline 
     // show together
 #ifdef USE_CATALYST
-    FEAdaptor::CoProcess(grid, attributes, time, timestep, timestep == numberOfTimeSteps-1);
+    //FEAdaptor::CoProcess(grid, attributes, time, timestep, timestep == numberOfTimeSteps-1);
 #endif
+    }
+    // free buffer
+    if(vel_data != NULL){
+        free(vel_data);
+        cout << "vel is freed" << endl;
+    }
+    if(pres_data != NULL){
+        free(pres_data);
+        cout << "pres is freed" << endl;
     }
 
 #ifdef USE_CATALYST
-  FEAdaptor::Finalize();
+  //FEAdaptor::Finalize();
 #endif
-  MPI_Finalize();
+
+    dspaces_finalize();
+
+    MPI_Barrier(gcomm);
+    MPI_Finalize();
 
   return 0;
 }
