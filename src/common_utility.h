@@ -2,7 +2,7 @@
 #ifndef COMMON_UTILITY_H
 #define COMMON_UTILITY_H
   
-#ifdef __cplusplus                                                                                                                                                                                              
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -51,7 +51,7 @@ double get_cur_time();
  *******************************/
 void my_message(char *msg, int rank, int level);
 
-#ifdef __cplusplus                                                                                                                                                                                              
+#ifdef __cplusplus
 }
 #endif
 #endif
