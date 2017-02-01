@@ -7,13 +7,6 @@
 #PBS -o results/$PBS_JOBID.output
 
 
-#print the configuration file 
-echo "configurations:"
-THISFILE=bigred.bigred.job
-cat ${THISFILE}
-echo "----------------"
-echo "----------------"
-
 
 
 #This job runs with 3 nodes  
@@ -24,6 +17,14 @@ PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 
 mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR
+
+#print the configuration file 
+echo "configurations:"
+THISFILE=bigred.bigred.job
+cat ${THISFILE}
+echo "----------------"
+echo "----------------"
+
 
 
 mkdir -pv ${PBS_RESULTDIR}/clusterids

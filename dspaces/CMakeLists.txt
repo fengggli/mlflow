@@ -26,6 +26,7 @@ find_library(DART dart ${DS_DIR}/lib)
 target_link_libraries(put_regions ${DSPACES} ${DSCOMMON} ${DART} UTILITY )
 target_link_libraries(analysis ${DSPACES} ${DSCOMMON} ${DART} UTILITY CLUSTER)
 target_link_libraries(get_regions ${DSPACES} ${DSCOMMON} ${DART} UTILITY )
+
 #target_link_libraries(catalyst_2 ${DSPACES} ${DSCOMMON} ${DART} UTILITY )
 
 target_link_libraries(consumer ${DSPACES} ${DSCOMMON} ${DART} UTILITY )

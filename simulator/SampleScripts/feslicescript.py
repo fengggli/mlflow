@@ -10,6 +10,7 @@ from paraview import coprocessing
 
 # ----------------------- CoProcessor definition -----------------------
 
+## feng:define what to do if getting vtk structure
 def CreateCoProcessor():
   def _CreatePipeline(coprocessor, datadescription):
     class Pipeline:
@@ -25,7 +26,7 @@ def CreateCoProcessor():
       Slice1.SliceType.Normal = [1.0, 0.0, 0.0]
 
       ParallelPolyDataWriter1 = coprocessor.CreateWriter( XMLPPolyDataWriter, "slice_%t.pvtp", 10 )
-      '''
+     '''
 
     return Pipeline()
 

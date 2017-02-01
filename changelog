@@ -3,6 +3,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.2.3.3] 2017-02-01
+### updated
+- no linked with static catalyst (not  stand alone) library
+- two jobs:
+	bigred.job:simu_gen-consumer-analysit
+	catalyst: simu_gen-> catatalyst to files
+
+
+## [0.2.3.2] -2017-01-27
+### changed
+- ds_adator will take over all ds operations in simulator and catalyst
+- now ds_server is also dynamically linked
+
+### note
+1. alocation outside loop
+- free outside the loop
+
+
+
 ## [0.2.3.1] -2017-01-25
 ### Added
 - now dspaces can complied with catalyst
