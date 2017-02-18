@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
     }
 
     // data layout
-    int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
+    int dims[3] = {POINTS_SIDE, POINTS_SIDE, 1};
     int num_points = dims[0]*dims[1]*dims[2];
 
     // time 

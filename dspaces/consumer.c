@@ -295,10 +295,49 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     gcomm = MPI_COMM_WORLD;
 
+// start of dspaces configration
+
     // DataSpaces: Initalize and identify application
     // Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
     // Note: appid for get.c is 2 [for put.c, it was 1]
     dspaces_init(nprocs, 2, &gcomm, NULL);
+
+    // vel and pressure buffer
+    double time_used;
+
+    char var_name_vel[STRING_LENGTH];
+    char var_name_pres[STRING_LENGTH];
+    sprintf(var_name_vel, "VEL");
+    sprintf(var_name_pres, "PRES");
+
+
+    unsigned int dims[3] = {POINTS_SIDE, POINTS_SIDE, 1};
+    uint64_t num_points = dims[0]*dims[1]*dims[2];
+
+    /*
+
+    uint64_t num_points = dims[0]*dims[1]*dims[2];
+
+    uint64_t gdim_vel[3] = {num_points,1,1};
+    dspaces_define_gdim(var_name_vel, 3, gdim_vel);
+
+    uint64_t gdim_pres[3] = {num_points,1,1};
+    dspaces_define_gdim(var_name_pres, 3, gdim_pres);
+    */
+    // prepare space
+    float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
+    if(vel_data == NULL){
+          perror("vel data allocated error");
+          exit(-1);
+      }
+
+    // prepare space for pres
+    float * pres_data = (float *)malloc(num_points* sizeof(float));
+    if(pres_data == NULL){
+          perror("pres data allocated error");
+          exit(-1);
+      }
+// end of dspaces config
 
 
     // Name our data.
@@ -372,7 +411,7 @@ int main(int argc, char **argv)
 
     // every time read all the regions
     float *buffer_all_regions;
-    float *buffer_vel;
+    //float *buffer_vel;
 
     // k-nearest neighbours
     int k_npdiv = K_NPDIV;
@@ -382,7 +421,6 @@ int main(int argc, char **argv)
 
     int timestep=0;
 
-    double time_used;
 
     /*
        snprintf(lock_name_regions, STRING_LENGTH, "region_lock_same");
@@ -400,9 +438,11 @@ int main(int argc, char **argv)
         //get_region_buffer(timestep, &region_def, rank, &gcomm, &buffer_all_regions, &time_used);
         // read raw data and divide
         // use ds_adator instead
-        get_vel_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &time_used);
+
+        get_raw_buffer(timestep, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres, &pres_data, &time_used);
+        //get_vel_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &time_used);
         //divide into regions
-        divide(buffer_vel, POINTS_SIDE,region_length,&tmp_num_region, &buffer_all_regions);
+        divide(vel_data, POINTS_SIDE,region_length,&tmp_num_region, &buffer_all_regions);
 
         if(tmp_num_region != num_region){
             perror("divide not correct");
@@ -414,9 +454,6 @@ int main(int argc, char **argv)
         // calculate divergence
         cal_local_divs(buffer_all_regions,&region_def,k_npdiv, div_func, table, pair_index_l, pair_index_h, rank, &divs_this_rank, &time_used);
         time_cal = time_used;
-        if(buffer_vel){
-            free(buffer_vel);
-        }
 
         // put divs into dataspaces
         put_divs_buffer(timestep, pair_index_l, pair_index_h, num_tasks, rank, &gcomm, &divs_this_rank, &time_used);
@@ -437,6 +474,18 @@ int main(int argc, char **argv)
         timestep++;
     }
 
+    // free buffer
+    if(vel_data != NULL){
+        free(vel_data);
+        sprintf(msg,"--velocity buffer freed");
+        my_message(msg, rank, LOG_CRITICAL);
+    }
+    if(pres_data != NULL){
+        free(pres_data);
+        sprintf(msg,"--pres buffer freed");
+        my_message(msg, rank, LOG_CRITICAL);
+    }
+
     if(table != NULL){
         free_lookup_table(table);
     }
@@ -449,7 +498,6 @@ int main(int argc, char **argv)
 
     MPI_Barrier(gcomm);
     MPI_Finalize();
-
     return 0;
 }
 

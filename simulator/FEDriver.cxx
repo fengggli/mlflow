@@ -34,9 +34,12 @@ int main(int argc, char* argv[])
   MPI_Init(&argc, &argv);
 
   Grid grid;
-  unsigned int numPoints[3] = {201, 201, 1};
+
+  unsigned int dims[3] = {POINTS_SIDE, POINTS_SIDE, 1};
+  uint64_t num_points = dims[0]*dims[1]*dims[2];
+
   double spacing[3] = {1, 1, 0 };
-  grid.Initialize(numPoints, spacing);
+  grid.Initialize(dims, spacing);
   Attributes attributes;
   attributes.Initialize(&grid);
 
@@ -78,8 +81,8 @@ int main(int argc, char* argv[])
     }
 
 
-  // vel and pressure buffer
-  double time_used;
+    // vel and pressure buffer
+    double time_used;
 
     char var_name_vel[STRING_LENGTH];
     char var_name_pres[STRING_LENGTH];
@@ -87,9 +90,9 @@ int main(int argc, char* argv[])
     sprintf(var_name_pres, "PRES");
 
 
-    int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
-    uint64_t num_points = dims[0]*dims[1]*dims[2];
     /*
+
+    uint64_t num_points = dims[0]*dims[1]*dims[2];
 
     uint64_t gdim_vel[3] = {num_points,1,1};
     dspaces_define_gdim(var_name_vel, 3, gdim_vel);
@@ -110,10 +113,6 @@ int main(int argc, char* argv[])
           perror("pres data allocated error");
           exit(-1);
       }
-
-
-
-
 
   /*
    * end of my definition

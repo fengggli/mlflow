@@ -29,3 +29,17 @@ different builds:
     toy simulation with catalyst
 2. build default, hdf5 reader with npdivs, clustering
 
+
+different jobfiles
+
+note: simulator can be toy or openfoam, there will connect to consumer via ds_adaptor
+
+    karst.sim_consumer
+        simulator->consumer->clustering
+            
+    catatlyst.job
+        simulator->catalyst
+
+    karst.dspaces.job
+        hdfreader(put_regions) -> get_regions -> clustering
+

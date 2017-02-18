@@ -12,4 +12,6 @@
 1996796
     Feb 18
     test basic applications again, after modifying the cmake
-
+1997062.m2*
+    Feb 18 16:00
+    openfoam connected with catalyst, vtk files are successfully generated

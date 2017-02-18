@@ -6,10 +6,11 @@
 #PBS -o results/$PBS_JOBID.output
 
 
-BUILD=${PBS_O_WORKDIR}/build_karst/bin
-DS_SERVER=${PBS_O_HOME}/DataspacesRoot/bin/dataspaces_server
+BUILD=${PBS_O_WORKDIR}/build_default/bin
+DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
+CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity
 
   
 mkdir -pv ${PBS_RESULTDIR}     
@@ -37,13 +38,17 @@ lock_type = 2
 mpirun -n 1 ${DS_SERVER} -s 1 -c 2  &> ${PBS_RESULTDIR}/server.log &
 
 sleep 5
-mpirun -n 1  ${BUILD}/sim_gen &> ${PBS_RESULTDIR}/sim_gen.log &
+#mpirun -n 1  ${BUILD}/sim_gen &> ${PBS_RESULTDIR}/sim_gen.log &
+mpirun -n 1  ${BUILD}/myIcoFoam -case ${CASE_DIR} &> ${PBS_RESULTDIR}/myicofoam.log &
 
-echo "writer applciation lauched"
+echo "icofoam applciation lauched"
 
 
 ## Run region reader and divergence cal application
 mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/feslicescript.py &> ${PBS_RESULTDIR}/catalyst.log &  
+
+echo "catalyst applciation lauched"
+
 #aprun -n 1  ${BUILD}/catalyst >& ${PBS_RESULTDIR}/catalyst.log &  
 ## Wait for the entire workflow to finish
 wait

@@ -19,7 +19,7 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     else{
 
         // data layout
-        int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
+        int dims[3] = {POINTS_SIDE, POINTS_SIDE,1};
         num_points = dims[0]*dims[1]*dims[2];
     }
 

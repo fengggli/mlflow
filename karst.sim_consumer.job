@@ -56,7 +56,7 @@ echo "writer applciation lauched"
 
 ## Run region reader and divergence cal application
 #mpirun -n 32 ${BUILD}/get_regions ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
-mpirun -n 1 ${BUILD}/consumer ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
+mpirun -n 32 ${BUILD}/consumer ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
 
 
 echo "reader applciation lauched"
