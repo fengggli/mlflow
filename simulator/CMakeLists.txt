@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 set(USE_CATALYST ON CACHE BOOL "Link the simulator with Catalyst")
 #set(CMAKE_LIBRARY_PATH "${DS_DIR}/lib" CACHE STRING "library path")
-set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+#set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
 
 add_library(ds_adaptor STATIC ds_adaptor.c)
 

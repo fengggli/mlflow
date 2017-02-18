@@ -1,43 +1,30 @@
-#!/bin/bash  
-#PBS -N catalyst
-#PBS -q cpu 
+#!/bin/bash
+#PBS -N catalyst          
 #PBS -j oe
-#PBS -l walltime=00:3:00
-#PBS -l nodes=3:ppn=32
+#PBS -l walltime=00:10:00
+#PBS -l nodes=3:ppn=10         
 #PBS -o results/$PBS_JOBID.output
 
 
-
-
-#This job runs with 3 nodes  
-#ibrun in verbose mode will give binding detail  
-BUILD=${PBS_O_WORKDIR}/build_sim_catalyst/bin
-DS_SERVER=${PBS_O_HOME}/envs/Dataspacesroot/bin/dataspaces_server
+BUILD=${PBS_O_WORKDIR}/build_karst/bin
+DS_SERVER=${PBS_O_HOME}/DataspacesRoot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
-
 SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
 
-mkdir -pv ${PBS_RESULTDIR}
-cd $PBS_O_WORKDIR
-
-#print the configuration file 
-echo "configurations:"
-THISFILE=catalyst.job
-cat ${THISFILE}
-echo "----------------"
-echo "----------------"
-
-
-
-#mkdir -pv ${PBS_RESULTDIR}/clusterids
-#mkdir -pv ${PBS_RESULTDIR}/all_divs
-
+  
+mkdir -pv ${PBS_RESULTDIR}     
+cd $PBS_O_WORKDIR              
+  
+    
+#export DATASPACES_TCP_INTERFACE="gn0"
+export DATASPACES_TCP_WRITE_SIZE=1073741824
+export DATASPACES_TCP_READ_SIZE=87380
+      
+rm -f conf srv.lck
 ## Clean up
-rm -f conf *.log srv.lck
 rm -f dataspaces.conf
-
+      
 ## Create dataspaces configuration file
-# note that we now have 400 regions
 echo "## Config file for DataSpaces
 ndim = 3
 dims = 500, 500,500
@@ -47,26 +34,17 @@ lock_type = 2
 " > dataspaces.conf
 
 ## Run DataSpaces servers
-aprun -n 1 -N 1 ${DS_SERVER} -s 1 -c 2  >& ${PBS_RESULTDIR}/server.log &
+mpirun -n 1 ${DS_SERVER} -s 1 -c 2  &> ${PBS_RESULTDIR}/server.log &
 
-echo "server applciation lauched"
-## Give some time for the servers to load and startup
-while [ ! -f conf ]; do
-    sleep 1s
-done
-sleep 5s  # wait server to fill up the conf file
-
-
-
-## Run region writer
-#aprun -n 1  -N 1 ${BUILD}/put_regions >& ${PBS_RESULTDIR}/producer.log &
-aprun -n 1 -N 1  ${BUILD}/sim_gen >& ${PBS_RESULTDIR}/sim_gen.log &
+sleep 5
+mpirun -n 1  ${BUILD}/sim_gen &> ${PBS_RESULTDIR}/sim_gen.log &
 
 echo "writer applciation lauched"
 
 
 ## Run region reader and divergence cal application
-aprun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/feslicescript.py >& ${PBS_RESULTDIR}/catalyst.log &  
+mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/feslicescript.py &> ${PBS_RESULTDIR}/catalyst.log &  
 #aprun -n 1  ${BUILD}/catalyst >& ${PBS_RESULTDIR}/catalyst.log &  
 ## Wait for the entire workflow to finish
 wait
+

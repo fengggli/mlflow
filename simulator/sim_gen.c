@@ -6,6 +6,7 @@
 #include "region_def.h"
 #include "common_utility.h"
 #include "dataspaces.h"
+#include "ds_adaptor.h"
 
 void update_attributes(int timestep, int *dims,float *vel_data, float*p_data){
     int i, j, k;

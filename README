@@ -24,4 +24,8 @@ position need to be modified when change pe number:
     2. max_reader
     
     
+different builds:
+1. build_catalyst
+    toy simulation with catalyst
+2. build default, hdf5 reader with npdivs, clustering
 
