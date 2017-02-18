@@ -101,6 +101,7 @@ void Attributes::Initialize(Grid* grid)
 }
 
 
+// this is only a example
 // update points of this partition
 void Attributes::UpdateFields(double time)
 {

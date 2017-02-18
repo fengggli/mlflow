@@ -1,3 +1,6 @@
+// define grid info and field info
+//  toy simulation definition is also from here
+
 #ifndef FEDATASTRUCTURES_HEADER
 #define FEDATASTRUCTURES_HEADER
 

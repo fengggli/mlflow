@@ -1,3 +1,6 @@
+// this is calller to catalyst routine
+// it wil read from dspaces and send to catalyst adaptor
+
 #include "FEDataStructures.h"
 #include <mpi.h>
 

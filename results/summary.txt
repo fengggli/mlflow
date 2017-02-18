@@ -1,0 +1,15 @@
+
+1995644.m2
+    Feb 17
+    toy simulation now correctly run with dspaces and catalyst
+    vtk files can be generated
+1996628
+    Feb 17
+    all previous applciation can be run, put regions, get regions, analysis
+1996637
+    Feb 17
+    same with 1996628, but with folder created for results
+1996796
+    Feb 18
+    test basic applications again, after modifying the cmake
+

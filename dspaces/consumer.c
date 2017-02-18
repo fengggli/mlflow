@@ -128,7 +128,13 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
 
 
 /*
- * this is an template
+ * this is an template, 
+ * it does the following
+ *  allocate space for vel
+ *  using dspaces to get vel data
+ *
+ * Notes
+ *  get_raw_buffer in ds_adaptor will be called instead
  */
 void get_vel_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm * p_gcomm, float **p_buffer_vel, double *p_time_used){
     char msg[STRING_LENGTH];
@@ -270,6 +276,7 @@ void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_ta
    }
    */
 
+
 int main(int argc, char **argv)
 {
     int nprocs, rank;
@@ -392,6 +399,7 @@ int main(int argc, char **argv)
         // note that the regions a rank need may be not continous
         //get_region_buffer(timestep, &region_def, rank, &gcomm, &buffer_all_regions, &time_used);
         // read raw data and divide
+        // use ds_adator instead
         get_vel_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &time_used);
         //divide into regions
         divide(buffer_vel, POINTS_SIDE,region_length,&tmp_num_region, &buffer_all_regions);

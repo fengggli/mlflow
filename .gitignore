@@ -6,3 +6,4 @@
 *.PNG
 *.log
 results/*
+!results/summary.txt
