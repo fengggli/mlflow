@@ -8,14 +8,20 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     float *vel_data = *p_buffer_vel;
     float *pres_data = *p_buffer_pres;
 
-    if(extra_info != NULL){
-        printf("no extra info required\n");
-        exit(-1);
-    }
+    int num_points;
 
-    // data layout
-    int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
-    int num_points = dims[0]*dims[1]*dims[2];
+    // user provided the area size
+    if(extra_info != NULL){
+        //printf("no extra info required\n");
+        //exit(-1);
+        num_points = *(int*)extra_info;
+    }
+    else{
+
+        // data layout
+        int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
+        num_points = dims[0]*dims[1]*dims[2];
+    }
 
     size_t elem_size_vel = sizeof(float)*3;
     size_t elem_size_pres = sizeof(float);
@@ -105,19 +111,25 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     *p_time_used += t2-t1;
 }
 // this will get all vel and pres data
-void put_raw_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm * p_gcomm, char *var_name_vel, float **p_buffer_vel, char *var_name_pres, float **p_buffer_pres,  double *p_time_used){
+void put_raw_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcomm, char *var_name_vel, float **p_buffer_vel, char *var_name_pres, float **p_buffer_pres,  double *p_time_used){
     char msg[STRING_LENGTH];
     double t1, t2;
     int ret_put = -1;
 
-    if(p_region_def != NULL){
-        printf("no extra info required\n");
-        exit(-1);
+    int num_points;
+
+    if(extra_info != NULL){
+        //printf("no extra info required\n");
+        //exit(-1);
+        num_points = *(int*)extra_info;
     }
+    else{
+
 
     // data layout
-    int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
-    int num_points = dims[0]*dims[1]*dims[2];
+        int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
+        num_points = dims[0]*dims[1]*dims[2];
+    }
 
     size_t elem_size_vel = sizeof(float)*3;
     size_t elem_size_pres = sizeof(float);

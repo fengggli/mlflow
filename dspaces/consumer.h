@@ -1,10 +1,11 @@
 #ifndef CONSUMER_H
 #define CONSUMER_H
 /*
- * it should  work like this:
- * 1. only one process here, this process will get all the regions and put regions into dataspaces
- * 2. put the region data into daspaces
- * 3. initialize the 'divergence matrix' dataspace variable
+ * work like this
+ *  1. read from dspaces(raw velocity data)
+ *  2. divide into regions
+ *  3. get all the divergences
+ *  4. write divs into dspces
  */
 
 /* orignal comment from minmax_writer.c : Example 3: DataSpaces put 128 array

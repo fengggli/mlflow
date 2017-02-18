@@ -1,19 +1,14 @@
 #ifndef GET_REGIONS
 #define GET_REGIONS
-/* comment from original minmax_reader.c : Example 2: Min/Max/Average of Array using DataSpace
- * In this example, we will use a number of processes (specified by -np)
- * to compute the minimum and maximum element in an array and to compute
- * the average of all the values in the array.
- * You will see how DataSpaces accesses the values without reading from disk. 
+
+/*
+notes
+it should run like this:
+    1. assigned with pairs of regions
+    2. get regions from dspaces
+    3. calculate divergence
+    4. put the divergence
 */
-
-
-//notes
-//it should run like this:
-//1. assigned with pairs of regions
-//2. get regions from dspaces
-//3. calculate divergence
-//4. put the divergence
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

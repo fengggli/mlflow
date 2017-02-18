@@ -3,19 +3,17 @@ set(USE_CATALYST ON CACHE BOOL "Link the simulator with Catalyst")
 #set(CMAKE_LIBRARY_PATH "${DS_DIR}/lib" CACHE STRING "library path")
 #set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
 
-add_library(ds_adaptor STATIC ds_adaptor.c)
-
-include_directories("${CMAKE_SOURCE_DIR}/src" ${DS_DIR}/include)                                                                                                       
-find_library(DSPACES dspaces ${DS_DIR}/lib)
-find_library(DSCOMMON dscommon ${DS_DIR}/lib)
-find_library(DART dart ${DS_DIR}/lib)
-
+# this is the libary to interact with dspaces
+add_library(ds_adaptor ds_adaptor.c)
 target_link_libraries(ds_adaptor ${DSPACES} ${DSCOMMON} ${DART} UTILITY)
 
 
-add_executable(sim_gen sim_gen.c)                                                                                                                     
+# a toy simulator
+add_executable(sim_gen sim_gen.c)
 target_link_libraries(sim_gen ds_adaptor)
 
+
+# set catalyst environment
 set(USE_CATALYST ON CACHE BOOL "Link the simulator with Catalyst")
 #set(ParaView_DIR "/N/soft/cle4/paraview/ParaView-v4.1.0/Build-mpi" CACHE PATH "The path to paraview.")
 if(USE_CATALYST)
@@ -33,14 +31,16 @@ if(USE_CATALYST)
   endif()
 else()
   find_package(MPI REQUIRED)
+  #include_directories(${MPI_CXX_INCLUDE_PATH})
   include_directories(${MPI_CXX_INCLUDE_PATH})
 endif()
 
 
+# catalyst is to read from dataspaces and connect to paraview server
 add_executable(catalyst FEDriver.cxx FEDataStructures.cxx)
 if(USE_CATALYST)
 
-    #set_target_properties(catalyst PROPERTIES LINK_FLAGS "-dynamic")
+  #set_target_properties(catalyst PROPERTIES LINK_FLAGS "-dynamic")
   target_link_libraries(catalyst LINK_PRIVATE ds_adaptor CxxImageDataExampleAdaptor)
 
   include(vtkModuleMacros)

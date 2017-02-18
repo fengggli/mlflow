@@ -1,10 +1,6 @@
 #include "consumer.h"
 //#define debug_1
 
-
-
-
-
 void generate_lookup_table(int num_region, int **p_table){
     int i, j, count;
 
@@ -285,8 +281,6 @@ int main(int argc, char **argv)
     if(argc == 2){
         strcpy(result_path, argv[1]);
     }
-
-
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);

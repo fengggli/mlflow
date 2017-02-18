@@ -48,15 +48,15 @@ sleep 5s  # wait server to fill up the conf file
 
 
 ## Run region writer
-mpirun -n 1 ${BUILD}/put_regions >& ${PBS_RESULTDIR}/producer.log &
-#mpirun -n 1  ${BUILD}/sim_gen >& ${PBS_RESULTDIR}/producer.log &
+#mpirun -n 1 ${BUILD}/put_regions >& ${PBS_RESULTDIR}/producer.log &
+mpirun -n 1  ${BUILD}/sim_gen >& ${PBS_RESULTDIR}/producer.log &
 
 echo "writer applciation lauched"
 
 
 ## Run region reader and divergence cal application
-mpirun -n 32 ${BUILD}/get_regions ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
-#aprun -n  ${BUILD}/consumer ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
+#mpirun -n 32 ${BUILD}/get_regions ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
+mpirun -n 1 ${BUILD}/consumer ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
 
 
 echo "reader applciation lauched"

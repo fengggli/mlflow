@@ -1,0 +1,93 @@
+could not open file ds_adaptor.h for source file myIcoFoam.C due to No such file or directory
+myIcoFoam.C: In function 'int mydump(Foam::volScalarField&, float*)':
+myIcoFoam.C:81:5: warning: no return statement in function returning non-void [-Wreturn-type]
+     }
+     ^
+myIcoFoam.C: In function 'int mydump(Foam::volVectorField&, float*)':
+myIcoFoam.C:83:13: warning: unused variable 'i' [-Wunused-variable]
+         int i;
+             ^
+myIcoFoam.C:92:5: warning: no return statement in function returning non-void [-Wreturn-type]
+     }
+     ^
+In file included from /N/u/lifen/Karst/Workspaces/sequentialNpClustering/simulator/ds_adaptor.h:10:0,
+                 from myIcoFoam.C:70:
+myIcoFoam.C: In function 'int main(int, char**)':
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:308:72: warning: use of old-style cast [-Wold-style-cast]
+ #define OMPI_PREDEFINED_GLOBAL(type, global) ((type) ((void *) &(global)))
+                                                                        ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:1016:24: note: in expansion of macro 'OMPI_PREDEFINED_GLOBAL'
+ #define MPI_COMM_WORLD OMPI_PREDEFINED_GLOBAL( MPI_Comm, ompi_mpi_comm_world)
+                        ^
+myIcoFoam.C:126:23: note: in expansion of macro 'MPI_COMM_WORLD'
+         MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+                       ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:308:73: warning: use of old-style cast [-Wold-style-cast]
+ #define OMPI_PREDEFINED_GLOBAL(type, global) ((type) ((void *) &(global)))
+                                                                         ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:1016:24: note: in expansion of macro 'OMPI_PREDEFINED_GLOBAL'
+ #define MPI_COMM_WORLD OMPI_PREDEFINED_GLOBAL( MPI_Comm, ompi_mpi_comm_world)
+                        ^
+myIcoFoam.C:126:23: note: in expansion of macro 'MPI_COMM_WORLD'
+         MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+                       ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:308:72: warning: use of old-style cast [-Wold-style-cast]
+ #define OMPI_PREDEFINED_GLOBAL(type, global) ((type) ((void *) &(global)))
+                                                                        ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:1016:24: note: in expansion of macro 'OMPI_PREDEFINED_GLOBAL'
+ #define MPI_COMM_WORLD OMPI_PREDEFINED_GLOBAL( MPI_Comm, ompi_mpi_comm_world)
+                        ^
+myIcoFoam.C:127:23: note: in expansion of macro 'MPI_COMM_WORLD'
+         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+                       ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:308:73: warning: use of old-style cast [-Wold-style-cast]
+ #define OMPI_PREDEFINED_GLOBAL(type, global) ((type) ((void *) &(global)))
+                                                                         ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:1016:24: note: in expansion of macro 'OMPI_PREDEFINED_GLOBAL'
+ #define MPI_COMM_WORLD OMPI_PREDEFINED_GLOBAL( MPI_Comm, ompi_mpi_comm_world)
+                        ^
+myIcoFoam.C:127:23: note: in expansion of macro 'MPI_COMM_WORLD'
+         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+                       ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:308:72: warning: use of old-style cast [-Wold-style-cast]
+ #define OMPI_PREDEFINED_GLOBAL(type, global) ((type) ((void *) &(global)))
+                                                                        ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:1016:24: note: in expansion of macro 'OMPI_PREDEFINED_GLOBAL'
+ #define MPI_COMM_WORLD OMPI_PREDEFINED_GLOBAL( MPI_Comm, ompi_mpi_comm_world)
+                        ^
+myIcoFoam.C:128:21: note: in expansion of macro 'MPI_COMM_WORLD'
+         MPI_Barrier(MPI_COMM_WORLD);
+                     ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:308:73: warning: use of old-style cast [-Wold-style-cast]
+ #define OMPI_PREDEFINED_GLOBAL(type, global) ((type) ((void *) &(global)))
+                                                                         ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:1016:24: note: in expansion of macro 'OMPI_PREDEFINED_GLOBAL'
+ #define MPI_COMM_WORLD OMPI_PREDEFINED_GLOBAL( MPI_Comm, ompi_mpi_comm_world)
+                        ^
+myIcoFoam.C:128:21: note: in expansion of macro 'MPI_COMM_WORLD'
+         MPI_Barrier(MPI_COMM_WORLD);
+                     ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:308:72: warning: use of old-style cast [-Wold-style-cast]
+ #define OMPI_PREDEFINED_GLOBAL(type, global) ((type) ((void *) &(global)))
+                                                                        ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:1016:24: note: in expansion of macro 'OMPI_PREDEFINED_GLOBAL'
+ #define MPI_COMM_WORLD OMPI_PREDEFINED_GLOBAL( MPI_Comm, ompi_mpi_comm_world)
+                        ^
+myIcoFoam.C:129:17: note: in expansion of macro 'MPI_COMM_WORLD'
+         gcomm = MPI_COMM_WORLD;
+                 ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:308:73: warning: use of old-style cast [-Wold-style-cast]
+ #define OMPI_PREDEFINED_GLOBAL(type, global) ((type) ((void *) &(global)))
+                                                                         ^
+/N/soft/rhel6/openmpi/gnu/1.8.4/include/mpi.h:1016:24: note: in expansion of macro 'OMPI_PREDEFINED_GLOBAL'
+ #define MPI_COMM_WORLD OMPI_PREDEFINED_GLOBAL( MPI_Comm, ompi_mpi_comm_world)
+                        ^
+myIcoFoam.C:129:17: note: in expansion of macro 'MPI_COMM_WORLD'
+         gcomm = MPI_COMM_WORLD;
+                 ^
+myIcoFoam.C:163:71: warning: use of old-style cast [-Wold-style-cast]
+         float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
+                                                                       ^
+myIcoFoam.C:168:70: warning: use of old-style cast [-Wold-style-cast]
+         float * pres_data = (float *)malloc(num_points* sizeof(float));
+                                                                      ^

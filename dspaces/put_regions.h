@@ -2,9 +2,10 @@
 #define PUT_REGIONS_H
 /*
  * it should  work like this:
- * 1. only one process here, this process will get all the regions and put regions into dataspaces
- * 2. put the region data into daspaces
- * 3. initialize the 'divergence matrix' dataspace variable
+ * note , currently only one process
+ * 1. read data from hdf5
+ * 2. divide into regions
+ * 3. write regions in to dataspaces
  */
 
 /* orignal comment from minmax_writer.c : Example 3: DataSpaces put 128 array

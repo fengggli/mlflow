@@ -11,7 +11,7 @@ add_executable(put_regions put_regions.c run_with_dspaces.c)
 
 
 set(DS_DIR "/N/u/lifen/BigRed2/Dataspacesroot" CACHE PATH "The path to dataspaces.")                                                                  
-include_directories(${DS_DIR}/include ${CMAKE_SOURCE_DIR}/cluster)                                                                                                       
+#include_directories(${DS_DIR}/include ${CMAKE_SOURCE_DIR}/cluster)                                                                                                       
 find_library(DSPACES dspaces ${DS_DIR}/lib)
 find_library(DSCOMMON dscommon ${DS_DIR}/lib)
 find_library(DART dart ${DS_DIR}/lib)
