@@ -15,3 +15,12 @@
 1997062.m2*
     Feb 18 16:00
     openfoam connected with catalyst, vtk files are successfully generated
+1998457.m2
+    Feb 19 11:00
+    data put into dspaces are different that if directly run file witer in openfoam
+1998465
+    Feb 19 11:20
+    <<U[i] and <<U[i]
+1998734
+    Feb 19 11:59
+    put_raw buffer change the value of vel_data

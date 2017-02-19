@@ -28,6 +28,7 @@ different builds:
 1. build_catalyst
     toy simulation with catalyst
 2. build default, hdf5 reader with npdivs, clustering
+3. build_filewriter, this using opefoam to write into files
 
 
 different jobfiles

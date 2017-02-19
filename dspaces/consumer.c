@@ -1,5 +1,5 @@
 #include "consumer.h"
-#define debug_1
+//#define debug_1
 
 void generate_lookup_table(int num_region, int **p_table){
     int i, j, count;

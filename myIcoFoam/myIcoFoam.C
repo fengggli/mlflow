@@ -63,9 +63,10 @@ Description
 #include "fvCFD.H"
 #include "pisoControl.H"
 
+#include <stdio.h>
+
 #define USE_DSPACES
 
-//#define USE_DSPACES
 #ifdef USE_DSPACES
     #include "ds_adaptor.h"
 
@@ -87,6 +88,8 @@ Description
             *tmp = U[i].x();
             *(tmp+1) = U[i].y();
             *(tmp+2) = U[i].z();
+
+            Info<<" point "<< i << ": "<< tmp[0] <<" " << tmp[1]<< " "<<tmp[2]<< endl;
             tmp+=3;
         }
     }
@@ -254,6 +257,11 @@ int main(int argc, char *argv[])
         // dump data from U and P into buffer
         mydump(p, pres_data);
         mydump(U, vel_data);
+
+        /*
+        Info<<" first data, address"<< vel_data << ": "<< vel_data[0] <<" " << vel_data[1]<< " "<<vel_data[2]<< endl;
+       printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
+       */
         put_raw_buffer(timestep++, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_vel);
 
 
@@ -288,8 +296,9 @@ int main(int argc, char *argv[])
          {
 
              // textfile output
-             if (i) ofs_U << "|";
+             if (i) ofs_U << endl;
              ofs_U << U[i];
+             ofs_U << endl << "splited"<< U[i].x() << U[i].y() << U[i].z();
          }
 
         ofs_U << endl;

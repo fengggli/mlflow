@@ -12,6 +12,7 @@
 #This job runs with 3 nodes  
 #ibrun in verbose mode will give binding detail  
 BUILD=${PBS_O_WORKDIR}/build_default/bin
+#BUILD=${PBS_O_WORKDIR}/build_filewriter/bin
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
