@@ -21,11 +21,8 @@
 
 #include <stdint.h>
 #include <unistd.h>
-#include "dataspaces.h"
+#include "ds_adaptor.h"
 #include "run_with_dspaces.h"
-#include "mpi.h"
-#include "region_def.h"
-#include "common_utility.h"
 #include "get_divs.h"
 // Size of array, if changing
 // MUST also change in minmax_reader.c

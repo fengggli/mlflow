@@ -14,6 +14,8 @@
 BUILD=${PBS_O_WORKDIR}/build_default/bin
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
+SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
+CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity
 
 mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR
@@ -49,7 +51,9 @@ sleep 5s  # wait server to fill up the conf file
 
 ## Run region writer
 #mpirun -n 1 ${BUILD}/put_regions >& ${PBS_RESULTDIR}/producer.log &
-mpirun -n 1  ${BUILD}/sim_gen >& ${PBS_RESULTDIR}/producer.log &
+#mpirun -n 1  ${BUILD}/sim_gen >& ${PBS_RESULTDIR}/producer.log &
+
+mpirun -n 1  ${BUILD}/myIcoFoam -case ${CASE_DIR} &> ${PBS_RESULTDIR}/myicofoam.log &
 
 echo "writer applciation lauched"
 

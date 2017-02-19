@@ -3,6 +3,10 @@ set(USE_CATALYST ON CACHE BOOL "Link the simulator with Catalyst")
 #set(CMAKE_LIBRARY_PATH "${DS_DIR}/lib" CACHE STRING "library path")
 #set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
 
+find_library(DSPACES dspaces ${DS_DIR}/lib)
+find_library(DSCOMMON dscommon ${DS_DIR}/lib)
+find_library(DART dart ${DS_DIR}/lib)
+
 # this is the libary to interact with dspaces
 add_library(ds_adaptor ds_adaptor.c)
 target_link_libraries(ds_adaptor ${DSPACES} ${DSCOMMON} ${DART} UTILITY)

@@ -1,5 +1,5 @@
 #include "consumer.h"
-//#define debug_1
+#define debug_1
 
 void generate_lookup_table(int num_region, int **p_table){
     int i, j, count;
@@ -72,13 +72,13 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
     for(i = pair_index_l; i<= pair_index_h; i++){
         // get the region index of that pair
 
-        snprintf(msg, STRING_LENGTH,"i = %d, index_l = %d, index_h = %d\n", i, pair_index_l, pair_index_h);
-        my_message(msg, rank, LOG_WARNING);
+        //snprintf(msg, STRING_LENGTH,"i = %d, index_l = %d, index_h = %d\n", i, pair_index_l, pair_index_h);
+        //my_message(msg, rank, LOG_WARNING);
 
         get_pair_index(table, i, &a, &b);
 
-        snprintf(msg, STRING_LENGTH,"try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
-        my_message(msg, rank, LOG_WARNING);
+        //snprintf(msg, STRING_LENGTH,"try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
+        //my_message(msg, rank, LOG_WARNING);
 
         buffer_a = buffer_all_regions + a*region_num_cell*3;
         buffer_b = buffer_all_regions + b*region_num_cell*3;
@@ -116,8 +116,8 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
         // save it into buffer first
         divs_this_rank[i - pair_index_l] = div;
 
-        snprintf(msg, STRING_LENGTH,"div written");
-        my_message(msg, rank, LOG_WARNING);
+        //snprintf(msg, STRING_LENGTH,"div written");
+        //my_message(msg, rank, LOG_WARNING);
 
         // record the time for communication and calculation
         *p_time_used += t3 -t2;

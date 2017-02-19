@@ -56,7 +56,7 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     // read all regions in once
     t1 = MPI_Wtime();
 
-    printf("var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d], one data %3.4f", var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2], vel_data[num_points-1]);
+    printf("%s, var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d], first data %3.4f %3.4f %3.4f, last data %3.4f %3.4f %3.4f\n",__func__, var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2],vel_data[0],vel_data[1],vel_data[2],vel_data[num_points-3], vel_data[num_points-2],vel_data[num_points-1]);
     ret_get = dspaces_get(var_name_vel, timestep, elem_size_vel, ndim, lb, ub, vel_data);
 
     t2 = MPI_Wtime();
