@@ -1,5 +1,6 @@
 #!/bin/bash
 #PBS -N catalyst          
+#PBS -q debug
 #PBS -j oe
 #PBS -l walltime=00:10:00
 #PBS -l nodes=3:ppn=10         
@@ -45,7 +46,7 @@ echo "icofoam applciation lauched"
 
 
 ## Run region reader and divergence cal application
-mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/feslicescript.py &> ${PBS_RESULTDIR}/catalyst.log &  
+mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/write_sample.py &> ${PBS_RESULTDIR}/catalyst.log &  
 
 echo "catalyst applciation lauched"
 

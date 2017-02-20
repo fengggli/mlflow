@@ -3,10 +3,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
 ## [0.2.5] 2017 02-19
 ## changed
 previous toy simulator produce many zero fields, now using cavaty with larger
 values
+## changed
+cavaty changed back, only difference is the definition from 20 to 10
+
+## bug fixed
+previously in catalyst FEDataStructures.cxx
+	the extent should be the number of points
 
 changed 
 

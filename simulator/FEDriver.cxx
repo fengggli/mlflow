@@ -38,11 +38,11 @@ int main(int argc, char* argv[])
   unsigned int dims[3] = {POINTS_SIDE, POINTS_SIDE, 1};
   uint64_t num_points = dims[0]*dims[1]*dims[2];
 
-  double spacing[3] = {1, 1, 0 };
+  //double spacing[3] = {1, 1, 0 };
+  double spacing[3] = {0.1, 0.1, 0 };
   grid.Initialize(dims, spacing);
   Attributes attributes;
   attributes.Initialize(&grid);
-
 
    /*
    * start of my definition
@@ -136,8 +136,6 @@ int main(int argc, char* argv[])
 
     //update using vel and pres info, if there is more ranks I need to partition first
     attributes.UpdateFields(vel_data, pres_data);
-
-    
 
     // also let the analysis part done.
     // add one pipeline 

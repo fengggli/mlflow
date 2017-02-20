@@ -44,15 +44,15 @@ void Grid::Initialize(const unsigned int numPoints[3], const double spacing[3] )
 // how many number of points in this partition
 unsigned int Grid::GetNumberOfLocalPoints()
 {
-  return (this->Extent[1]-this->Extent[0]+1)*(this->Extent[3]-this->Extent[2]+1)*
-    (this->Extent[5]-this->Extent[4]+1);
+  return (this->Extent[1]-this->Extent[0])*(this->Extent[3]-this->Extent[2])*
+    (this->Extent[5]-this->Extent[4]);
 }
 
 
 unsigned int Grid::GetNumberOfLocalCells()
 {
-  return (this->Extent[1]-this->Extent[0])*(this->Extent[3]-this->Extent[2])*
-    (this->Extent[5]-this->Extent[4]);
+  return (this->Extent[1]-this->Extent[0] -1)*(this->Extent[3]-this->Extent[2]-1)*
+    (this->Extent[5]-this->Extent[4] -1 );
 }
 
 
@@ -133,9 +133,11 @@ void Attributes::UpdateFields(float * vel, float * pres)
 {
     // how many points in this partition
   unsigned int numPoints = this->GridPtr->GetNumberOfLocalPoints();
-  this->Velocity.assign(vel, vel + numPoints);
 
-  this->Pressure.assign(pres, pres + 3*numPoints);
+  this->Velocity.resize(numPoints*3);
+  this->Pressure.resize(numPoints);
+  this->Velocity.assign(vel, vel + 3*numPoints);
+  this->Pressure.assign(pres, pres + numPoints);
 }
 
 float* Attributes::GetVelocityArray()

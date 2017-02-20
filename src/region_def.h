@@ -6,6 +6,8 @@
 // use synthetic data to verify
 // only tested in sequential implementation
 //#define USE_SYNTHETIC 
+#define USE_CAVITY
+
 #include "stdlib.h"
 #include "stdio.h"
 
@@ -25,6 +27,19 @@
 
 
 #else
+#ifdef USE_CAVITY
+    #define MAX_VERSION (10)
+    // side length(points num -1) in each region
+    #define REGION_LENGTH (4)
+    #define POINTS_SIDE (41)
+    #define NUM_REGION (100)
+
+    // this is the k in density estimation
+    #define K_NPDIV (5)
+
+    // clustering
+    #define NPASS (100)
+#else
     #define MAX_VERSION (10)
     // side length(points num -1) in each region
     #define REGION_LENGTH (10)
@@ -36,6 +51,7 @@
 
     // clustering
     #define NPASS (100)
+#endif
 #endif
 
 

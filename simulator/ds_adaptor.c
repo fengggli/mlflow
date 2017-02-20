@@ -122,9 +122,10 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
 // this will get all vel and pres data
 void put_raw_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcomm, char *var_name_vel, float **p_buffer_vel, char *var_name_pres, float **p_buffer_pres,  double *p_time_used){
     char msg[STRING_LENGTH];
-    float * vel_data=*p_buffer_vel;
 
 #ifdef debug_1
+
+    float * vel_data=*p_buffer_vel;
     snprintf(msg, STRING_LENGTH,"before,sizeoffloat %d, first data %p: %f %f %f\n", sizeof(float), vel_data, vel_data[0],vel_data[1],vel_data[2]);
     my_message(msg, rank, LOG_WARNING);
 #endif

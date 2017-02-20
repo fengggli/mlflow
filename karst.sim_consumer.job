@@ -2,7 +2,7 @@
 #PBS -N npdiv_isotro_debug
 #PBS -q debug
 #PBS -j oe
-#PBS -l walltime=00:5:00
+#PBS -l walltime=00:10:00
 #PBS -l nodes=4:ppn=12
 #PBS -o results/$PBS_JOBID.output
 

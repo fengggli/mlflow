@@ -24,3 +24,14 @@
 1998734
     Feb 19 11:59
     put_raw buffer change the value of vel_data
+1998807
+    Feb 19 13:40
+    changed cavity configuration, now 1 step passed
+1998862
+    Feb 19 16:39
+    timestep > 10, floating point errh
+1999631
+    Feb 19 22:55
+    change the cavaty parameters back, now only mesh definition changed from 20 to 40
+
+    
