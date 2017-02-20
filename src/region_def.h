@@ -28,7 +28,7 @@
 
 #else
 #ifdef USE_CAVITY
-    #define MAX_VERSION (10)
+    #define MAX_VERSION (100)
     // side length(points num -1) in each region
     #define REGION_LENGTH (4)
     #define POINTS_SIDE (41)
@@ -93,13 +93,10 @@ typedef struct{
     size_t region_memory_size;
 }Region_Def;
 
-
 //region definition
 void fill_region_def(Region_Def *p_region_def);
 
 // extract region definition
 void extract_region_def(Region_Def *p_region_def, int *p_region_length,int * p_side_num_region, int *p_num_region,int * p_region_num_cell, size_t *p_region_memory_size);
-
-
 
 #endif

@@ -31,7 +31,7 @@ echo "## Config file for DataSpaces
 ndim = 3
 dims = 500, 500,500
 max_versions = 100
-max_readers = 40
+max_readers = 1
 lock_type = 2
 " > dataspaces.conf
 
@@ -44,9 +44,8 @@ mpirun -n 1  ${BUILD}/myIcoFoam -case ${CASE_DIR} &> ${PBS_RESULTDIR}/myicofoam.
 
 echo "icofoam applciation lauched"
 
-
 ## Run region reader and divergence cal application
-mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/write_sample.py &> ${PBS_RESULTDIR}/catalyst.log &  
+mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/glyph.py 1>${PBS_RESULTDIR}/catalyst.log 2>${PBS_RESULTDIR}/catalyst.err &  
 
 echo "catalyst applciation lauched"
 

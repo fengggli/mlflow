@@ -73,9 +73,9 @@ int main(int argc, char* argv[])
     ret = dspaces_init(1, 2, &gcomm, NULL);
 
     if(ret == 0){
-        printf("dataspaces init successfully");
+        printf("dataspaces init successfully\n");
     }else{
-        printf("dataspaces init error");
+        printf("dataspaces init error\n");
         exit(-1);
 
     }
@@ -129,6 +129,10 @@ int main(int argc, char* argv[])
     {
     // use a time step length of 0.1
     double time = timestep * 0.1;
+
+    if(rank == 0){
+        cout <<"-----current timestep" << timestep << endl;
+    }
 
     // read data from dataspces
     // this will get blocked until new data available

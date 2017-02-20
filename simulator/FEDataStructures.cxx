@@ -24,6 +24,7 @@ void Grid::Initialize(const unsigned int numPoints[3], const double spacing[3] )
     this->NumPoints[i] = numPoints[i];
     this->Spacing[i] = spacing[i];
     }
+  /*
   int mpiRank = 0, mpiSize = 1;
   MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank);
   MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
@@ -33,26 +34,30 @@ void Grid::Initialize(const unsigned int numPoints[3], const double spacing[3] )
   this->Extent[1] = (mpiRank+1)*numPoints[0]/mpiSize;
   if(mpiSize != mpiRank+1)
     {
+    // if it's not the last 
     this->Extent[1]++;
     }
+    */
+  this->Extent[0] = 0;
+  this->Extent[1] = numPoints[0]-1;
 
   this->Extent[2] = this->Extent[4] = 0;
-  this->Extent[3] = numPoints[1];
-  this->Extent[5] = numPoints[2];
+  this->Extent[3] = numPoints[1] -1;
+  this->Extent[5] = numPoints[2] -1;
 }
 
 // how many number of points in this partition
 unsigned int Grid::GetNumberOfLocalPoints()
 {
-  return (this->Extent[1]-this->Extent[0])*(this->Extent[3]-this->Extent[2])*
-    (this->Extent[5]-this->Extent[4]);
+  return (this->Extent[1]-this->Extent[0]+1)*(this->Extent[3]-this->Extent[2]+1)*
+    (this->Extent[5]-this->Extent[4]+1);
 }
 
 
 unsigned int Grid::GetNumberOfLocalCells()
 {
-  return (this->Extent[1]-this->Extent[0] -1)*(this->Extent[3]-this->Extent[2]-1)*
-    (this->Extent[5]-this->Extent[4] -1 );
+  return (this->Extent[1]-this->Extent[0] )*(this->Extent[3]-this->Extent[2])*
+    (this->Extent[5]-this->Extent[4] );
 }
 
 

@@ -64,6 +64,7 @@ Description
 #include "pisoControl.H"
 
 #include <stdio.h>
+#include "time.h"
 
 #define USE_DSPACES
 
@@ -183,6 +184,7 @@ int main(int argc, char *argv[])
 
     while (runTime.loop())
     {
+        sleep(2);
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         #include "CourantNo.H"

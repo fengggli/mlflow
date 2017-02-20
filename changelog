@@ -4,6 +4,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [0.2.6] 2017 02-20
+## fixed:
+	max_reader set to one in catalyst appllication
+## addeed
+	sleep in icofoam, now it can connect to pvclient.
+	
+
 ## [0.2.5] 2017 02-19
 ## changed
 previous toy simulator produce many zero fields, now using cavaty with larger

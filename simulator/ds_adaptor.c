@@ -1,4 +1,7 @@
 #include "ds_adaptor.h"
+
+#define USE_SAME_LOCK
+
 //#define debug_1
 // this will get all vel and pres data
 void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_vel, float **p_buffer_vel, char * var_name_pres, float **p_buffer_pres,  double *p_time_used){
@@ -38,12 +41,18 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     
 
     char lock_name_vel[STRING_LENGTH];
+#ifdef USE_SAME_LOCK
+    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock");
+#else
     snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
-    //snprintf(lock_name_vel, STRING_LENGTH, "vel_lock");
+#endif
 
     char lock_name_pres[STRING_LENGTH];
+#ifdef USE_SAME_LOCK
+    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock");
+#else
     snprintf(lock_name_pres, STRING_LENGTH, "pres_lock_t_%d", timestep);
-    //snprintf(lock_name_pres, STRING_LENGTH, "pres_lock");
+#endif
 
     
 
@@ -161,12 +170,19 @@ void put_raw_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcom
 
     
     char lock_name_vel[STRING_LENGTH];
+#ifdef USE_SAME_LOCK
+    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock");
+#else
     snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
+#endif
     //snprintf(lock_name_vel, STRING_LENGTH, "vel_lock");
 
     char lock_name_pres[STRING_LENGTH];
+#ifdef USE_SAME_LOCK
+    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock");
+#else
     snprintf(lock_name_pres, STRING_LENGTH, "pres_lock_t_%d", timestep);
-    //snprintf(lock_name_pres, STRING_LENGTH, "pres_lock");
+#endif
 
     
     sprintf(msg, "try to acquired the vel write lock %s", lock_name_vel );
@@ -180,6 +196,8 @@ void put_raw_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcom
     t1 = MPI_Wtime();
 
     ret_put = dspaces_put(var_name_vel, timestep, elem_size_vel, ndim, lb, ub, *p_buffer_vel);
+
+    dspaces_put_sync();
 
     t2 = MPI_Wtime();
 
