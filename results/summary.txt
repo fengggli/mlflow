@@ -29,12 +29,19 @@
     changed cavity configuration, now 1 step passed
 1998862
     Feb 19 16:39
-    timestep > 10, floating point errh
+    timestep > 10, floating point err
 1999631
     Feb 19 22:55
     change the cavaty parameters back, now only mesh definition changed from 20 to 40
 200431
     Feb 20 11:13
-    now that server crashes
+    now that server crashes,
+    reason: previously all variables are write into different variables and use different locks.
+    fixed it: 
+        after change version number to 1 and allow at most 1 user in catalyst/ NEED TO SET HOW MANY USERS IN JOB FILE.
+2000889 
+    Feb 20 14:56
+        Catalyst generate continous live visualization and connnect to client.(after setting sleep time 2)
+    
 
     

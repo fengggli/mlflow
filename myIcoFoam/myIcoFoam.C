@@ -90,7 +90,7 @@ Description
             *(tmp+1) = U[i].y();
             *(tmp+2) = U[i].z();
 
-            Info<<" point "<< i << ": "<< tmp[0] <<" " << tmp[1]<< " "<<tmp[2]<< endl;
+            //Info<<" point "<< i << ": "<< tmp[0] <<" " << tmp[1]<< " "<<tmp[2]<< endl;
             tmp+=3;
         }
     }

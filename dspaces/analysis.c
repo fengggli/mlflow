@@ -245,7 +245,7 @@ int main(int argc, char **argv)
                 }
 
                 //print the header
-                fprintf(f_clusterid, "z y x clusterid\n");
+                fprintf(f_clusterid, "x y z clusterid\n");
 
                 int count1 = 0;
                 //for(i = 0; i < num_region; i++){
