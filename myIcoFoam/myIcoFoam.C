@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 
     while (runTime.loop())
     {
-        sleep(2);
+        sleep(5);
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         #include "CourantNo.H"

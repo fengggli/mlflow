@@ -1,37 +1,39 @@
-try: paraview.simple
-except: from paraview.simple import *
 
+from paraview.simple import *
 from paraview import coprocessing
-import os
-
-#result_dir=os.environ['PBS_RESULTDIR']
 
 
 #--------------------------------------------------------------
 # Code generated from cpstate.py to create the CoProcessor.
+# ParaView 4.3.1 64 bits
 
 
 # ----------------------- CoProcessor definition -----------------------
 
-## feng:define what to do if getting vtk structure
 def CreateCoProcessor():
   def _CreatePipeline(coprocessor, datadescription):
     class Pipeline:
-      filename_2_pvti = coprocessor.CreateProducer( datadescription, "input" )
+      # state file generated using paraview version 4.3.1
 
-      ParallelImageDataWriter1 = coprocessor.CreateWriter( XMLPImageDataWriter, "results/sim_results/cavity_linked_%t.pvti", 1 )
-      #ParallelImageDataWriter1 = coprocessor.CreateWriter( XMLPImageDataWriter, result_dir + "/sim_results/cavity_linked_%t.pvti", 1 )
+      # ----------------------------------------------------------------
+      # setup the data processing pipelines
+      # ----------------------------------------------------------------
 
-      '''
-      SetActiveSource(filename_2_pvti)
-      Slice1 = Slice( guiName="Slice1", Crinkleslice=0, SliceOffsetValues=[0.0], Triangulatetheslice=1, SliceType="Plane" )
-      Slice1.SliceType.Offset = 0.0
-      Slice1.SliceType.Origin = [9.0, 33.0, 28.6]
-      Slice1.SliceType.Normal = [1.0, 0.0, 0.0]
+      #### disable automatic camera reset on 'Show'
+      paraview.simple._DisableFirstRenderCameraReset()
 
-      ParallelPolyDataWriter1 = coprocessor.CreateWriter( XMLPPolyDataWriter, "slice_%t.pvtp", 10 )
-     '''
+      # create a new 'XML Partitioned Image Data Reader'
+      # create a producer from a simulation input
+      cavity_linked_ = coprocessor.CreateProducer(datadescription, 'input')
 
+      # create a new 'Glyph'
+      glyph1 = Glyph(Input=cavity_linked_,
+          GlyphType='Arrow')
+      glyph1.Scalars = ['POINTS', 'cluster']
+      glyph1.Vectors = ['POINTS', 'velocity']
+      glyph1.ScaleMode = 'vector'
+      glyph1.ScaleFactor = 0.8219504005909132
+      glyph1.GlyphTransform = 'Transform2'
     return Pipeline()
 
   class CoProcessor(coprocessing.CoProcessor):
@@ -39,9 +41,8 @@ def CreateCoProcessor():
       self.Pipeline = _CreatePipeline(self, datadescription)
 
   coprocessor = CoProcessor()
-
-  ## 10 till 100?
-  freqs = {'input': [1]}
+  # these are the frequencies at which the coprocessor updates.
+  freqs = {'input': []}
   coprocessor.SetUpdateFrequencies(freqs)
   return coprocessor
 
@@ -54,8 +55,7 @@ coprocessor = CreateCoProcessor()
 
 #--------------------------------------------------------------
 # Enable Live-Visualizaton with ParaView
-coprocessor.EnableLiveVisualization(False)
-#coprocessor.EnableLiveVisualization(True)
+coprocessor.EnableLiveVisualization(True, 1)
 
 
 # ---------------------- Data Selection method ----------------------
@@ -89,8 +89,9 @@ def DoCoProcessing(datadescription):
     coprocessor.WriteData(datadescription);
 
     # Write image capture (Last arg: rescale lookup table), if appropriate.
-    # instead we want to render in the sever
-    #coprocessor.WriteImages(datadescription, rescale_lookuptable=False)
+    coprocessor.WriteImages(datadescription, rescale_lookuptable=False)
 
     # Live Visualization, if enabled.
     #coprocessor.DoLiveVisualization(datadescription, "localhost", 22222)
+
+    coprocessor.DoLiveVisualization(datadescription, "140.182.19.151", 22222)

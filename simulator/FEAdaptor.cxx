@@ -16,6 +16,7 @@
 #include <vtkPointData.h>
 
 #include "region_def.h"
+#include "stdio.h"
 
 namespace
 {
@@ -66,6 +67,8 @@ namespace
       cluster->SetName("cluster");
       cluster->SetNumberOfComponents(1);
       VTKGrid->GetPointData()->AddArray(cluster.GetPointer());
+#else
+      printf("clusterid array not added to the grid\n");
 
 #endif
 
@@ -117,6 +120,9 @@ namespace
     // need zoom here
     float* clusterData = attributes.GetClusterIdArray();
     cluster->SetArray(clusterData, static_cast<vtkIdType>(grid.GetNumberOfLocalPoints()), 1);
+
+#else
+    printf("clusterid not cast\n");
 #endif
   }
 

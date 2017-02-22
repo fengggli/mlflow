@@ -156,7 +156,7 @@ void Attributes::UpdateFields(float * vel, float * pres, float *cluster_data){
   this->ClusterId.resize(numPoints);
   this->Velocity.assign(vel, vel + 3*numPoints);
   this->Pressure.assign(pres, pres + numPoints);
-  this->Pressure.assign(cluster_data, cluster_data + numPoints);
+  this->ClusterId.assign(cluster_data, cluster_data + numPoints);
 }
 
 float* Attributes::GetVelocityArray()

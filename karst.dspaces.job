@@ -3,7 +3,7 @@
 #PBS -q debug
 #PBS -j oe
 #PBS -l walltime=00:10:00
-#PBS -l nodes=3:ppn=10
+#PBS -l nodes=4:ppn=10
 #PBS -o results/$PBS_JOBID.output
 
 #This job runs with 3 nodes  
@@ -23,6 +23,7 @@ export DATASPACES_TCP_READ_SIZE=87380
 
 mkdir -pv ${PBS_RESULTDIR}/clusterids
 mkdir -pv ${PBS_RESULTDIR}/all_divs
+mkdir -pv ${PBS_RESULTDIR}/sim_results
 
 ## Clean up
 rm -f conf *.log srv.lck
@@ -39,7 +40,7 @@ lock_type = 2
 " > dataspaces.conf
 
 ## Run DataSpaces servers
-mpirun -n 1  ${DS_SERVER} -s 1 -c 12  >& ${PBS_RESULTDIR}/server.log &
+mpirun -n 1  ${DS_SERVER} -s 1 -c 35  >& ${PBS_RESULTDIR}/server.log &
 
 echo "server applciation lauched"
 ## Give some time for the servers to load and startup
@@ -60,10 +61,11 @@ echo "writer applciation lauched"
 
 ## Run region reader and divergence cal application
 #mpirun -n 32 ${BUILD}/get_regions ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
-mpirun -n 10 ${BUILD}/consumer ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
+mpirun -n 32 ${BUILD}/consumer ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
 echo "reader applciation lauched"
 
-#mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/write_sample.py 1>${PBS_RESULTDIR}/catalyst.log 2>${PBS_RESULTDIR}/catalyst.err &  
+#mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/write_sample.py &>${PBS_RESULTDIR}/catalyst.log &  
+mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py &>${PBS_RESULTDIR}/catalyst.log &  
 #echo "catalyst launched"
 
 ## the analysis application

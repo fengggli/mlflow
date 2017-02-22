@@ -45,6 +45,15 @@
 2003750
     Feb 22 
         analysis algorithm has segmentation fault
+2003794
+    Feb 22
+        infinite divergence
+2003872
+    Feb 22
+        changed deltaT==0.0005 and endTime=0.5, regenerated blockMesh,  now no infinite numbers
+2004013
+    Feb 22
+        work functionality works fine, now check generated vtk files
         
     
 

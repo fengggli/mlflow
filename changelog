@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.2.9] 2017 02-22
+## fixed
+	regnereate block mesh will erase ifinite divs
+	region_length=0 err
+## added
+	add  return value check for get_divs
+	no..python script now will output to jobid directory
+## notes
+	I should save mesh log each time
+	now two views can show togther in paraview in realtime
+
 ## [0.2.8] 2017 02-22
 ## added
 	two ds writers in icoFoam

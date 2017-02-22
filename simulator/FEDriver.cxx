@@ -24,6 +24,7 @@ void map_regions(float *cluster_raw, float *cluster_data, const unsigned int dim
     int p, q, ii, jj, index_x, index_y, linear_index;
 
     int l = region_length;
+    printf("dim == %d, region_length = %d\n", dim, region_length);
 
     float clusterid;
 
@@ -81,7 +82,7 @@ int main(int argc, char* argv[])
   unsigned int dims[3] = {POINTS_SIDE, POINTS_SIDE, 1};
   unsigned int num_points = dims[0]*dims[1]*dims[2];
   unsigned int num_regions = NUM_REGION;
-  unsigned int region_length = (dims[0]-1)/num_regions;
+  unsigned int region_length = REGION_LENGTH;
 
 
   //double spacing[3] = {1, 1, 0 };

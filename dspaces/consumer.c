@@ -108,11 +108,25 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
 
         t3 = MPI_Wtime();
 
+        
+
 
 #ifdef debug_1
         snprintf(msg, STRING_LENGTH,"got div %.6f ", div);
         my_message(msg, rank, LOG_WARNING);
 #endif
+        if(!isfinite(div)){
+            snprintf(msg, STRING_LENGTH,"ERR:got infinite div %f", div);
+            my_message(msg, rank, LOG_CRITICAL);
+            exit(-1);
+
+        }
+
+        if(isnan(div)){
+            snprintf(msg, STRING_LENGTH,"ERR:got nan  div %f", div);
+            my_message(msg, rank, LOG_CRITICAL);
+            exit(-1);
+        }
         // save it into buffer first
         divs_this_rank[i - pair_index_l] = div;
 
