@@ -14,8 +14,6 @@
 #include <iostream>
 #include "ds_adaptor.h"
 
-// include machine learning algorithm in the final results
-#define INCLUDE_ML
 
 using namespace std;
 
@@ -108,7 +106,6 @@ int main(int argc, char* argv[])
     }
 
 
-
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -119,7 +116,7 @@ int main(int argc, char* argv[])
 // DataSpaces: Initalize and identify application
 // Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
 // Note: appid for get.c is 2 [for put.c, it was 1]
-    ret = dspaces_init(1, 2, &gcomm, NULL);
+    ret = dspaces_init(1, 4, &gcomm, NULL);
 
     if(ret == 0){
         printf("dataspaces init successfully\n");
@@ -133,11 +130,11 @@ int main(int argc, char* argv[])
     // vel and pressure buffer
     double time_used, time_used_cluster;
 
-    char var_name_vel[STRING_LENGTH];
-    char var_name_pres[STRING_LENGTH];
+    char var_name_vel_2[STRING_LENGTH];
+    char var_name_pres_2[STRING_LENGTH];
     char var_name_cluster[STRING_LENGTH];
-    sprintf(var_name_vel, "VEL");
-    sprintf(var_name_pres, "PRES");
+    sprintf(var_name_vel_2, "VEL_2");
+    sprintf(var_name_pres_2, "PRES_2");
     sprintf(var_name_cluster, "CLUSTER");
 
 
@@ -198,7 +195,7 @@ int main(int argc, char* argv[])
 
     // read data from dataspces
     // this will get blocked until new data available
-    get_raw_buffer(timestep, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres,  &pres_data, &time_used);
+    get_raw_buffer(timestep, NULL ,rank, &gcomm, var_name_vel_2, &vel_data, var_name_pres_2,  &pres_data, &time_used);
 
 
 

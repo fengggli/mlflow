@@ -1,6 +1,5 @@
 #include "ds_adaptor.h"
 
-#define USE_SAME_LOCK
 
 //#define debug_1
 // this will get all vel and pres data
@@ -42,16 +41,16 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
 
     char lock_name_vel[STRING_LENGTH];
 #ifdef USE_SAME_LOCK
-    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock");
+    snprintf(lock_name_vel, STRING_LENGTH, "%s_lock", var_name_vel);
 #else
-    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
+    snprintf(lock_name_vel, STRING_LENGTH, "%s_lock_t_%d",var_name_vel, timestep);
 #endif
 
     char lock_name_pres[STRING_LENGTH];
 #ifdef USE_SAME_LOCK
-    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock");
+    snprintf(lock_name_pres, STRING_LENGTH, "%s_lock", var_name_pres);
 #else
-    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock_t_%d", timestep);
+    snprintf(lock_name_pres, STRING_LENGTH, "%s_lock_t_%d", var_name_pres, timestep);
 #endif
 
     
@@ -171,17 +170,17 @@ void put_raw_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcom
     
     char lock_name_vel[STRING_LENGTH];
 #ifdef USE_SAME_LOCK
-    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock");
+    snprintf(lock_name_vel, STRING_LENGTH, "%s_lock",var_name_vel );
 #else
-    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
+    snprintf(lock_name_vel, STRING_LENGTH, "%s_lock_t_%d",var_name_vel,  timestep);
 #endif
     //snprintf(lock_name_vel, STRING_LENGTH, "vel_lock");
 
     char lock_name_pres[STRING_LENGTH];
 #ifdef USE_SAME_LOCK
-    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock");
+    snprintf(lock_name_pres, STRING_LENGTH, "%s_lock", var_name_pres);
 #else
-    snprintf(lock_name_pres, STRING_LENGTH, "pres_lock_t_%d", timestep);
+    snprintf(lock_name_pres, STRING_LENGTH, "%s_lock_t_%d", var_name_pres, timestep);
 #endif
 
     
@@ -242,6 +241,8 @@ void put_raw_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcom
     t1 = MPI_Wtime();
 
     ret_put = dspaces_put(var_name_pres, timestep, elem_size_pres, ndim, lb, ub, *p_buffer_pres);
+
+    dspaces_put_sync();
 
     t2 = MPI_Wtime();
 
@@ -372,6 +373,8 @@ void put_cluster_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_
     t1 = MPI_Wtime();
 
     ret_put = dspaces_put(var_name_cluster, timestep, elem_size_cluster, ndim, lb, ub, *p_buffer_cluster);
+
+    dspaces_put_sync();
 
     t2 = MPI_Wtime();
 

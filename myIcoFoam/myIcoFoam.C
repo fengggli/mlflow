@@ -162,6 +162,12 @@ int main(int argc, char *argv[])
         char var_name_pres[STRING_LENGTH];
         sprintf(var_name_vel, "VEL");
         sprintf(var_name_pres, "PRES");
+
+        char var_name_vel_2[STRING_LENGTH];
+        char var_name_pres_2[STRING_LENGTH];
+        sprintf(var_name_vel_2, "VEL_2");
+        sprintf(var_name_pres_2, "PRES_2");
+        
         // prepare space
         float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
         if(vel_data == NULL){
@@ -263,7 +269,11 @@ int main(int argc, char *argv[])
         Info<<" first data, address"<< vel_data << ": "<< vel_data[0] <<" " << vel_data[1]<< " "<<vel_data[2]<< endl;
        printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
        */
-        put_raw_buffer(timestep++, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_vel);
+        put_raw_buffer(timestep, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_vel);
+
+        // in case dspaces cannot read twice
+        put_raw_buffer(timestep, &num_points ,rank, &gcomm, var_name_vel_2,  &vel_data,var_name_pres_2, &pres_data, &time_comm_vel);
+        timestep++;
 
 
 #else

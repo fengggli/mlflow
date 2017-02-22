@@ -13,10 +13,8 @@ PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
 CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity
 
-  
 mkdir -pv ${PBS_RESULTDIR}     
 cd $PBS_O_WORKDIR              
-  
     
 #export DATASPACES_TCP_INTERFACE="gn0"
 export DATASPACES_TCP_WRITE_SIZE=1073741824

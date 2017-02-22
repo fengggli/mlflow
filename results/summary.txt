@@ -42,6 +42,10 @@
 2000889 
     Feb 20 14:56
         Catalyst generate continous live visualization and connnect to client.(after setting sleep time 2)
+2003750
+    Feb 22 
+        analysis algorithm has segmentation fault
+        
     
 
     

@@ -1,6 +1,8 @@
 #ifndef REGION_DEF_H
 #define REGION_DEF_H
 
+// this file contains key configurations
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,7 +14,10 @@ extern "C" {
 // only tested in sequential implementation
 //#define USE_SYNTHETIC 
 #define USE_CAVITY
-#define INCLUDE_ML
+//#define INCLUDE_ML
+
+// whether or not using same lock eachtime, only affect the ds_adaptor
+//#define USE_SAME_LOCK
 
 #include "stdlib.h"
 #include "stdio.h"
