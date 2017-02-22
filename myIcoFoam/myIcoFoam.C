@@ -148,7 +148,6 @@ int main(int argc, char *argv[])
             sprintf(msg, "dataspaces init error");
             my_message(msg, rank, LOG_CRITICAL);
             exit(-1);
-
         }
 
         // data layout

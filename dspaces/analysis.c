@@ -1,7 +1,9 @@
 #include "analysis.h"
+#include "ds_adaptor.h"
 
 int main(int argc, char **argv)
 {
+  // init dspaces
 	int nprocs, rank;
 	MPI_Comm gcomm;
 
@@ -26,14 +28,35 @@ int main(int argc, char **argv)
 	// Application ID: Unique idenitifier (integer) for application
 	// Pointer to the MPI Communicator, allows DS Layer to use MPI barrier func
 	// Addt'l parameters: Placeholder for future arguments, currently NULL.
+    char msg[STRING_LENGTH];
 	dspaces_init(1, 3, &gcomm, NULL);
+
+    int num_region = NUM_REGION;
+
+#ifdef INCLUDE_ML
+  // start of ds_adaptor preparation
+  
+    // data layout
+    //int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
+    //int num_points = dims[0]*dims[1]*dims[2];
+
+    // time 
+    double time_comm;
+
+    
+    char var_name_cluster[STRING_LENGTH];
+    sprintf(var_name_cluster, "CLUSTER");
+
+    // prepare space, 
+    float * cluster_data = (float *)malloc(num_region* sizeof(float));
+  // end of dspaces preparation
+#endif
 
     /*
      * npdiv parameter
      */
     int k_npdiv = K_NPDIV;
 
-    char msg[STRING_LENGTH];
 
     sprintf(msg, "k = %d, max_timestep= %d", K_NPDIV,MAX_VERSION );
     my_message(msg, rank, LOG_CRITICAL);
@@ -41,10 +64,6 @@ int main(int argc, char **argv)
     sprintf(msg, "ds init ok, result path:%s, address: %p,len: %zu\n",result_path, result_path, strlen(result_path) );
     my_message(msg, rank, LOG_CRITICAL);
 
-        /*
-    sprintf(msg, "dataspaces init complete");
-    my_message(msg, rank);
-    */
 
 	// Timestep notation left in to demonstrate how this can be adjusted
 	int timestep=0;
@@ -90,7 +109,6 @@ int main(int argc, char **argv)
                 my_message(msg, rank, LOG_WARNING);
             }
 
-            int num_region = NUM_REGION;
 
                         // parameter for second variable: div
             uint64_t lb_div[3] = {0}, ub_div[3] = {0};
@@ -218,7 +236,6 @@ int main(int argc, char **argv)
                 my_message(msg, rank, LOG_WARNING);
 
                 sprintf(msg, "error is %.3lf, %d times/ %d passes give the best results\n", error, ifound, npass);
-
                 my_message(msg, rank, LOG_WARNING);
 
                 // save cluster results into file
@@ -234,6 +251,18 @@ int main(int argc, char **argv)
                 else{
                     snprintf(output_path, STRING_LENGTH,"data/parallel/clustering_results/clusterid_%d_k_%d_t_%d.txt", POINTS_SIDE,k_npdiv, timestep);
                 }
+        // write cluster id to dspaces
+                // cast to float
+                for(i = 0; i < num_region;i++ ){
+                        cluster_data[i] = clusterid[i];
+                    }
+
+#ifdef INCLUDE_ML
+                put_cluster_buffer(timestep, &num_region ,rank, &gcomm, var_name_cluster,  &cluster_data, &time_comm);
+#endif
+                // dspaces put
+
+        // write into filesystem
                 FILE * f_clusterid = fopen(output_path, "w");
                 if(f_clusterid == NULL){
                     printf("file %s not found, exit\n", output_path);

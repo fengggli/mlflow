@@ -1,5 +1,10 @@
 #ifndef REGION_DEF_H
 #define REGION_DEF_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // define data block size, region size
 // version number is from 1,2,3,4... MAX_VERSION
 
@@ -7,6 +12,7 @@
 // only tested in sequential implementation
 //#define USE_SYNTHETIC 
 #define USE_CAVITY
+#define INCLUDE_ML
 
 #include "stdlib.h"
 #include "stdio.h"
@@ -100,3 +106,7 @@ void fill_region_def(Region_Def *p_region_def);
 void extract_region_def(Region_Def *p_region_def, int *p_region_length,int * p_side_num_region, int *p_num_region,int * p_region_num_cell, size_t *p_region_memory_size);
 
 #endif
+#ifdef __cplusplus
+}
+#endif
+

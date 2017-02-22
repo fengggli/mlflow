@@ -15,9 +15,12 @@
 #include <vtkPoints.h>
 #include <vtkPointData.h>
 
+#include "region_def.h"
+
 namespace
 {
   vtkCPProcessor* Processor = NULL;
+  // I need two grid here
   vtkImageData* VTKGrid = NULL;
 
   void BuildVTKGrid(Grid& grid)
@@ -35,6 +38,7 @@ namespace
         }
       VTKGrid->SetExtent(extent);
       VTKGrid->SetSpacing(grid.GetSpacing());
+
       }
   }
 
@@ -55,7 +59,18 @@ namespace
       pressure->SetName("pressure");
       pressure->SetNumberOfComponents(1);
       VTKGrid->GetPointData()->AddArray(pressure.GetPointer());
+
+#ifdef INCLUDE_ML
+      // cluster array
+      vtkNew<vtkFloatArray> cluster;
+      cluster->SetName("cluster");
+      cluster->SetNumberOfComponents(1);
+      VTKGrid->GetPointData()->AddArray(cluster.GetPointer());
+
+#endif
+
       }
+
     /* commented by feng li, store all info in cell array
     if(VTKGrid->GetCellData()->GetNumberOfArrays() == 0)
       {
@@ -93,6 +108,16 @@ namespace
     // memory as long as we ordered the points properly.
     float* pressureData = attributes.GetPressureArray();
     pressure->SetArray(pressureData, static_cast<vtkIdType>(grid.GetNumberOfLocalPoints()), 1);
+
+#ifdef INCLUDE_ML
+    vtkFloatArray* cluster = vtkFloatArray::SafeDownCast(
+      VTKGrid->GetPointData()->GetArray("cluster"));
+    // The cluster array is a scalar array so we can reuse
+    // memory as long as we ordered the points properly.
+    // need zoom here
+    float* clusterData = attributes.GetClusterIdArray();
+    cluster->SetArray(clusterData, static_cast<vtkIdType>(grid.GetNumberOfLocalPoints()), 1);
+#endif
   }
 
   void BuildVTKDataStructures(Grid& grid, Attributes& attributes)
@@ -141,8 +166,14 @@ namespace FEAdaptor
   void CoProcess(Grid& grid, Attributes& attributes, double time,
                  unsigned int timeStep, bool lastTimeStep)
   {
+
+     // grid is defined outside
     vtkNew<vtkCPDataDescription> dataDescription;
+    
+    // add input
+    //dataDescription->AddInput("input");
     dataDescription->AddInput("input");
+    //dataDescription->AddInput("input");
     dataDescription->SetTimeData(time, timeStep);
     if(lastTimeStep == true)
       {
@@ -161,6 +192,7 @@ namespace FEAdaptor
         }
 
       dataDescription->GetInputDescriptionByName("input")->SetWholeExtent(wholeExtent);
+
       Processor->CoProcess(dataDescription.GetPointer());
       }
   }

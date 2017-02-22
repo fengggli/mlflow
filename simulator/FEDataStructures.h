@@ -13,6 +13,7 @@ class Grid
 public:
   Grid();
   void Initialize(const unsigned int numPoints[3], const double spacing[3]);
+  // still need to provide partion info
   unsigned int GetNumberOfLocalPoints();
   unsigned int GetNumberOfLocalCells();
   void GetLocalPoint(unsigned int pointId, double* point);
@@ -20,7 +21,10 @@ public:
   unsigned int* GetExtent();
   double* GetSpacing();
 private:
+  unsigned int RegionLength;
   unsigned int NumPoints[3];
+
+  // they should use same grid but for regions there I need zoom to fit large regions
   unsigned int Extent[6];
   double Spacing[3];
 };
@@ -38,15 +42,20 @@ public:
   void Initialize(Grid* grid);
   void UpdateFields(double time);
   void UpdateFields(float *vel, float*pres);
+  void UpdateFields(float *vel, float*pres, float*cluster_data);
   // commented by feng
   // double* GetVelocityArray();
  
   float* GetVelocityArray();
   float* GetPressureArray();
+  float* GetClusterIdArray();
 
 private:
   std::vector<float> Velocity;
   std::vector<float> Pressure;
+
+  // this will have smaller size
+  std::vector<float> ClusterId;
   Grid* GridPtr;
 };
 #endif

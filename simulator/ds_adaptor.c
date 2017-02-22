@@ -261,3 +261,133 @@ void put_raw_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcom
 
     *p_time_used += t2-t1;
 }
+
+void get_cluster_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_cluster, float **p_buffer_cluster,  double *p_time_used){
+    char msg[STRING_LENGTH];
+    double t1, t2;
+    int ret_get = -1;
+
+    float *cluster_data = *p_buffer_cluster;
+
+    if(extra_info == NULL){
+        printf("region size required\n");
+        exit(-1);
+    }
+
+    int    num_regions = *(int*)extra_info;
+
+
+    size_t elem_size_cluster = sizeof(float);
+    
+    // prepare to read regions from dataspaces
+    uint64_t lb[3] = {0}, ub[3] = {0};
+    lb[0] = 0;
+    ub[0] = num_regions - 1;
+
+    // Define the dimensionality of the data to be received 
+    int ndim = 3;
+
+    char lock_name_cluster[STRING_LENGTH];
+#ifdef USE_SAME_LOCK
+    snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock");
+#else
+    snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock_t_%d", timestep);
+#endif
+    // do the same for cluster data
+    sprintf(msg, "try to acquired the cluster read lock %s", lock_name_cluster );
+    my_message(msg, rank, LOG_WARNING);
+    dspaces_lock_on_read(lock_name_cluster, p_gcomm);
+
+    sprintf(msg, "get the  the cluster read lock");
+    my_message(msg, rank, LOG_WARNING);
+
+    // read all regions in once
+    t1 = MPI_Wtime();
+
+    ret_get = dspaces_get(var_name_cluster, timestep, elem_size_cluster, ndim, lb, ub, cluster_data);
+
+    t2 = MPI_Wtime();
+
+    // now we can release region lock
+    dspaces_unlock_on_read(lock_name_cluster, p_gcomm);
+    sprintf(msg, "release the cluster read lock");
+    my_message(msg, rank, LOG_WARNING);
+
+    if(ret_get != 0){
+        perror("get all cluster error, now exit");
+        printf("error number %d \n", ret_get);
+        exit(-1);
+    }else{
+        sprintf(msg, "read %d cluster from dspaces, each has %zu bytes", num_regions, elem_size_cluster);
+        my_message(msg, rank, LOG_WARNING);
+    }
+
+    *p_buffer_cluster = cluster_data;
+    *p_time_used += t2-t1;
+}
+
+// this will put cluster id info into dspaces
+void put_cluster_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcomm, char *var_name_cluster, float **p_buffer_cluster,  double *p_time_used){
+    char msg[STRING_LENGTH];
+
+
+    double t1, t2;
+    int ret_put = -1;
+
+    
+    if(extra_info == NULL){
+        printf("region size required\n");
+        exit(-1);
+    }
+
+    int    num_regions = *(int*)extra_info;
+
+
+    size_t elem_size_cluster = sizeof(float);
+    
+    // prepare to write regions to dataspaces
+    uint64_t lb[3] = {0}, ub[3] = {0};
+    lb[0] = 0;
+    ub[0] = num_regions - 1;
+
+    // Define the dimensionality of the data to be received 
+    int ndim = 3;
+
+    char lock_name_cluster[STRING_LENGTH];
+#ifdef USE_SAME_LOCK
+    snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock");
+#else
+    snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock_t_%d", timestep);
+#endif
+
+    
+    sprintf(msg, "try to acquired the cluster write lock %s", lock_name_cluster );
+    my_message(msg, rank, LOG_WARNING);
+    dspaces_lock_on_write(lock_name_cluster, p_gcomm);
+
+    sprintf(msg, "get the  the cluster write lock");
+    my_message(msg, rank, LOG_WARNING);
+
+    // write all regions in once
+    t1 = MPI_Wtime();
+
+    ret_put = dspaces_put(var_name_cluster, timestep, elem_size_cluster, ndim, lb, ub, *p_buffer_cluster);
+
+    t2 = MPI_Wtime();
+
+    // now we can release region lock
+    dspaces_unlock_on_write(lock_name_cluster, p_gcomm);
+    sprintf(msg, "release the cluster write lock");
+    my_message(msg, rank, LOG_WARNING);
+
+    if(ret_put != 0){
+        perror("put all cluster error, now exit");
+        printf("error number %d \n", ret_put);
+        exit(-1);
+    }else{
+        sprintf(msg, "write %d cluster to dspaces, each has %ld bytes", num_regions, elem_size_cluster);
+        my_message(msg, rank, LOG_WARNING);
+    }
+
+    *p_time_used += t2-t1;
+}

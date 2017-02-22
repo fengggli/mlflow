@@ -3,6 +3,7 @@
 #include <iostream>
 #include <mpi.h>
 #include <assert.h>
+#include "region_def.h"
 
 Grid::Grid()
 {
@@ -45,6 +46,7 @@ void Grid::Initialize(const unsigned int numPoints[3], const double spacing[3] )
   this->Extent[3] = numPoints[1] -1;
   this->Extent[5] = numPoints[2] -1;
 }
+
 
 // how many number of points in this partition
 unsigned int Grid::GetNumberOfLocalPoints()
@@ -145,6 +147,18 @@ void Attributes::UpdateFields(float * vel, float * pres)
   this->Pressure.assign(pres, pres + numPoints);
 }
 
+void Attributes::UpdateFields(float * vel, float * pres, float *cluster_data){
+    // how many points in this partition
+  unsigned int numPoints = this->GridPtr->GetNumberOfLocalPoints();
+
+  this->Velocity.resize(numPoints*3);
+  this->Pressure.resize(numPoints);
+  this->ClusterId.resize(numPoints);
+  this->Velocity.assign(vel, vel + 3*numPoints);
+  this->Pressure.assign(pres, pres + numPoints);
+  this->Pressure.assign(cluster_data, cluster_data + numPoints);
+}
+
 float* Attributes::GetVelocityArray()
 {
   if(this->Velocity.empty())
@@ -161,4 +175,12 @@ float* Attributes::GetPressureArray()
     return NULL;
     }
   return &this->Pressure[0];
+}
+float* Attributes::GetClusterIdArray()
+{
+  if(this->ClusterId.empty())
+    {
+    return NULL;
+    }
+  return &this->ClusterId[0];
 }

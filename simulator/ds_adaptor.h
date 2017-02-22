@@ -48,6 +48,10 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
  */
 void put_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm, char *var_name_vel, float **p_buffer_vel, char *var_name_pres, float **p_buffer_pres,  double *p_time_used);
 
+void get_cluster_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_cluster, float **p_buffer_cluster,  double *p_time_used);
+
+void put_cluster_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcomm, char *var_name_cluster, float **p_buffer_cluster,  double *p_time_used);
+
 #ifdef __cplusplus
 }
 #endif
