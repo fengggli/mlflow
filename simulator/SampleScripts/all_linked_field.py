@@ -34,6 +34,7 @@ def CreateCoProcessor():
       glyph1.ScaleMode = 'vector'
       glyph1.ScaleFactor = 0.8219504005909132
       glyph1.GlyphTransform = 'Transform2'
+
     return Pipeline()
 
   class CoProcessor(coprocessing.CoProcessor):

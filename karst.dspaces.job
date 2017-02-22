@@ -65,6 +65,7 @@ mpirun -n 32 ${BUILD}/consumer ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log
 echo "reader applciation lauched"
 
 #mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/write_sample.py &>${PBS_RESULTDIR}/catalyst.log &  
+#mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/glyph.py &>${PBS_RESULTDIR}/catalyst.log &  
 mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py &>${PBS_RESULTDIR}/catalyst.log &  
 #echo "catalyst launched"
 
