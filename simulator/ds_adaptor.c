@@ -289,11 +289,10 @@ void get_cluster_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_g
     int ndim = 3;
 
     char lock_name_cluster[STRING_LENGTH];
-#ifdef USE_SAME_LOCK
-    snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock");
-#else
+
+    // assumer that ML won't be too fast
+    //snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock");
     snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock_t_%d", timestep);
-#endif
     // do the same for cluster data
     sprintf(msg, "try to acquired the cluster read lock %s", lock_name_cluster );
     my_message(msg, rank, LOG_WARNING);
@@ -355,11 +354,9 @@ void put_cluster_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_
     int ndim = 3;
 
     char lock_name_cluster[STRING_LENGTH];
-#ifdef USE_SAME_LOCK
-    snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock");
-#else
+    //snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock");
+    //assumer that ML won't be faster
     snprintf(lock_name_cluster, STRING_LENGTH, "cluster_lock_t_%d", timestep);
-#endif
 
     
     sprintf(msg, "try to acquired the cluster write lock %s", lock_name_cluster );

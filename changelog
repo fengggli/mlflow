@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## notes
 	I should save mesh log each time
 	now two views can show togther in paraview in realtime
+	I cannot use fix lock when I have multiple consumer processes
 
 ## [0.2.8] 2017 02-22
 ## added

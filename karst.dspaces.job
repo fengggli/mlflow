@@ -3,7 +3,7 @@
 #PBS -q debug
 #PBS -j oe
 #PBS -l walltime=00:10:00
-#PBS -l nodes=4:ppn=10
+#PBS -l nodes=3:ppn=16
 #PBS -o results/$PBS_JOBID.output
 
 #This job runs with 3 nodes  
@@ -31,6 +31,7 @@ rm -f dataspaces.conf
 
 ## Create dataspaces configuration file
 # note that we now have 400 regions
+# max readers will include both consumer and catalyst
 echo "## Config file for DataSpaces
 ndim = 3
 dims = 500, 500, 500
@@ -49,23 +50,17 @@ while [ ! -f conf ]; do
 done
 sleep 5s  # wait server to fill up the conf file
 
-
-
 ## Run region writer
 #mpirun -n 1 ${BUILD}/put_regions >& ${PBS_RESULTDIR}/producer.log &
-#mpirun -n 1  ${BUILD}/sim_gen >& ${PBS_RESULTDIR}/producer.log &
-
-mpirun -n 1  ${BUILD}/myIcoFoam -case ${CASE_DIR} &> ${PBS_RESULTDIR}/myicofoam.log &
+mpirun -n 1  ${BUILD}/myIcoFoam -case ${CASE_DIR} 1> ${PBS_RESULTDIR}/myicofoam.log 2>${PBS_RESULTDIR}/myicofoam.err&
 echo "writer applciation lauched"
 
 
 ## Run region reader and divergence cal application
-#mpirun -n 32 ${BUILD}/get_regions ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
 mpirun -n 32 ${BUILD}/consumer ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
 echo "reader applciation lauched"
 
 #mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/write_sample.py &>${PBS_RESULTDIR}/catalyst.log &  
-#mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/glyph.py &>${PBS_RESULTDIR}/catalyst.log &  
 mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py &>${PBS_RESULTDIR}/catalyst.log &  
 #echo "catalyst launched"
 

@@ -17,6 +17,7 @@ extern "C" {
 #define INCLUDE_ML
 
 // whether or not using same lock eachtime, only affect the ds_adaptor
+// only affect raw data, writer won't start new
 //#define USE_SAME_LOCK
 
 #include "stdlib.h"

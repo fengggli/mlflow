@@ -54,6 +54,12 @@
 2004013
     Feb 22
         work functionality works fine, now check generated vtk files
+2005211
+    Feng 22
+        using fix time lock, and only 1 consumer, it's okay
+2005214
+    Feb 22
+        increase to 12 consumers(4 nodes), get blocked
         
     
 

@@ -116,6 +116,12 @@ int main(int argc, char *argv[])
     int timestep = 0;
     Info<< "size is \n" << num_points << endl;
 
+    // how many steps
+    int count;
+
+    // put to dspace each serveral steps
+    int interval=10;
+
 
 
 #ifdef USE_DSPACES
@@ -156,17 +162,18 @@ int main(int argc, char *argv[])
 
         // time 
         double time_comm_vel;
-
         
         char var_name_vel[STRING_LENGTH];
         char var_name_pres[STRING_LENGTH];
         sprintf(var_name_vel, "VEL");
         sprintf(var_name_pres, "PRES");
 
+        /*
         char var_name_vel_2[STRING_LENGTH];
         char var_name_pres_2[STRING_LENGTH];
         sprintf(var_name_vel_2, "VEL_2");
         sprintf(var_name_pres_2, "PRES_2");
+        */
         
         // prepare space
         float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
@@ -189,7 +196,7 @@ int main(int argc, char *argv[])
 
     while (runTime.loop())
     {
-        sleep(5);
+        sleep(2);
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         #include "CourantNo.H"
@@ -269,11 +276,15 @@ int main(int argc, char *argv[])
         Info<<" first data, address"<< vel_data << ": "<< vel_data[0] <<" " << vel_data[1]<< " "<<vel_data[2]<< endl;
        printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
        */
-        put_raw_buffer(timestep, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_vel);
+        //if(count%interval == 0){
+            put_raw_buffer(timestep, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_vel);
 
         // in case dspaces cannot read twice
-        put_raw_buffer(timestep, &num_points ,rank, &gcomm, var_name_vel_2,  &vel_data,var_name_pres_2, &pres_data, &time_comm_vel);
-        timestep++;
+        //put_raw_buffer(timestep, &num_points ,rank, &gcomm, var_name_vel_2,  &vel_data,var_name_pres_2, &pres_data, &time_comm_vel);
+            timestep++;
+        //}
+
+        count++;
 
 
 #else
@@ -314,8 +325,6 @@ int main(int argc, char *argv[])
 
         ofs_U << endl;
 #endif
-
-        
 
       /*
         ofs_p << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"

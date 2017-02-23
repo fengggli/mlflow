@@ -131,12 +131,22 @@ int main(int argc, char* argv[])
     // vel and pressure buffer
     double time_used, time_used_cluster;
 
+    // if we define strict max_reader in dspaces configurations, we can read the same variable
+    char var_name_vel[STRING_LENGTH];
+    char var_name_pres[STRING_LENGTH];
+    char var_name_cluster[STRING_LENGTH];
+    sprintf(var_name_vel, "VEL");
+    sprintf(var_name_pres, "PRES");
+    sprintf(var_name_cluster, "CLUSTER");
+
+    /*
     char var_name_vel_2[STRING_LENGTH];
     char var_name_pres_2[STRING_LENGTH];
     char var_name_cluster[STRING_LENGTH];
     sprintf(var_name_vel_2, "VEL_2");
     sprintf(var_name_pres_2, "PRES_2");
     sprintf(var_name_cluster, "CLUSTER");
+    */
 
 
     /*
@@ -196,8 +206,7 @@ int main(int argc, char* argv[])
 
     // read data from dataspces
     // this will get blocked until new data available
-    get_raw_buffer(timestep, NULL ,rank, &gcomm, var_name_vel_2, &vel_data, var_name_pres_2,  &pres_data, &time_used);
-
+    get_raw_buffer(timestep, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres,  &pres_data, &time_used);
 
 
     //update using vel and pres info, if there is more ranks I need to partition first
