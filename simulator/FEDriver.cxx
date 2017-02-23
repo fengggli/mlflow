@@ -83,6 +83,7 @@ int main(int argc, char* argv[])
   unsigned int num_points = dims[0]*dims[1]*dims[2];
   unsigned int num_regions = NUM_REGION;
   unsigned int region_length = REGION_LENGTH;
+    
 
 
   //double spacing[3] = {1, 1, 0 };
@@ -140,26 +141,12 @@ int main(int argc, char* argv[])
     sprintf(var_name_pres, "PRES");
     sprintf(var_name_cluster, "CLUSTER");
 
-    /*
-    char var_name_vel_2[STRING_LENGTH];
-    char var_name_pres_2[STRING_LENGTH];
-    char var_name_cluster[STRING_LENGTH];
-    sprintf(var_name_vel_2, "VEL_2");
-    sprintf(var_name_pres_2, "PRES_2");
-    sprintf(var_name_cluster, "CLUSTER");
-    */
+    //x_min,y_min,z_min,x_max_y_max_z_max
+    int bounds[6]={0};
+    bounds[3] = dims[0]-1;
+    bounds[4] = dims[1]-1;
 
 
-    /*
-
-    uint64_t num_points = dims[0]*dims[1]*dims[2];
-
-    uint64_t gdim_vel[3] = {num_points,1,1};
-    dspaces_define_gdim(var_name_vel, 3, gdim_vel);
-
-    uint64_t gdim_pres[3] = {num_points,1,1};
-    dspaces_define_gdim(var_name_pres, 3, gdim_pres);
-    */
     // prepare space
     float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
     if(vel_data == NULL){
@@ -207,7 +194,7 @@ int main(int argc, char* argv[])
 
     // read data from dataspces
     // this will get blocked until new data available
-    get_raw_buffer(timestep, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres,  &pres_data, &time_used);
+    get_raw_buffer(timestep,bounds, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres,  &pres_data, &time_used);
 
 
     //update using vel and pres info, if there is more ranks I need to partition first

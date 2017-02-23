@@ -141,87 +141,6 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
 
 
 
-/*
- * this is an template, 
- * it does the following
- *  allocate space for vel
- *  using dspaces to get vel data
- *
- * Notes
- *  get_raw_buffer in ds_adaptor will be called instead
- */
-void get_vel_buffer(int timestep, Region_Def *p_region_def, int rank, MPI_Comm * p_gcomm, float **p_buffer_vel, double *p_time_used){
-    char msg[STRING_LENGTH];
-    double t1, t2;
-    int ret_get = -1;
-
-    if(p_region_def != NULL){
-        printf("no extra info required\n");
-        exit(-1);
-    }
-
-    // data layout
-    int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
-    int num_points = dims[0]*dims[1]*dims[2];
-
-    size_t elem_size_vel = sizeof(float)*3;
-    
-    // prepare to read regions from dataspaces
-    uint64_t lb[3] = {0}, ub[3] = {0};
-    lb[0] = 0;
-    ub[0] = num_points - 1;
-
-    // Define the dimensionality of the data to be received 
-    int ndim = 3;
-
-    char var_name_vel[STRING_LENGTH];
-    sprintf(var_name_vel, "VEL");
-
-    char lock_name_vel[STRING_LENGTH];
-    snprintf(lock_name_vel, STRING_LENGTH, "vel_lock_t_%d", timestep);
-
-    
-    // prepare space
-    float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
-    if(vel_data == NULL){
-          perror("vel data allocated error");
-          exit(-1);
-      }
-
-
-    sprintf(msg, "try to acquired the vel read lock %s", lock_name_vel );
-    my_message(msg, rank, LOG_WARNING);
-    dspaces_lock_on_read(lock_name_vel, p_gcomm);
-
-    sprintf(msg, "get the  the vel read lock");
-    my_message(msg, rank, LOG_WARNING);
-
-    // read all regions in once
-    t1 = MPI_Wtime();
-
-    ret_get = dspaces_get(var_name_vel, timestep, elem_size_vel, ndim, lb, ub, vel_data);
-
-    t2 = MPI_Wtime();
-
-    // now we can release region lock
-    dspaces_unlock_on_read(lock_name_vel, p_gcomm);
-    sprintf(msg, "release the vel read lock");
-    my_message(msg, rank, LOG_WARNING);
-
-    if(ret_get != 0){
-        perror("get all vel error, now exit");
-        printf("error number %d \n", ret_get);
-        exit(-1);
-    }else{
-        sprintf(msg, "read %d vel from dspaces, each has %ld bytes", num_points, elem_size_vel);
-        my_message(msg, rank, LOG_WARNING);
-    }
-
-    *p_buffer_vel = vel_data;
-    *p_time_used = t2-t1;
-}
-
-
 void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_tasks, int rank, MPI_Comm *p_gcomm, float ** p_divs_this_rank, double* p_time_used){
 
     char msg[STRING_LENGTH];
@@ -330,16 +249,11 @@ int main(int argc, char **argv)
     unsigned int dims[3] = {POINTS_SIDE, POINTS_SIDE, 1};
     uint64_t num_points = dims[0]*dims[1]*dims[2];
 
-    /*
+    //x_min,y_min,z_min,x_max_y_max_z_max
+    int bounds[6]={0};
+    bounds[3] = dims[0]-1;
+    bounds[4] = dims[1]-1;
 
-    uint64_t num_points = dims[0]*dims[1]*dims[2];
-
-    uint64_t gdim_vel[3] = {num_points,1,1};
-    dspaces_define_gdim(var_name_vel, 3, gdim_vel);
-
-    uint64_t gdim_pres[3] = {num_points,1,1};
-    dspaces_define_gdim(var_name_pres, 3, gdim_pres);
-    */
     // prepare space
     float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
     if(vel_data == NULL){
@@ -455,7 +369,7 @@ int main(int argc, char **argv)
         // read raw data and divide
         // use ds_adator instead
 
-        get_raw_buffer(timestep, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres, &pres_data, &time_used);
+        get_raw_buffer(timestep,bounds, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres, &pres_data, &time_used);
         //get_vel_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &time_used);
         //divide into regions
         divide(vel_data, POINTS_SIDE,region_length,&tmp_num_region, &buffer_all_regions);

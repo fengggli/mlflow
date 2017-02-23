@@ -144,13 +144,13 @@ int main(int argc, char *argv[])
         int case_length = CASE_LENGTH;
 
         //x_min,y_min,z_min,x_max_y_max_z_max
-        int bounds[6];
-        bounds[0]=(case_length)*proc_col_pos;
-        bounds[1]=(case_length)*proc_row_pos;
+        int bounds[6] = {0};
+        bounds[0]=(case_length)*proc_row_pos;
+        bounds[1]=(case_length)*proc_col_pos;
 
         // we want 1 line overlap (consistent with dividing in consumer)
-        bounds[3]=case_length*(proc_col_pos+1) ;
-        bounds[4]=case_length*(proc_row_pos+1) ;
+        bounds[3]=case_length*(proc_row_pos+1) ;
+        bounds[4]=case_length*(proc_col_pos+1) ;
 
         // Initalize DataSpaces
         // # of Peers, Application ID, ptr MPI comm, additional parameters

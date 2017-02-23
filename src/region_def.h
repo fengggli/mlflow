@@ -19,7 +19,7 @@ extern "C" {
 
 // whether or not using same lock eachtime, only affect the ds_adaptor
 // only affect raw data, writer won't start new
-//#define USE_SAME_LOCK
+#define USE_SAME_LOCK
 
 #include "stdlib.h"
 #include "stdio.h"
@@ -63,7 +63,7 @@ extern "C" {
             // need to define from outside
             //#define PROCS_PER_DIM (2)
             // this will be 40*4+1 = 161 (161 points in each side for 4^2 = 16 procs)
-            #define POINTS_SIDE (CASE_LENGTH*PROCS_PER_DIM +1)
+            #define POINTS_SIDE (CASE_LENGTH*PROCS_PER_DIM +1) //81
             #define NUM_REGION (((POINTS_SIDE -1.0)/REGION_LENGTH)*((POINTS_SIDE-1.0)/REGION_LENGTH))
 
             #define K_NPDIV (5)

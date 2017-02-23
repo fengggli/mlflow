@@ -51,6 +51,7 @@ double get_cur_time();
  *******************************/
 void my_message(char *msg, int rank, int level);
 
+
 #ifdef __cplusplus
 }
 #endif

@@ -28,7 +28,7 @@ extern "C" {
  */
 
 // this will get all vel and pres data
-void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_vel, float **p_buffer_vel, char * var_name_pres, float **p_buffer_pres,  double *p_time_used);
+void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_vel, float **p_buffer_vel, char * var_name_pres, float **p_buffer_pres,  double *p_time_used);
 
  
 

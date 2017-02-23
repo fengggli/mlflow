@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 	different files
 ## fixed
 	ds_init(nprocs) in icofoam
+	in cavity case the size should be 41 41 41
+	add bounds in put_raw buffer also.
+	get_raw_buffer get zeros.
 
 ## [0.0.10] 2017 02-22
 ## added

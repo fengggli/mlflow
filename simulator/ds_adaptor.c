@@ -1,9 +1,11 @@
 #include "ds_adaptor.h"
 
 
-//#define debug_1
+#define debug_1
 // this will get all vel and pres data
-void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_vel, float **p_buffer_vel, char * var_name_pres, float **p_buffer_pres,  double *p_time_used){
+void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_vel, float **p_buffer_vel, char * var_name_pres, float **p_buffer_pres,  double *p_time_used){
+    // how many number of elements are actually written
+    int num_elems;
     char msg[STRING_LENGTH];
     double t1, t2;
     int ret_get = -1;
@@ -29,10 +31,17 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     size_t elem_size_vel = sizeof(float)*3;
     size_t elem_size_pres = sizeof(float);
     
-    // prepare to read regions from dataspaces
     uint64_t lb[3] = {0}, ub[3] = {0};
+    /*
     lb[0] = 0;
     ub[0] = num_points - 1;
+    */
+    lb[0] = bounds[1];
+    lb[1] = bounds[0];
+    //y
+    ub[0] = bounds[4];
+    //x
+    ub[1] = bounds[3];
 
     // Define the dimensionality of the data to be received 
     int ndim = 3;
@@ -68,6 +77,9 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     ret_get = dspaces_get(var_name_vel, timestep, elem_size_vel, ndim, lb, ub, vel_data);
 
 #ifdef debug_1
+
+    printf("matrix content:");
+    print_matrix(vel_data, 10, 10);
 
     snprintf(msg, STRING_LENGTH, "%s, var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d] \n", __func__, var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2]);
     my_message(msg, rank, LOG_WARNING);
@@ -133,12 +145,6 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
 void put_raw_buffer(int timestep,int bounds[6], void * extra_info, int rank, MPI_Comm * p_gcomm, char *var_name_vel, float **p_buffer_vel, char *var_name_pres, float **p_buffer_pres,  double *p_time_used){
     char msg[STRING_LENGTH];
 
-#ifdef debug_1
-
-    float * vel_data=*p_buffer_vel;
-    snprintf(msg, STRING_LENGTH,"before,sizeoffloat %d, first data %p: %f %f %f\n", sizeof(float), vel_data, vel_data[0],vel_data[1],vel_data[2]);
-    my_message(msg, rank, LOG_WARNING);
-#endif
 
     double t1, t2;
     int ret_put = -1;
@@ -151,11 +157,8 @@ void put_raw_buffer(int timestep,int bounds[6], void * extra_info, int rank, MPI
         num_points = *(int*)extra_info;
     }
     else{
-
-
-    // data layout
-        int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
-        num_points = dims[0]*dims[1]*dims[2];
+        printf("dim info required\n");
+        exit(-1);
     }
 
     size_t elem_size_vel = sizeof(float)*3;
@@ -210,7 +213,11 @@ void put_raw_buffer(int timestep,int bounds[6], void * extra_info, int rank, MPI
 
 #ifdef debug_1
 
-   // float * vel_data = *p_buffer_vel;
+
+    float * vel_data = *p_buffer_vel;
+
+    printf("matrix content:");
+    print_matrix(vel_data, 10, 10);
 
     snprintf(msg, STRING_LENGTH, "%s, var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d] \n", __func__, var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2]);
     my_message(msg, rank, LOG_WARNING);
