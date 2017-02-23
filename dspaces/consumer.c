@@ -314,6 +314,8 @@ int main(int argc, char **argv)
     // DataSpaces: Initalize and identify application
     // Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
     // Note: appid for get.c is 2 [for put.c, it was 1]
+    //
+    printf("trying init dspaces for %d process\n", nprocs);
     dspaces_init(nprocs, 2, &gcomm, NULL);
 
     // vel and pressure buffer

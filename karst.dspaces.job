@@ -8,7 +8,7 @@
 
 #This job runs with 3 nodes  
 #ibrun in verbose mode will give binding detail  
-BUILD=${PBS_O_WORKDIR}/build_default/bin
+BUILD=${PBS_O_WORKDIR}/build_2/bin
 #BUILD=${PBS_O_WORKDIR}/build_filewriter/bin
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
@@ -17,6 +17,17 @@ CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity
 
 mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR
+
+# num of process in each side
+SIM_PROC_SIDE=2
+SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE}))
+CONSUMER_PROCS=1
+ANALYSIS_PROCS=1
+CATALYST_PROCS=1
+
+DS_SERVER_PROCS=1
+DS_CLIENT_PROCS=$((${SIM_PROCS} + ${CONSUMER_PROCS} + ${ANALYSIS_PROCS} +${CATALYST_PROCS}))
+echo "server procs $DS_SERVER_PROCS clients procs $DS_CLIENT_PROCS"
 
 export DATASPACES_TCP_WRITE_SIZE=1073741824
 export DATASPACES_TCP_READ_SIZE=87380
@@ -36,14 +47,14 @@ echo "## Config file for DataSpaces
 ndim = 3
 dims = 500, 500, 500
 max_versions = 100
-max_readers = 40
+max_readers = 100
 lock_type = 2
 " > dataspaces.conf
 
 ## Run DataSpaces servers
-mpirun -n 1  ${DS_SERVER} -s 1 -c 35  >& ${PBS_RESULTDIR}/server.log &
-
-echo "server applciation lauched"
+CMD_SERVER="mpirun -n ${DS_SERVER_PROCS} --output-filename ${PBS_RESULTDIR}/server.log  ${DS_SERVER} -s ${DS_SERVER_PROCS} -c ${DS_CLIENT_PROCS}"
+$CMD_SERVER &
+echo "server applciation lauched: $CMD_SERVER "
 ## Give some time for the servers to load and startup
 while [ ! -f conf ]; do
     sleep 1s
@@ -51,22 +62,23 @@ done
 sleep 5s  # wait server to fill up the conf file
 
 ## Run region writer
-#mpirun -n 1 ${BUILD}/put_regions >& ${PBS_RESULTDIR}/producer.log &
-mpirun -n 1  ${BUILD}/myIcoFoam -case ${CASE_DIR} 1> ${PBS_RESULTDIR}/myicofoam.log 2>${PBS_RESULTDIR}/myicofoam.err&
-echo "writer applciation lauched"
-
+CMD_SIM="mpirun -n  ${SIM_PROCS} --output-filename ${PBS_RESULTDIR}/myicofoam.log  ${BUILD}/myIcoFoam -case ${CASE_DIR}"
+$CMD_SIM &
+echo "writer applciation lauched:$CMD_SIM"
 
 ## Run region reader and divergence cal application
-mpirun -n 32 ${BUILD}/consumer ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/consumer.log &
-echo "reader applciation lauched"
+CMD_CONSUMER="mpirun -n ${CONSUMER_PROCS} --output-filename ${PBS_RESULTDIR}/consumer.log  ${BUILD}/consumer ${PBS_RESULTDIR}"
+$CMD_CONSUMER &
+echo "reader applciation lauched: $CMD_CONSUMER"
 
-#mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/write_sample.py &>${PBS_RESULTDIR}/catalyst.log &  
-mpirun -n 1  ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py &>${PBS_RESULTDIR}/catalyst.log &  
-#echo "catalyst launched"
+# the analysis application
+CMD_ANALYSIS="mpirun  -n ${ANALYSIS_PROCS} --output-filename ${PBS_RESULTDIR}/analysis.log ${BUILD}/analysis ${PBS_RESULTDIR}"
+$CMD_ANALYSIS &
+echo "analysis applciation lauched:$CMD_ANALYSIS"
 
-## the analysis application
-mpirun  -n 1 ${BUILD}/analysis ${PBS_RESULTDIR} >& ${PBS_RESULTDIR}/analysis.log &
-echo "analysis applciation lauched"
+CMD_CATALYST="mpirun -n ${CATALYST_PROCS} --output-filename ${PBS_RESULTDIR}/catalyst.log ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py"
+$CMD_CATALYST &
+echo "catalyst launched: $CMD_CATALYST"
 
 ## Wait for the entire workflow to finish
 wait

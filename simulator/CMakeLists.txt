@@ -13,8 +13,8 @@ target_link_libraries(ds_adaptor ${DSPACES} ${DSCOMMON} ${DART} UTILITY)
 
 
 # a toy simulator
-add_executable(sim_gen sim_gen.c)
-target_link_libraries(sim_gen ds_adaptor)
+#add_executabl(sim_gen sim_gen.c)
+#target_link_libraries(sim_gen ds_adaptor)
 
 
 # set catalyst environment

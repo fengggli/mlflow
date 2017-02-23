@@ -73,7 +73,7 @@ Description
 
     // write data from veolscalar field into dspaces send buffer 
     // not sure if we need special buffer
-    int mydump(volScalarField &p, float *tmp_buffer){
+    void mydump(volScalarField &p, float *tmp_buffer){
         //int i;
         float * tmp = tmp_buffer;
         forAll(p , i)
@@ -81,7 +81,7 @@ Description
              *(tmp++) = p[i];
          }
     }
-    int mydump(volVectorField &U, float *tmp_buffer){
+    void mydump(volVectorField &U, float *tmp_buffer){
         int i;
         float *tmp = tmp_buffer;
         forAll(U, i)
@@ -119,11 +119,6 @@ int main(int argc, char *argv[])
     // how many steps
     int count;
 
-    // put to dspace each serveral steps
-    int interval=10;
-
-
-
 #ifdef USE_DSPACES
     // init dspaces
     // dataspaces preparation
@@ -138,6 +133,25 @@ int main(int argc, char *argv[])
         MPI_Barrier(MPI_COMM_WORLD);
         gcomm = MPI_COMM_WORLD;
 
+    // check the size and get
+        int procs_per_dim = (int)std::sqrt(nprocs);
+
+        // cartisian position
+        int proc_row_pos = rank/procs_per_dim;
+        int proc_col_pos = rank%procs_per_dim;
+
+        // icofoam size
+        int case_length = CASE_LENGTH;
+
+        //x_min,y_min,z_min,x_max_y_max_z_max
+        int bounds[6];
+        bounds[0]=(case_length)*proc_col_pos;
+        bounds[1]=(case_length)*proc_row_pos;
+
+        // we want 1 line overlap (consistent with dividing in consumer)
+        bounds[3]=case_length*(proc_col_pos+1) ;
+        bounds[4]=case_length*(proc_row_pos+1) ;
+
         // Initalize DataSpaces
         // # of Peers, Application ID, ptr MPI comm, additional parameters
         // # Peers: Number of connecting clients to the DS server
@@ -145,7 +159,10 @@ int main(int argc, char *argv[])
         // Pointer to the MPI Communicator, allows DS Layer to use MPI barrier func
         // Addt'l parameters: Placeholder for future arguments, currently NULL.
         char msg[STRING_LENGTH];
-        ret = dspaces_init(1, 1, &gcomm, NULL);
+        printf("trying init dspaces for %d process\n", nprocs);
+        ret = dspaces_init(nprocs, 1, &gcomm, NULL);
+
+        printf("dspaces init successfuly \n");
 
         if(ret == 0){
             sprintf(msg, "dataspaces init successfully");
@@ -277,7 +294,7 @@ int main(int argc, char *argv[])
        printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
        */
         //if(count%interval == 0){
-            put_raw_buffer(timestep, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_vel);
+            put_raw_buffer(timestep, bounds, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_vel);
 
         // in case dspaces cannot read twice
         //put_raw_buffer(timestep, &num_points ,rank, &gcomm, var_name_vel_2,  &vel_data,var_name_pres_2, &pres_data, &time_comm_vel);

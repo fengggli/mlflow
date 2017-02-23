@@ -13,8 +13,9 @@ extern "C" {
 // use synthetic data to verify
 // only tested in sequential implementation
 //#define USE_SYNTHETIC 
-#define USE_CAVITY
+//#define USE_CAVITY
 #define INCLUDE_ML
+#define USE_PARAL_CAVITY
 
 // whether or not using same lock eachtime, only affect the ds_adaptor
 // only affect raw data, writer won't start new
@@ -39,31 +40,48 @@ extern "C" {
 
 
 #else
-#ifdef USE_CAVITY
-    #define MAX_VERSION (100)
-    // side length(points num -1) in each region
-    #define REGION_LENGTH (4)
-    #define POINTS_SIDE (41)
-    #define NUM_REGION (100)
+    #ifdef USE_CAVITY
+        #define MAX_VERSION (100)
+        // side length(points num -1) in each region
+        #define REGION_LENGTH (4)
+        #define POINTS_SIDE (41)
+        #define NUM_REGION (100)
 
-    // this is the k in density estimation
-    #define K_NPDIV (5)
+        // this is the k in density estimation
+        #define K_NPDIV (5)
 
-    // clustering
-    #define NPASS (100)
-#else
-    #define MAX_VERSION (10)
-    // side length(points num -1) in each region
-    #define REGION_LENGTH (10)
-    #define POINTS_SIDE (201)
-    #define NUM_REGION (400)
+        // clustering
+        #define NPASS (100)
+    #else
+        #ifdef USE_PARAL_CAVITY
+            #define MAX_VERSION (100)
+            #define CASE_LENGTH (40)
+            #define REGION_LENGTH (10)
+            #ifndef PROCS_PER_DIM
+                #error "need to define process per side"
+            #endif
+            // need to define from outside
+            //#define PROCS_PER_DIM (2)
+            // this will be 40*4+1 = 161 (161 points in each side for 4^2 = 16 procs)
+            #define POINTS_SIDE (CASE_LENGTH*PROCS_PER_DIM +1)
+            #define NUM_REGION (((POINTS_SIDE -1.0)/REGION_LENGTH)*((POINTS_SIDE-1.0)/REGION_LENGTH))
 
-    // this is the k in density estimation
-    #define K_NPDIV (5)
+            #define K_NPDIV (5)
+            #define NPASS (100)
+        #else
+            #define MAX_VERSION (10)
+            // side length(points num -1) in each region
+            #define REGION_LENGTH (10)
+            #define POINTS_SIDE (201)
+            #define NUM_REGION (400)
 
-    // clustering
-    #define NPASS (100)
-#endif
+            // this is the k in density estimation
+            #define K_NPDIV (5)
+
+            // clustering
+            #define NPASS (100)
+        #endif
+    #endif
 #endif
 
 

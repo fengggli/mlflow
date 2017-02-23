@@ -117,7 +117,8 @@ int main(int argc, char* argv[])
 // DataSpaces: Initalize and identify application
 // Usage: dspaces_init(num_peers, appid, Ptr to MPI comm, parameters)
 // Note: appid for get.c is 2 [for put.c, it was 1]
-    ret = dspaces_init(1, 4, &gcomm, NULL);
+    printf("trying init dspaces for %d process\n", nprocs);
+    ret = dspaces_init(nprocs, 4, &gcomm, NULL);
 
     if(ret == 0){
         printf("dataspaces init successfully\n");

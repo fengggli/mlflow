@@ -60,6 +60,14 @@
 2005214
     Feb 22
         increase to 12 consumers(4 nodes), get blocked
+        reason: dspaces_init(1,4, ...) in icofoam should be dspaces_init(nprocs, 4, ...)
+2005957
+    Feb 23
+    reason in the jobfile I wrote:$CMD_CONSUME, a 'R' is missing
+2005998
+    Feb 23
+    now applications are running, but consumer 'address in use'
+    
         
     
 

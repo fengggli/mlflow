@@ -128,7 +128,9 @@ void get_raw_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm
     *p_time_used += t2-t1;
 }
 // this will get all vel and pres data
-void put_raw_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcomm, char *var_name_vel, float **p_buffer_vel, char *var_name_pres, float **p_buffer_pres,  double *p_time_used){
+// bounds is [x,y,z] 
+// but  lb and ub will {fasted, lowest}, for 2d,{y,x,0}
+void put_raw_buffer(int timestep,int bounds[6], void * extra_info, int rank, MPI_Comm * p_gcomm, char *var_name_vel, float **p_buffer_vel, char *var_name_pres, float **p_buffer_pres,  double *p_time_used){
     char msg[STRING_LENGTH];
 
 #ifdef debug_1
@@ -161,8 +163,14 @@ void put_raw_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_gcom
     
     // prepare to write regions to dataspaces
     uint64_t lb[3] = {0}, ub[3] = {0};
+    /*
     lb[0] = 0;
     ub[0] = num_points - 1;
+    */
+    lb[0] = bounds[1];
+    lb[1] = bounds[0];
+    ub[0] = bounds[4];
+    ub[1] = bounds[3];
 
     // Define the dimensionality of the data to be received 
     int ndim = 3;

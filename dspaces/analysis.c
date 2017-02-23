@@ -29,7 +29,9 @@ int main(int argc, char **argv)
     // Pointer to the MPI Communicator, allows DS Layer to use MPI barrier func
     // Addt'l parameters: Placeholder for future arguments, currently NULL.
     char msg[STRING_LENGTH];
-    dspaces_init(1, 3, &gcomm, NULL);
+
+    printf("trying init dspaces for %d process\n", nprocs);
+    dspaces_init(nprocs, 3, &gcomm, NULL);
 
     int num_region = NUM_REGION;
 
