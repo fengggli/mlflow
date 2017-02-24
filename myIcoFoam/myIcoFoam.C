@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
 
 
         // time 
-        double time_comm_vel;
+        double time_comm_raw = 0;
         
         char var_name_vel[STRING_LENGTH];
         char var_name_pres[STRING_LENGTH];
@@ -372,16 +372,12 @@ int main(int argc, char *argv[])
         Info<<" first data, address"<< vel_data << ": "<< vel_data[0] <<" " << vel_data[1]<< " "<<vel_data[2]<< endl;
        printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
        */
-        //if(count%interval == 0){
 
-        put_raw_buffer(timestep, bounds, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_vel);
+        put_raw_buffer(timestep, bounds, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_raw);
 
         MPI_Barrier(gcomm);
 
-        // in case dspaces cannot read twice
-        //put_raw_buffer(timestep, &num_points ,rank, &gcomm, var_name_vel_2,  &vel_data,var_name_pres_2, &pres_data, &time_comm_vel);
-            timestep++;
-        //}
+        timestep++;
 
         count++;
 
@@ -430,8 +426,28 @@ int main(int argc, char *argv[])
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
         */
-
+        if(timestep == MAX_VERSION){
+            break;
+        }
     }
+
+    MPI_Barrier(gcomm);
+    // reduce all comm_time
+
+    double global_time_raw;
+    MPI_Reduce(&time_comm_raw, &global_time_raw, 1, MPI_DOUBLE, MPI_SUM, 0,
+               gcomm);
+
+    // Print the result
+    if (rank == 0) {
+      printf("Total time = %lf, avg = %lf\n", global_time_raw,
+             global_time_raw / (nprocs * timestep));
+    }
+
+
+    // get avg comm_time
+
+    // reduce all timers
 #ifdef USE_DSPACES
 // finalize dspaces
     // free                                                                                                                                                                                                                                   

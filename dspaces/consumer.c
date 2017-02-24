@@ -195,7 +195,7 @@ void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_ta
         sprintf(msg, "ERROR when storing divergence of region");
     }
     my_message(msg, rank, LOG_CRITICAL);
-    *p_time_used = t2-t1;
+    *p_time_used += t2-t1;
 }
 
 // test segmentation fault
@@ -319,8 +319,11 @@ int main(int argc, char **argv)
 
 
     // accumulated time for communication(read regions and write divs) and calculation(divs)
-    double time_comm_regions = 0;
+    //double time_comm_regions = 0;
     double time_cal = 0;
+    //double time_comm_divs = 0;
+    //
+    double time_comm_raw = 0;
     double time_comm_divs = 0;
 
     // assign tasks to each rank
@@ -377,7 +380,7 @@ int main(int argc, char **argv)
         // do we need this barrier?
         MPI_Barrier(gcomm);
 
-        get_raw_buffer(timestep,bounds, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres, &pres_data, &time_used);
+        get_raw_buffer(timestep,bounds, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres, &pres_data, &time_comm_raw);
         //get_vel_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &time_used);
         //divide into regions
         divide(vel_data, POINTS_SIDE,region_length,&tmp_num_region, &buffer_all_regions);
@@ -387,27 +390,45 @@ int main(int argc, char **argv)
             exit(-1);
         }
 
-        time_comm_regions = time_used;
 
         // calculate divergence
         cal_local_divs(buffer_all_regions,&region_def,k_npdiv, div_func, table, pair_index_l, pair_index_h, rank, &divs_this_rank, &time_used);
         time_cal = time_used;
 
         // put divs into dataspaces
-        put_divs_buffer(timestep, pair_index_l, pair_index_h, num_tasks, rank, &gcomm, &divs_this_rank, &time_used);
-        time_comm_divs = time_used;
+        put_divs_buffer(timestep, pair_index_l, pair_index_h, num_tasks, rank, &gcomm, &divs_this_rank, &time_comm_divs);
         if(divs_this_rank != NULL){
             free(divs_this_rank);
         }
 
         // should wait until get all the divergence
-        sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm_regions, time_cal, time_comm_divs);
+        sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm_raw, time_cal, time_comm_divs);
         my_message(msg, rank, LOG_CRITICAL);
 
 
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
         my_message(msg, rank, LOG_CRITICAL);
         timestep++;
+    }
+
+    double global_time_raw;
+    MPI_Reduce(&time_comm_raw, &global_time_raw, 1, MPI_DOUBLE, MPI_SUM, 0,
+               gcomm);
+
+    // Print the result
+    if (rank == 0) {
+      printf("Total time for raw data = %lf, avg = %lf\n", global_time_raw,
+             global_time_raw / (nprocs * timestep));
+    }
+
+    double global_time_divs;
+    MPI_Reduce(&time_comm_divs, &global_time_divs, 1, MPI_DOUBLE, MPI_SUM, 0,
+               gcomm);
+
+    // Print the result
+    if (rank == 0) {
+      printf("Total time for divs data = %lf, avg = %lf\n", global_time_divs,
+             global_time_divs / (nprocs * timestep));
     }
 
     // free buffer

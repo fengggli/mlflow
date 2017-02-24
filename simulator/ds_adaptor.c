@@ -1,10 +1,10 @@
 #include "ds_adaptor.h"
 
-#define debug_1
+//#define debug_1
 // this will get all vel and pres data
 void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_vel, float **p_buffer_vel, char * var_name_pres, float **p_buffer_pres,  double *p_time_used){
     // how many number of elements are actually written
-    int num_elems;
+    //int num_elems;
     char msg[STRING_LENGTH];
     double t1, t2;
     int ret_get = -1;
@@ -99,7 +99,7 @@ void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI
     }
 
 
-    *p_time_used = t2-t1;
+    *p_time_used += t2-t1;
     
     // do the same for pres data
     sprintf(msg, "try to acquired the pres read lock %s", lock_name_pres );
@@ -236,7 +236,7 @@ void put_raw_buffer(int timestep,int bounds[6], void * extra_info, int rank, MPI
     }
 
 
-    *p_time_used = t2-t1;
+    *p_time_used += t2-t1;
     
     // do the same for pres data
     sprintf(msg, "try to acquired the pres write lock %s", lock_name_pres );

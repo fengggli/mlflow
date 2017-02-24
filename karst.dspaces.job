@@ -1,6 +1,5 @@
 #!/bin/bash  
 #PBS -N databroker
-#PBS -q debug
 #PBS -j oe
 #PBS -l walltime=00:10:00
 #PBS -l nodes=3:ppn=16
@@ -19,8 +18,8 @@ cd $PBS_O_WORKDIR
 
 # num of process in each side
 SIM_PROC_SIDE=2
-SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE}))
-CONSUMER_PROCS=1
+SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE})) # square of proc_side
+CONSUMER_PROCS=$((${SIM_PROCS}*4))
 ANALYSIS_PROCS=1
 CATALYST_PROCS=1
 
@@ -48,7 +47,7 @@ echo "## Config file for DataSpaces
 ndim = 3
 dims = 500, 500, 500
 max_versions = 100
-max_readers = 11
+max_readers = 100
 lock_type = 2
 " > dataspaces.conf
 

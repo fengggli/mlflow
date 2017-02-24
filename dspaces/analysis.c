@@ -42,8 +42,6 @@ int main(int argc, char **argv)
     //int dims[3] = {1, POINTS_SIDE, POINTS_SIDE};
     //int num_points = dims[0]*dims[1]*dims[2];
 
-    // time 
-    double time_comm;
 
 
     char var_name_cluster[STRING_LENGTH];
@@ -85,6 +83,10 @@ int main(int argc, char **argv)
     char divs_path[STRING_LENGTH];
 
     int side_num_region = (POINTS_SIDE -1)/REGION_LENGTH; // this will be (201-1)/10 = 20
+
+    // timer
+    double time_comm_divs = 0;
+    double time_comm_cluster = 0;
 
     // we will receive each timestamp
     while(timestep < MAX_VERSION){
@@ -181,6 +183,8 @@ int main(int argc, char **argv)
         ret_get = dspaces_get(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, all_divs);
         t2 = MPI_Wtime();
 
+        time_comm_divs+=t2-t1;
+
         dspaces_unlock_on_read(lock_name_divs, &gcomm);
 
         sprintf(msg, "divergence read lock released ");
@@ -264,7 +268,7 @@ int main(int argc, char **argv)
             for(i = 0; i < num_region;i++ ){
                 cluster_data[i] = clusterid[i];
             }
-            put_cluster_buffer(timestep, &num_region ,rank, &gcomm, var_name_cluster,  &cluster_data, &time_comm);
+            put_cluster_buffer(timestep, &num_region ,rank, &gcomm, var_name_cluster,  &cluster_data, &time_comm_cluster);
 #endif
             // dspaces put
 
@@ -304,6 +308,26 @@ int main(int argc, char **argv)
 
 
         timestep++;
+    }
+    
+    double global_time_divs;
+    MPI_Reduce(&time_comm_divs, &global_time_divs, 1, MPI_DOUBLE, MPI_SUM, 0,
+               gcomm);
+
+    // Print the result
+    if (rank == 0) {
+      printf("Total time for divs data = %lf, avg = %lf\n", global_time_divs,
+             global_time_divs / (nprocs * timestep));
+    }
+
+    double global_time_cluster;
+    MPI_Reduce(&time_comm_cluster, &global_time_cluster, 1, MPI_DOUBLE, MPI_SUM, 0,
+               gcomm);
+
+    // Print the result
+    if (rank == 0) {
+      printf("Total time for cluster data = %lf, avg = %lf\n", global_time_cluster,
+             global_time_cluster / (nprocs * timestep));
     }
 
     sprintf(msg, "now finalize the dspaces and exit");
