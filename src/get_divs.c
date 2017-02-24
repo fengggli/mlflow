@@ -25,12 +25,12 @@ void get_ranked_dist(float *array_to_sort, int length_to_sort){
     //return array_to_sort[k-1];
 }
 
-void print_matrix(float *Dismatrix, int num_row, int num_col){
+void print_matrix(float *Dismatrix, int l, int x0, int y0, int x1, int y1){
     printf("print matrix\n");
     int i,j;
-    for(i = 0; i < num_row; i++){
-        for(j = 0; j < num_col; j++){
-            printf("%.3f\t", Dismatrix[i*num_col + j]);
+    for(i = x0; i < x1; i++){
+        for(j = y0; j < y1; j++){
+            printf("%.6f\t", Dismatrix[i*l + j]);
         }
         printf("\n");
     }

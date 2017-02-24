@@ -245,6 +245,12 @@ int main(int argc, char **argv)
     sprintf(var_name_vel, "VEL");
     sprintf(var_name_pres, "PRES");
 
+    // data layout
+    uint64_t gdims_raw[3] = {POINTS_SIDE, POINTS_SIDE,1};
+    dspaces_define_gdim(var_name_vel, 3,gdims_raw);
+    dspaces_define_gdim(var_name_pres, 3,gdims_raw);
+
+
 
     unsigned int dims[3] = {POINTS_SIDE, POINTS_SIDE, 1};
     uint64_t num_points = dims[0]*dims[1]*dims[2];
@@ -368,6 +374,8 @@ int main(int argc, char **argv)
         //get_region_buffer(timestep, &region_def, rank, &gcomm, &buffer_all_regions, &time_used);
         // read raw data and divide
         // use ds_adator instead
+        // do we need this barrier?
+        MPI_Barrier(gcomm);
 
         get_raw_buffer(timestep,bounds, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres, &pres_data, &time_used);
         //get_vel_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &time_used);
@@ -396,8 +404,6 @@ int main(int argc, char **argv)
         sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm_regions, time_cal, time_comm_divs);
         my_message(msg, rank, LOG_CRITICAL);
 
-        // do we need this barrier?
-        MPI_Barrier(gcomm);
 
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
         my_message(msg, rank, LOG_CRITICAL);

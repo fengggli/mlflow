@@ -8,7 +8,6 @@
 
 #This job runs with 3 nodes  
 #ibrun in verbose mode will give binding detail  
-BUILD=${PBS_O_WORKDIR}/build_2/bin
 #BUILD=${PBS_O_WORKDIR}/build_filewriter/bin
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
@@ -24,6 +23,8 @@ SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE}))
 CONSUMER_PROCS=1
 ANALYSIS_PROCS=1
 CATALYST_PROCS=1
+
+BUILD=${PBS_O_WORKDIR}/build_${SIM_PROC_SIDE}/bin
 
 DS_SERVER_PROCS=1
 DS_CLIENT_PROCS=$((${SIM_PROCS} + ${CONSUMER_PROCS} + ${ANALYSIS_PROCS} +${CATALYST_PROCS}))
@@ -47,7 +48,7 @@ echo "## Config file for DataSpaces
 ndim = 3
 dims = 500, 500, 500
 max_versions = 100
-max_readers = 10
+max_readers = 11
 lock_type = 2
 " > dataspaces.conf
 

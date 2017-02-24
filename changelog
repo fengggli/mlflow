@@ -100,6 +100,8 @@ changed
 ## [0.2.3] - 2017-01-24
 ### Added 
 - new branch: with visual, add catalyst part and corresponding dspaces acess.
+- fixed: 0-divs is caused by multiple process trying to write to same
+geopmetric space in dspaces, reorganized openfoam writer
 
 ### target
 - at least output some pictures

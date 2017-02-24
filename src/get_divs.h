@@ -16,7 +16,8 @@ void get_ranked_dist(float *array_to_sort, int length_to_sort);
 
 /* print the contant of matrix
  */
-void print_matrix(float *Dismatrix, int num_row, int num_col);
+
+void print_matrix(float *Dismatrix, int l, int x0, int y0, int x1, int y1);
         
 
 float get_bound_dist(int i, float *DisMatrix, int length, int k);

@@ -1,6 +1,5 @@
 #include "ds_adaptor.h"
 
-
 #define debug_1
 // this will get all vel and pres data
 void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_vel, float **p_buffer_vel, char * var_name_pres, float **p_buffer_pres,  double *p_time_used){
@@ -46,8 +45,6 @@ void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI
     // Define the dimensionality of the data to be received 
     int ndim = 3;
 
-    
-
     char lock_name_vel[STRING_LENGTH];
 #ifdef USE_SAME_LOCK
     snprintf(lock_name_vel, STRING_LENGTH, "%s_lock", var_name_vel);
@@ -61,9 +58,6 @@ void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI
 #else
     snprintf(lock_name_pres, STRING_LENGTH, "%s_lock_t_%d", var_name_pres, timestep);
 #endif
-
-    
-
     sprintf(msg, "try to acquired the vel read lock %s", lock_name_vel );
     my_message(msg, rank, LOG_WARNING);
     dspaces_lock_on_read(lock_name_vel, p_gcomm);
@@ -79,7 +73,7 @@ void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI
 #ifdef debug_1
 
     printf("matrix content:");
-    print_matrix(vel_data, 10, 10);
+   // print_matrix(vel_data, 81, );
 
     snprintf(msg, STRING_LENGTH, "%s, var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d] \n", __func__, var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2]);
     my_message(msg, rank, LOG_WARNING);
@@ -217,7 +211,7 @@ void put_raw_buffer(int timestep,int bounds[6], void * extra_info, int rank, MPI
     float * vel_data = *p_buffer_vel;
 
     printf("matrix content:");
-    print_matrix(vel_data, 10, 10);
+    //print_matrix(vel_data, 40, 40);
 
     snprintf(msg, STRING_LENGTH, "%s, var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d] \n", __func__, var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2]);
     my_message(msg, rank, LOG_WARNING);

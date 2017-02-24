@@ -140,6 +140,11 @@ int main(int argc, char* argv[])
     sprintf(var_name_vel, "VEL");
     sprintf(var_name_pres, "PRES");
     sprintf(var_name_cluster, "CLUSTER");
+    // data layout
+    uint64_t gdims_raw[3] = {POINTS_SIDE, POINTS_SIDE,1};
+    dspaces_define_gdim(var_name_vel, 3,gdims_raw);
+    dspaces_define_gdim(var_name_pres, 3,gdims_raw);
+
 
     //x_min,y_min,z_min,x_max_y_max_z_max
     int bounds[6]={0};

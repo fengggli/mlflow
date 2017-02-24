@@ -67,6 +67,16 @@
 2005998
     Feb 23
     now applications are running, but consumer 'address in use'
+2006263
+    Feb 23
+    same code if set num_sim =1, in build_1,use same lock result is correct
+2006265
+    Feb 23
+    num_sim =1, build_1, 10 consumers, use same lock, get blocked as expected
+2006438
+    Feb 24
+    Fixed the zero divs (make sure all sub simulator doesn't have overlaps in dspaces)
+    
     
         
     
