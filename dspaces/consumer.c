@@ -195,7 +195,7 @@ void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_ta
         sprintf(msg, "ERROR when storing divergence of region");
     }
     my_message(msg, rank, LOG_CRITICAL);
-    *p_time_used += t2-t1;
+    *p_time_used = t2-t1;
 }
 
 // test segmentation fault
@@ -320,7 +320,7 @@ int main(int argc, char **argv)
 
     // accumulated time for communication(read regions and write divs) and calculation(divs)
     //double time_comm_regions = 0;
-    double time_cal = 0;
+    double time_comp = 0;
     //double time_comm_divs = 0;
     //
     double time_comm_raw = 0;
@@ -393,7 +393,7 @@ int main(int argc, char **argv)
 
         // calculate divergence
         cal_local_divs(buffer_all_regions,&region_def,k_npdiv, div_func, table, pair_index_l, pair_index_h, rank, &divs_this_rank, &time_used);
-        time_cal = time_used;
+        time_comp = time_used;
 
         // put divs into dataspaces
         put_divs_buffer(timestep, pair_index_l, pair_index_h, num_tasks, rank, &gcomm, &divs_this_rank, &time_comm_divs);
@@ -402,33 +402,28 @@ int main(int argc, char **argv)
         }
 
         // should wait until get all the divergence
-        sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm_raw, time_cal, time_comm_divs);
+        sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm_raw, time_comp, time_comm_divs);
         my_message(msg, rank, LOG_CRITICAL);
 
 
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
         my_message(msg, rank, LOG_CRITICAL);
+
+        double global_time_comm_raw;
+        double global_time_comm_divs;
+        double global_time_comp;
+
+        MPI_Reduce(&time_comm_raw, &global_time_comm_raw, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comm_divs, &global_time_comm_divs, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comp, &global_time_comp, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+
+        // Print the result
+        if (rank == 0) {
+          printf("%d Computation Total %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
+          printf("%d raw Total %lf avg %lf\n",timestep,  global_time_comm_raw , global_time_comm_raw/ (nprocs));
+          printf("%d divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
+        }
         timestep++;
-    }
-
-    double global_time_raw;
-    MPI_Reduce(&time_comm_raw, &global_time_raw, 1, MPI_DOUBLE, MPI_SUM, 0,
-               gcomm);
-
-    // Print the result
-    if (rank == 0) {
-      printf("Total time for raw data = %lf, avg = %lf\n", global_time_raw,
-             global_time_raw / (nprocs * timestep));
-    }
-
-    double global_time_divs;
-    MPI_Reduce(&time_comm_divs, &global_time_divs, 1, MPI_DOUBLE, MPI_SUM, 0,
-               gcomm);
-
-    // Print the result
-    if (rank == 0) {
-      printf("Total time for divs data = %lf, avg = %lf\n", global_time_divs,
-             global_time_divs / (nprocs * timestep));
     }
 
     // free buffer

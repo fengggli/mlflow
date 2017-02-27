@@ -76,6 +76,28 @@
 2006438
     Feb 24
     Fixed the zero divs (make sure all sub simulator doesn't have overlaps in dspaces)
+2008442 
+    Feb 26
+    Config:
+        64 sim procs
+        128consumer
+        4 server
+        1 analyst
+        total 15 nodes
+    Error
+2009685
+    Feb 26
+    config
+        16 sim procs
+        32 consumer
+        2 server
+        1 analyst 
+        1 catalyst
+    Floating point error
+        
+
+
+    
     
     
         

@@ -132,9 +132,11 @@ int main(int argc, char* argv[])
 
     // vel and pressure buffer
     //double time_used, time_used_cluster;
+    double t1, t2;
     double time_comm_raw, time_comm_cluster;
     time_comm_raw = 0;
     time_comm_cluster =0;
+    double time_comp=0;
 
     // if we define strict max_reader in dspaces configurations, we can read the same variable
     char var_name_vel[STRING_LENGTH];
@@ -213,6 +215,9 @@ int main(int argc, char* argv[])
 
     // also get cluster buffer here
     get_cluster_buffer(timestep, &num_region ,rank, &gcomm, var_name_cluster, &cluster_raw , &time_comm_cluster);
+
+    
+    t1 = MPI_Wtime();
     map_regions(cluster_raw, cluster_data, dims[0], region_length);
     attributes.UpdateFields(vel_data, pres_data, cluster_data);
 #endif
@@ -223,30 +228,30 @@ int main(int argc, char* argv[])
     //FEAdaptor::CoProcess(grid, attributes, time, timestep, timestep == MAX_VERSION-1);
     FEAdaptor::CoProcess(grid, attributes, time, timestep, timestep == MAX_VERSION-1);
 #endif
+
+    t2 = MPI_Wtime();
+    time_comp = t2-t1;
+    // timer
+        double global_time_comm_cluster;
+        double global_time_comm_raw;
+        double global_time_comp;
+
+        MPI_Reduce(&time_comm_cluster, &global_time_comm_cluster, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comm_raw, &global_time_comm_raw, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comp, &global_time_comp, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+
+        // Print the result
+        if (rank == 0) {
+          printf("%d Computation Total %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
+          printf("%d cluster Total %lf avg %lf\n",timestep,  global_time_comm_cluster , global_time_comm_cluster/ (nprocs));
+          printf("%d divs Total %lf avg %lf\n",timestep,  global_time_comm_raw , global_time_comm_raw/ (nprocs));
+        }
     }
 
     MPI_Barrier(gcomm);
     // reduce all comm_time
 
-    double global_time_raw;
-    MPI_Reduce(&time_comm_raw, &global_time_raw, 1, MPI_DOUBLE, MPI_SUM, 0,
-               gcomm);
-
-    // Print the result
-    if (rank == 0) {
-      printf("Total time for raw data = %lf, avg = %lf\n", global_time_raw,
-             global_time_raw / (nprocs * timestep));
-    }
-
-    double global_time_cluster;
-    MPI_Reduce(&time_comm_cluster, &global_time_cluster, 1, MPI_DOUBLE, MPI_SUM, 0,
-               gcomm);
-
-    // Print the result
-    if (rank == 0) {
-      printf("Total time for cluster data = %lf, avg = %lf\n", global_time_cluster,
-             global_time_cluster / (nprocs * timestep));
-    }
+    
     // free buffer
     if(vel_data != NULL){
         free(vel_data);

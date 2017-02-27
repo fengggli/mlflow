@@ -87,6 +87,7 @@ int main(int argc, char **argv)
     // timer
     double time_comm_divs = 0;
     double time_comm_cluster = 0;
+    double time_comp =0;
 
     // we will receive each timestamp
     while(timestep < MAX_VERSION){
@@ -183,7 +184,7 @@ int main(int argc, char **argv)
         ret_get = dspaces_get(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, all_divs);
         t2 = MPI_Wtime();
 
-        time_comm_divs+=t2-t1;
+        time_comm_divs=t2-t1;
 
         dspaces_unlock_on_read(lock_name_divs, &gcomm);
 
@@ -240,6 +241,7 @@ int main(int argc, char **argv)
             kmedoids(nclusters, num_region, matrix, npass, clusterid, &error, &ifound);
 
             t2 = MPI_Wtime();
+            time_comp = t2-t1;
 
             sprintf(msg, "finished clustering in %.3lf s  time", t2 -t1);
             my_message(msg, rank, LOG_WARNING);
@@ -272,6 +274,7 @@ int main(int argc, char **argv)
 #endif
             // dspaces put
 
+            /* no need to write here
             // write into filesystem
             FILE * f_clusterid = fopen(output_path, "w");
             if(f_clusterid == NULL){
@@ -294,6 +297,7 @@ int main(int argc, char **argv)
             }
 
             fclose(f_clusterid);
+            */
         }
 
         // free the divergence buffer
@@ -306,30 +310,24 @@ int main(int argc, char **argv)
         }
 
 
+        double global_time_comm_cluster;
+        double global_time_comm_divs;
+        double global_time_comp;
+
+        MPI_Reduce(&time_comm_cluster, &global_time_comm_cluster, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comm_divs, &global_time_comm_divs, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comp, &global_time_comp, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+
+        // Print the result
+        if (rank == 0) {
+          printf("%d Computation Total %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
+          printf("%d cluster Total %lf avg %lf\n",timestep,  global_time_comm_cluster , global_time_comm_cluster/ (nprocs));
+          printf("%d divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
+        }
 
         timestep++;
     }
     
-    double global_time_divs;
-    MPI_Reduce(&time_comm_divs, &global_time_divs, 1, MPI_DOUBLE, MPI_SUM, 0,
-               gcomm);
-
-    // Print the result
-    if (rank == 0) {
-      printf("Total time for divs data = %lf, avg = %lf\n", global_time_divs,
-             global_time_divs / (nprocs * timestep));
-    }
-
-    double global_time_cluster;
-    MPI_Reduce(&time_comm_cluster, &global_time_cluster, 1, MPI_DOUBLE, MPI_SUM, 0,
-               gcomm);
-
-    // Print the result
-    if (rank == 0) {
-      printf("Total time for cluster data = %lf, avg = %lf\n", global_time_cluster,
-             global_time_cluster / (nprocs * timestep));
-    }
-
     sprintf(msg, "now finalize the dspaces and exit");
     my_message(msg, rank, LOG_CRITICAL);
 

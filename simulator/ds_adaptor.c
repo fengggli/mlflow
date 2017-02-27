@@ -65,6 +65,9 @@ void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI
     sprintf(msg, "get the  the vel read lock");
     my_message(msg, rank, LOG_WARNING);
 
+    snprintf(msg, STRING_LENGTH, "%s, var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d] \n", __func__, var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2]);
+    my_message(msg, rank, LOG_WARNING);
+
     // read all regions in once
     t1 = MPI_Wtime();
 
@@ -72,11 +75,9 @@ void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI
 
 #ifdef debug_1
 
-    printf("matrix content:");
+    //printf("matrix content:");
    // print_matrix(vel_data, 81, );
 
-    snprintf(msg, STRING_LENGTH, "%s, var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d] \n", __func__, var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2]);
-    my_message(msg, rank, LOG_WARNING);
 
     snprintf(msg, STRING_LENGTH,"num_elem %d, first data %f %f %f, last data %f %f %f\n", num_points,vel_data[0],vel_data[1],vel_data[2],vel_data[3*num_points-3], vel_data[3*num_points-2],vel_data[3*num_points-1]);
     my_message(msg, rank, LOG_WARNING);
@@ -131,7 +132,7 @@ void get_raw_buffer(int timestep, int bounds[6], void *extra_info, int rank, MPI
     }
 
     *p_buffer_pres = pres_data;
-    *p_time_used += t2-t1;
+    *p_time_used = t2-t1;
 }
 // this will get all vel and pres data
 // bounds is [x,y,z] 
@@ -196,6 +197,9 @@ void put_raw_buffer(int timestep,int bounds[6], void * extra_info, int rank, MPI
     sprintf(msg, "get the  the vel write lock");
     my_message(msg, rank, LOG_WARNING);
 
+    snprintf(msg, STRING_LENGTH, "%s, var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d] \n", __func__, var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2]);
+    my_message(msg, rank, LOG_WARNING);
+
     // write all regions in once
     t1 = MPI_Wtime();
 
@@ -213,8 +217,6 @@ void put_raw_buffer(int timestep,int bounds[6], void * extra_info, int rank, MPI
     printf("matrix content:");
     //print_matrix(vel_data, 40, 40);
 
-    snprintf(msg, STRING_LENGTH, "%s, var name is %s, timstep: %d, elem_size_vel = %d, ndim =%d. lb=[%d, %d, %d], hb=[%d, %d, %d] \n", __func__, var_name_vel, timestep, elem_size_vel, ndim, lb[0], lb[1], lb[2], ub[0], ub[1], ub[2]);
-    my_message(msg, rank, LOG_WARNING);
 
     snprintf(msg, STRING_LENGTH,"num_elem %d, first data %f %f %f, last data %f %f %f\n", num_points,vel_data[0],vel_data[1],vel_data[2],vel_data[3*num_points-3], vel_data[3*num_points-2],vel_data[3*num_points-1]);
     my_message(msg, rank, LOG_WARNING);
@@ -269,7 +271,7 @@ void put_raw_buffer(int timestep,int bounds[6], void * extra_info, int rank, MPI
         my_message(msg, rank, LOG_WARNING);
     }
 
-    *p_time_used += t2-t1;
+    *p_time_used = t2-t1;
 }
 
 void get_cluster_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_gcomm,char * var_name_cluster, float **p_buffer_cluster,  double *p_time_used){
@@ -332,7 +334,7 @@ void get_cluster_buffer(int timestep, void *extra_info, int rank, MPI_Comm * p_g
     }
 
     *p_buffer_cluster = cluster_data;
-    *p_time_used += t2-t1;
+    *p_time_used = t2-t1;
 }
 
 // this will put cluster id info into dspaces
@@ -398,5 +400,5 @@ void put_cluster_buffer(int timestep, void * extra_info, int rank, MPI_Comm * p_
         my_message(msg, rank, LOG_WARNING);
     }
 
-    *p_time_used += t2-t1;
+    *p_time_used = t2-t1;
 }

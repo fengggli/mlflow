@@ -250,7 +250,9 @@ int main(int argc, char *argv[])
 
 
         // time 
-        double time_comm_raw = 0;
+        double time_comm = 0;
+        double time_comp = 0;
+        double t1, t2;
         
         char var_name_vel[STRING_LENGTH];
         char var_name_pres[STRING_LENGTH];
@@ -291,7 +293,7 @@ int main(int argc, char *argv[])
 
     while (runTime.loop())
     {
-        sleep(2);
+        //sleep(2);
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         #include "CourantNo.H"
@@ -311,6 +313,9 @@ int main(int argc, char *argv[])
         }
 
         // --- PISO loop
+        // start timer
+        
+        t1 = MPI_Wtime();
         while (piso.correct())
         {
             volScalarField rAU(1.0/UEqn.A());
@@ -353,6 +358,9 @@ int main(int argc, char *argv[])
             U.correctBoundaryConditions();
         }
 
+        t2 = MPI_Wtime();
+        time_comp = t2-t1;
+
         // if the setting is 'no write', that field won't be written to files
         runTime.write();
 
@@ -373,7 +381,7 @@ int main(int argc, char *argv[])
        printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
        */
 
-        put_raw_buffer(timestep, bounds, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm_raw);
+        put_raw_buffer(timestep, bounds, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm);
 
         MPI_Barrier(gcomm);
 
@@ -426,6 +434,18 @@ int main(int argc, char *argv[])
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
         */
+
+        double global_time_comm;
+        double global_time_comp;
+        MPI_Reduce(&time_comm, &global_time_comm, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comp, &global_time_comp, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+
+        // Print the result
+        if (rank == 0) {
+          printf("%d Computation Total %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
+          printf("%d raw Total %lf avg %lf\n",timestep,  global_time_comm , global_time_comm/ (nprocs));
+        }
+
         if(timestep == MAX_VERSION){
             break;
         }
@@ -434,17 +454,7 @@ int main(int argc, char *argv[])
     MPI_Barrier(gcomm);
     // reduce all comm_time
 
-    double global_time_raw;
-    MPI_Reduce(&time_comm_raw, &global_time_raw, 1, MPI_DOUBLE, MPI_SUM, 0,
-               gcomm);
-
-    // Print the result
-    if (rank == 0) {
-      printf("Total time = %lf, avg = %lf\n", global_time_raw,
-             global_time_raw / (nprocs * timestep));
-    }
-
-
+ 
     // get avg comm_time
 
     // reduce all timers
