@@ -94,6 +94,13 @@
         1 analyst 
         1 catalyst
     Floating point error
+2010679
+    Feb 27
+    changed the case into cavity_fine_1025, err in consumer address not mapped
+2011525
+    Feb 27
+    seems distance matrix of A only execute one iteration
+    add print and see what happens
         
 
 

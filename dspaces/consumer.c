@@ -1,5 +1,16 @@
 #include "consumer.h"
-//#define debug_1
+#define debug_1
+
+// test segmentation fault
+ int validate_regions(float *buffer_a, int region_memory_size){
+   int i;
+   for(i = 0; i< region_memory_size;i++){
+   buffer_a[i] = 0.3;
+   }
+   return 1;
+   }
+
+
 
 void generate_lookup_table(int num_region, int **p_table){
     int i, j, count;
@@ -85,7 +96,7 @@ void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_
 
         t2 = MPI_Wtime();
 
-#ifdef debug
+#ifdef debug_1
         int aa, bb;
         // validate the two regions
         aa =  validate_regions(buffer_a,region_memory_size);
@@ -197,17 +208,6 @@ void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_ta
     my_message(msg, rank, LOG_CRITICAL);
     *p_time_used = t2-t1;
 }
-
-// test segmentation fault
-/*
-   int validate_regions(float *buffer_a, int region_memory_size){
-   int i;
-   for(i = 0; i< region_memory_size;i++){
-   buffer_a[i] = 0.3;
-   }
-   return 1;
-   }
-   */
 
 
 int main(int argc, char **argv)

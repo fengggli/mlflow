@@ -11,7 +11,7 @@
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
-CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity
+CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity_fine_1025
 
 mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR

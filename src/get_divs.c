@@ -1,5 +1,5 @@
 #include "get_divs.h"
-//#define debug_1
+#define debug_1
 
 // parallel version and sequential version have different divergence
 #define DEBUG_REGION_MAPPING
@@ -89,6 +89,11 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
 
     float* DisMatrixA = (float *)malloc(sizeof(float)*num_cell*num_cell);
     float* DisMatrixB = (float *)malloc(sizeof(float)*num_cell*num_cell);
+    if(DisMatrixA == NULL || DisMatrixB == NULL){
+        printf("Distance matrix size %d B\n",sizeof(float)*num_cell*num_cell);
+        perror("malocc distance matrix");
+        exit(-1);
+    }
 
     // distance to the k-nearest neighbours
     float dist_tmp = 0;
@@ -110,13 +115,17 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     for(i = 0; i < num_cell; i++){
         // bug here, but why!!!!!
 #ifdef debug_1
-        printf("\t point %d: (%.3f %.3f %.3f)\n", i, *(A + 3*i+ 0), *(A +3*i + 1),*(A + 3*i +2)); 
+        printf("\t point %d in %d : (%.3f %.3f %.3f)\n", i,num_cell , *(A + 3*i+ 0), *(A +3*i + 1),*(A + 3*i +2)); 
 #endif
 
         for(j = i; j < num_cell; j++){
-            if(j == i) 
+            if(j == i) {
+                printf("branch a\n");
                 DisMatrixA[i*num_cell+j] = LARGE_NUMBER ;
+            }
             else{
+
+                printf("branch b\n");
                 dist_tmp = (pow(*(A + 3*i) - *(A + 3*j),2) + pow(*(A + 3*i +1) - *(A + 3*j +1), 2)+ pow(*(A+3*i+2) - *(A+3*j+2),2) );
                 DisMatrixA[i* num_cell+j] = dist_tmp;
                 DisMatrixA[j* num_cell+i] = dist_tmp; // fixed the bug k_dist_a == 0
