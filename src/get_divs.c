@@ -4,25 +4,31 @@
 // parallel version and sequential version have different divergence
 #define DEBUG_REGION_MAPPING
 
-/*
- * this is basically a sort function
- * insertion sort here
- * input/ output: array_to_sort
- */
-void get_ranked_dist(float *array_to_sort, int length_to_sort){
-    int i,j;
-    float key;
-    for(j = 1; j< length_to_sort; j++){
-        key = array_to_sort[j];
-        for(i=j-1;array_to_sort[i] > key && i>=0;i--){
-            array_to_sort[i+1] = array_to_sort[i];
+
+
+float  get_k_order(float *tmp_array, int length, int k){
+    int i, j;
+    float min;
+    int min_index = -1;
+    for(i=0;i<k-1;i++){
+        min = LARGE_NUMBER;
+        for(j = 0; j< length; j++){
+            if(tmp_array[j] < min){
+                min = tmp_array[j];
+                min_index = j;
+            }
         }
-        array_to_sort[i+1] = key;
+
+        tmp_array[min_index] = LARGE_NUMBER;
     }
-#ifdef debug
-    print_matrix(array_to_sort, 1, length_to_sort);
-#endif
-    //return array_to_sort[k-1];
+    min = LARGE_NUMBER;
+    for(j = 0; j< length; j++){
+            if(tmp_array[j] < min){                                                                                                                                                                                                           
+                min = tmp_array[j];
+            }
+    }
+    return min;
+    // last round get smallest value
 }
 
 void print_matrix(float *Dismatrix, int l, int x0, int y0, int x1, int y1){
@@ -48,24 +54,37 @@ void print_matrix(float *Dismatrix, int l, int x0, int y0, int x1, int y1){
  */
 
 // there should be a bug here, if the point comes from current region, what should i do? consistency with the (n-1) in the density estimation
-float get_bound_dist(int i, float *DisMatrix, int length, int k){
+float get_bound_dist(int i, float *A, int length, int k){
     // actually this is a task to sort all the elements in the i-th row in DisMatrix
 
     // the index of k-th least distance
-    int m;
+    int j;
+    // values of this point
+    int tmp_x = *(A + 3*i);
+    int tmp_y = *(A + 3*i +1);
+    int tmp_z = *(A + 3*i +2);
 
-    // start point and length of array to sort
-    // bug fixed here: used to modify origin matrix!
-    float tmp_array[length];
-    for(m = 0; m< length; m++)
-        tmp_array[m] = *(DisMatrix+ i*length +m);
+    // get distances with all other points
+    float *tmp_array = (float *)malloc(sizeof(float)*length);
+    float dist_tmp;
+    if(tmp_array == NULL){
+        perror("malloc errr");
+        exit(-1);
+    }
 
+    for(j = 0; j< length; j++){
+        if(j == i){
+            dist_tmp = LARGE_NUMBER;
+        }
+        else{
+           dist_tmp = pow(tmp_x - *(A + 3*j),2) + pow(tmp_y - *(A + 3*j +1), 2)+ pow(tmp_z - *(A+3*j+2),2);
+        }
+        tmp_array[j] = dist_tmp;
+    }
     //float *array_to_sort = DisMatrix + i*length;
-    int length_to_sort = length;
-    get_ranked_dist(tmp_array, length_to_sort);
-
-    // if all the tipple values are the same, nearest neibour distance can be 0
-    return tmp_array[k-1];
+    float ret =  get_k_order(tmp_array, length, k);
+    free(tmp_array);
+    return ret;
 }
 
 
@@ -82,11 +101,12 @@ float get_bound_dist(int i, float *DisMatrix, int length, int k){
 float get_divs(float *A, float *B, int region_length, int k, int div_func){
     // there are (region_length+1)^2 points in each region
     // we can treat data as if there are in 1-demension
-    int i, j;
+    int i;
     int num_cell = (region_length+1)*(region_length +1);
     //printf("there are %d points in each region\n", num_cell);
     //fprintf(stderr, "there are %d points in each region\n", num_cell);
 
+    /*
     float* DisMatrixA = (float *)malloc(sizeof(float)*num_cell*num_cell);
     float* DisMatrixB = (float *)malloc(sizeof(float)*num_cell*num_cell);
     if(DisMatrixA == NULL || DisMatrixB == NULL){
@@ -94,9 +114,9 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
         perror("malocc distance matrix");
         exit(-1);
     }
+    */
 
     // distance to the k-nearest neighbours
-    float dist_tmp = 0;
     float k_dist_a;
     float k_dist_b;
 
@@ -107,69 +127,11 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     float den_a, den_b;
 
 
-#ifdef debug_1
-    printf("matrix A:\n");
-#endif
-
-    // get all the pair-wise distances between all the points 
-    for(i = 0; i < num_cell; i++){
-        // bug here, but why!!!!!
-#ifdef debug_1
-        printf("\t point %d in %d : (%.3f %.3f %.3f)\n", i,num_cell , *(A + 3*i+ 0), *(A +3*i + 1),*(A + 3*i +2)); 
-#endif
-
-        for(j = i; j < num_cell; j++){
-            if(j == i) {
-                printf("branch a\n");
-                DisMatrixA[i*num_cell+j] = LARGE_NUMBER ;
-            }
-            else{
-
-                printf("branch b\n");
-                dist_tmp = (pow(*(A + 3*i) - *(A + 3*j),2) + pow(*(A + 3*i +1) - *(A + 3*j +1), 2)+ pow(*(A+3*i+2) - *(A+3*j+2),2) );
-                DisMatrixA[i* num_cell+j] = dist_tmp;
-                DisMatrixA[j* num_cell+i] = dist_tmp; // fixed the bug k_dist_a == 0
-            }
-            //printf("A: distance(%d, %d)is %.4f\n",i,j, DisMatrixA[i*num_cell +j]);
-            //print_matrix(DisMatrixA, num_cell);
-        }
-    }
-
-    // also get distances in region B
-#ifdef debug_1
-    printf("matrix B:\n");
-#endif
-#ifdef debug
-    printf("distance region matrix at %p is calculated\n", (void *)A);
-#endif
-    for(i = 0; i < num_cell; i++){
-
-#ifdef debug_1
-        printf("\t point %d: (%.3f %.3f %.3f)\n", i, *(B + 3*i+ 0), *(B +3*i + 1),*(B + 3*i +2)); 
-#endif
-        for(j = i; j < num_cell; j++){
-            if(j == i) 
-                DisMatrixB[i*num_cell+j] = LARGE_NUMBER ;
-            else{
-                dist_tmp = (pow(*(B + 3*i) - *(B + 3*j),2) + pow(*(B + 3*i +1) - *(B + 3*j +1), 2)+ pow(*(B+3*i+2) - *(B+3*j+2),2) );
-                DisMatrixB[i* num_cell+j] = dist_tmp;
-                DisMatrixB[j* num_cell+i] = dist_tmp;
-            }
-            //printf("B: distance(%d, %d)is %.4f\n",i,j, DisMatrixB[i*num_cell +j]);
-        }
-    }
-
-#ifdef debug
-    printf("distance matrix region at %p is calculated\n", (void *)(B));
-    print_matrix(DisMatrixA, num_cell, num_cell);
-    print_matrix(DisMatrixB, num_cell, num_cell);
-#endif
-
     // start to accumulate the divgence(linear kernel here)
     for(i = 0; i< num_cell; i++){
         // for each point in both regions, get the distance to its k-nearest neighbours
-        k_dist_a = get_bound_dist(i, DisMatrixA, num_cell, k);
-        k_dist_b = get_bound_dist(i, DisMatrixB, num_cell, k);
+        k_dist_a = get_bound_dist(i, A, num_cell, k);
+        k_dist_b = get_bound_dist(i, B, num_cell, k);
 
         // estimate the density
         den_a = k/((4/3)*(num_cell -1)*PI*pow(k_dist_a, 3));
@@ -206,7 +168,5 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
         printf("get div = sqrt(%lf) = %lf\n", tmp, div);
 #endif
     }
-    free(DisMatrixA);
-    free(DisMatrixB);
     return div;
 }
