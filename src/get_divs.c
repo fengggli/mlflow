@@ -1,5 +1,5 @@
 #include "get_divs.h"
-#define debug_1
+//#define debug_1
 
 // parallel version and sequential version have different divergence
 #define DEBUG_REGION_MAPPING
@@ -66,11 +66,12 @@ float get_bound_dist(int i, float *A, int length, int k){
 
     // get distances with all other points
     float *tmp_array = (float *)malloc(sizeof(float)*length);
-    float dist_tmp;
     if(tmp_array == NULL){
         perror("malloc errr");
         exit(-1);
     }
+
+    float dist_tmp;
 
     for(j = 0; j< length; j++){
         if(j == i){
@@ -103,18 +104,6 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     // we can treat data as if there are in 1-demension
     int i;
     int num_cell = (region_length+1)*(region_length +1);
-    //printf("there are %d points in each region\n", num_cell);
-    //fprintf(stderr, "there are %d points in each region\n", num_cell);
-
-    /*
-    float* DisMatrixA = (float *)malloc(sizeof(float)*num_cell*num_cell);
-    float* DisMatrixB = (float *)malloc(sizeof(float)*num_cell*num_cell);
-    if(DisMatrixA == NULL || DisMatrixB == NULL){
-        printf("Distance matrix size %d B\n",sizeof(float)*num_cell*num_cell);
-        perror("malocc distance matrix");
-        exit(-1);
-    }
-    */
 
     // distance to the k-nearest neighbours
     float k_dist_a;
@@ -125,7 +114,6 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
 
     // the estimated density 
     float den_a, den_b;
-
 
     // start to accumulate the divgence(linear kernel here)
     for(i = 0; i< num_cell; i++){
@@ -156,9 +144,6 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
         }
     }
 
-#ifdef debug
-    printf("div between regions at %p and %p is calculated\n", (void*)(A), (void *)(B));
-#endif
 
     // for L_2 divergence, square root is required
     

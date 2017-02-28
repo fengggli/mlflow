@@ -390,7 +390,6 @@ int main(int argc, char **argv)
             exit(-1);
         }
 
-
         // calculate divergence
         cal_local_divs(buffer_all_regions,&region_def,k_npdiv, div_func, table, pair_index_l, pair_index_h, rank, &divs_this_rank, &time_used);
         time_comp = time_used;

@@ -28,7 +28,7 @@ extern "C" {
 #ifdef USE_EXP
     #define MAX_VERSION (100)
     #define CASE_LENGTH (1024)
-    #define REGION_LENGTH (256)
+    #define REGION_LENGTH (32)
     #ifndef PROCS_PER_DIM
         #error "need to define process per side"
     #endif

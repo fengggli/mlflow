@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.2.12] 2017-02 28
+## changed distance matrix removed, distance is cacluated during runing
+get_divs.
+## problems, complexity.
+## cannot start large scale experiments. Since div calcluation is not 
+
 ## [0.2.11] 2017 02-23
 ## changed
 	add variables in job file and use --output-filename to redirect output to
