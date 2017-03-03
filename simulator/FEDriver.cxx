@@ -211,6 +211,8 @@ int main(int argc, char* argv[])
 #ifndef INCLUDE_ML
     attributes.UpdateFields(vel_data, pres_data);
 #else
+    // updated on March 2
+    // 1. get medoids from 
     int num_region = NUM_REGION;
 
     // also get cluster buffer here
@@ -250,7 +252,6 @@ int main(int argc, char* argv[])
 
     MPI_Barrier(gcomm);
     // reduce all comm_time
-
     
     // free buffer
     if(vel_data != NULL){

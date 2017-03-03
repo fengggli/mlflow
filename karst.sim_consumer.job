@@ -6,9 +6,6 @@
 #PBS -l nodes=4:ppn=12
 #PBS -o results/$PBS_JOBID.output
 
-
-
-
 #This job runs with 3 nodes  
 #ibrun in verbose mode will give binding detail  
 BUILD=${PBS_O_WORKDIR}/build_default/bin

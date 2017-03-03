@@ -204,27 +204,9 @@ int main(int argc, char *argv[])
         int case_length = CASE_LENGTH;
 
         //x_min,y_min,z_min,x_max_y_max_z_max
-        int bounds[6] = {0};
-        bounds[0]=(case_length)*proc_row_pos;
-        bounds[1]=(case_length)*proc_col_pos;
+        //y_min,x_min,0 ,y_max_x_max, 0
+        
 
-        // don't overlap
-        if(proc_col_pos == procs_per_dim-1){
-            bounds[4]=(case_length)*(proc_col_pos+1);
-            flag_right_most = 1;
-        }
-        else{
-            bounds[4]=(case_length)*(proc_col_pos+1) - 1;
-        }
-
-        // we want 1 line overlap (consistent with dividing in consumer)
-        if(proc_row_pos == procs_per_dim-1){
-            bounds[3]=case_length*(proc_row_pos+1) ;
-            flag_bottom_most = 1;
-        }
-        else{
-            bounds[3]=case_length*(proc_row_pos+1)-1 ;
-        }
 
 
         // Initalize DataSpaces
@@ -271,21 +253,36 @@ int main(int argc, char *argv[])
         sprintf(var_name_vel_2, "VEL_2");
         sprintf(var_name_pres_2, "PRES_2");
         */
+        size_t elem_size_vel = sizeof(float)*3;
+        size_t elem_size_pres = sizeof(float);
+        unsigned int dims[3] = {case_length, case_length, 1};
+        uint64_t num_elems = dims[0]*dims[1]*dims[2];
         
+        int bounds[6] = {0};
+        // xmin
+        bounds[1]=(case_length)*proc_row_pos;
+        // ymin
+        bounds[0]=(case_length)*proc_col_pos;
+
+        // xmax
+        bounds[4]=case_length*(proc_row_pos+1)-1 ;
+        // ymax
+        bounds[3]=(case_length)*(proc_col_pos+1) - 1;
+
         // prepare space
-        float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
+        float * vel_data = (float *)malloc(num_elems*elem_size_vel);
         if(vel_data == NULL){
-            perror("vel data allocated error");
-            exit(-1);
-        }
-        float * pres_data = (float *)malloc(num_points* sizeof(float));
-
+              perror("vel data allocated error");
+              exit(-1);
+          }
+        // prepare space for pres
+        float * pres_data = (float *)malloc(num_elems*elem_size_pres);
         if(pres_data == NULL){
-            perror("pres data allocated error");
-            exit(-1);
-        }
+              perror("pres data allocated error");
+              exit(-1);
+          }
 
-
+        
 // end of dspaces preparation
 #endif
 
@@ -381,7 +378,9 @@ int main(int argc, char *argv[])
        printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
        */
 
-        put_raw_buffer(timestep, bounds, &num_points ,rank, &gcomm, var_name_vel,  &vel_data,var_name_pres, &pres_data, &time_comm);
+
+        put_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, &vel_data, elem_size_vel, &time_comm_vel);
+        put_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, &pres_data, elem_size_pres &time_comm_pres);
 
         MPI_Barrier(gcomm);
 

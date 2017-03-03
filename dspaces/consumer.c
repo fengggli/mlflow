@@ -237,7 +237,9 @@ int main(int argc, char **argv)
     printf("trying init dspaces for %d process\n", nprocs);
     dspaces_init(nprocs, 2, &gcomm, NULL);
 
-    // vel and pressure buffer
+    /*
+     * vel and pressure buffer
+     */
     double time_used;
 
     char var_name_vel[STRING_LENGTH];
@@ -250,121 +252,137 @@ int main(int argc, char **argv)
     dspaces_define_gdim(var_name_vel, 3,gdims_raw);
     dspaces_define_gdim(var_name_pres, 3,gdims_raw);
 
-
-
-    unsigned int dims[3] = {POINTS_SIDE, POINTS_SIDE, 1};
-    uint64_t num_points = dims[0]*dims[1]*dims[2];
+    int strip_size = POINTS_SIDE/nprocs;
+    unsigned int dims[3] = {strip_size, POINTS_SIDE, 1};
+    size_t elem_size_vel = sizeof(float)*3;
+    size_t elem_size_pres = sizeof(float);
+    uint64_t num_elems = dims[0]*dims[1]*dims[2];
 
     //x_min,y_min,z_min,x_max_y_max_z_max
     int bounds[6]={0};
-    bounds[3] = dims[0]-1;
-    bounds[4] = dims[1]-1;
+    // xmin
+    bounds[1] = strip_size*rank;
+    // ymin = 0
+    bounds[0] = 0;
+    
+    // xmax
+    bounds[4] = strip_size*(rank+1)-1;
+    // ymax
+    bounds[3] = dims[1]-1;
 
     // prepare space
-    float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
+    float * vel_data = (float *)malloc(num_elems*elem_size_vel);
     if(vel_data == NULL){
           perror("vel data allocated error");
           exit(-1);
       }
-
     // prepare space for pres
-    float * pres_data = (float *)malloc(num_points* sizeof(float));
+    float * pres_data = (float *)malloc(num_elems*elem_size_pres);
     if(pres_data == NULL){
           perror("pres data allocated error");
           exit(-1);
       }
+
+    // regions stripped to this rank
+    int num_region_row = dims[0]/region_length;
+    int num_region_col =  dims[1]/region_length;
+    int num_region = num_region_row*num_region_col; // this will be (201-1)/10 = 20
+
+    int num_elems_region = num_region;
+    size_t elem_size_region = (region_length)*(region_length)*3*sizeof(float);
+
+    float *buffer_regions = (float *)malloc(num_elems_region,elem_size_region);
+    if(buffer_regions== NULL){
+        perror("    allocate space for striped  regions");
+        exit(-1);
+    }
+    /*
+     * sampled vel data
+     */
+    // sampling related
+    int sample_size = 40;
+
+    char var_name_sample[STRING_LENGTH];
+    sprintf(var_name_sample, "sample");
+
+    int bounds_sampled[6]={0};
+    // x_min
+    bounds_sampled[0] = nprocs*sample_size;
+
+    // x_max
+    bounds_sampled[3] = (nprocs+1)*(sample_size) -1; 
+
+    int num_elems_sample = sample_size;
+    size_t elem_size_sample = (region_length)*(region_length)*3*sizeof(float);
+
+    float *buffer_regions_sampled = (float *)malloc(num_elems_sample*elem_size_sample);
+    if(buffer_regions_sampled== NULL){
+        perror("    allocate space for sampled  regions");
+        exit(-1);
+    }
+    /*
+     * medoids data
+     * all process will receive the same medoids info
+     */
+    // generate 3 clusters in the end
+    int medoids_size = 3;
+    char var_name_medoids[STRING_LENGTH];
+    sprintf(var_name_medoids, "medoids");
+
+    int bounds_medoids[6]={0};
+    // x_min
+    bounds_medoids[0] = 0;
+
+    // x_max
+    bounds_medoids[3] = medoids_size -1; 
+
+    int num_elems_medoids = medoids_size;
+    size_t elem_size_medoids = (region_length)*(region_length)*3*sizeof(float);
+
+    float *buffer_medoids = (float *)malloc(num_elems_medoids*elem_size_medoids);
+    if(buffer_medoids== NULL){
+        perror("    allocate space for sampled  regions");
+        exit(-1);
+    }
+    /*
+     * clusterid data
+     * all process will receive the same medoids info
+     */
+    char var_name_cluster[STRING_LENGTH];
+    sprintf(var_name_cluster, "cluster");
+
+    int bounds_cluster[6]={0};
+    // x_min
+    bounds_cluster[0] = nprocs*num_region;
+
+    // x_max
+    bounds_cluster[3] = (nprocs+1)*num_region -1;
+
+    int num_elems_cluster = num_region;
+    size_t elem_size_cluster = sizeof(float);
+
+    float *buffer_cluster = (float *)malloc(num_elems_m*elem_size_cluster);
+    if(buffer_cluster== NULL){
+        perror("    allocate space cluster");
+        exit(-1);
+    }
+
+
 // end of dspaces config
 
-
     // Name our data.
-
-
     char msg[STRING_LENGTH];
-
-
-    // region definition
-    // those parameters are obtained after dividing 
-    // !! there should be communication between two application
-
-    /*
-       int region_length = 10;
-       int num_region = 400;
-       */
-
-    // wrap all info for regions
-    Region_Def region_def;
-    Region_Def *p_region_def = &region_def;
-
-    fill_region_def(p_region_def);
-
-    // some pre-definition
-    int region_length, side_num_region,num_region,region_num_cell;
-    size_t region_memory_size;
-
-    // extract those 
-    extract_region_def(p_region_def, &region_length, &side_num_region,&num_region,&region_num_cell, &region_memory_size);
-
-    // !!!feng: we should know how many regions in total so that we can asign the pairs
-    // MPI_receive here?
-    int num_tasks = num_region*(num_region-1)/2;
-
-    sprintf(msg, "now div variable has dimention %d",num_tasks);
-    my_message(msg, rank, LOG_CRITICAL);
-
-
-    // Each process will need to compute its DataSpace index
-    int tasks_per_proc = num_tasks/nprocs;
-    int tasks_left_over = num_tasks%nprocs;
-    int pair_index_l, pair_index_h;
-
 
     // accumulated time for communication(read regions and write divs) and calculation(divs)
     //double time_comm_regions = 0;
     double time_comp = 0;
-    //double time_comm_divs = 0;
-    //
-    double time_comm_raw = 0;
-    double time_comm_divs = 0;
-
-    // assign tasks to each rank
-    if(rank<tasks_left_over){
-        pair_index_l = rank*(tasks_per_proc+1);
-        pair_index_h = pair_index_l + tasks_per_proc;
-    }else{
-        pair_index_l = rank*tasks_per_proc+tasks_left_over;
-        pair_index_h = pair_index_l + tasks_per_proc-1;
-    }
-    if(rank == 0)
-        printf("--rank%d:num_tasks=%d, tasks_per_proc=%d,tasks_left_over=%d\n", rank,num_tasks, tasks_per_proc, tasks_left_over);
-
-    // generate pair lookup table;
-    int *table;
-    generate_lookup_table(num_region, &table);
-    sprintf(msg,"pair lookup table generated, I am responsible for P%d to P%d", pair_index_l, pair_index_h);
-    my_message(msg, rank, LOG_CRITICAL);
-    //    printf("index_h = %d, index_l = %d", pair_index_h, pair_index_l);
-
-    float *divs_this_rank;
-
-    int tmp_num_region = 0; // check divide results
-
-    // every time read all the regions
-    float *buffer_all_regions;
-    //float *buffer_vel;
-
-    // k-nearest neighbours
-    int k_npdiv = K_NPDIV;
-
-    // use L2 divergence
-    int div_func = 1;
+    double time_comm_pres = 0;
+    double time_comm_vel = 0;
+    double time_comm_sample = 0;
+    double time_comm_medoids =0;
+    double time_comm_cluster= 0;
 
     int timestep=0;
-
-
-    /*
-       snprintf(lock_name_regions, STRING_LENGTH, "region_lock_same");
-       snprintf(lock_name_divs, STRING_LENGTH, "div_lock_same");
-       */
     while(timestep < MAX_VERSION){
 
         if(rank == 0){
@@ -372,33 +390,37 @@ int main(int argc, char **argv)
             my_message(msg, rank, LOG_WARNING);
         }
 
-        // read all regions in once
-        // note that the regions a rank need may be not continous
-        //get_region_buffer(timestep, &region_def, rank, &gcomm, &buffer_all_regions, &time_used);
-        // read raw data and divide
-        // use ds_adator instead
         // do we need this barrier?
         MPI_Barrier(gcomm);
 
-        get_raw_buffer(timestep,bounds, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres, &pres_data, &time_comm_raw);
-        //get_vel_buffer(timestep, NULL ,rank, &gcomm, &buffer_vel, &time_used);
-        //divide into regions
-        divide(vel_data, POINTS_SIDE,region_length,&tmp_num_region, &buffer_all_regions);
+        // generated a list of random region ids
+        // updated on March 2, three steps
 
-        if(tmp_num_region != num_region){
-            perror("divide not correct");
-            exit(-1);
-        }
+        // 1. get stripped data, 
+        get_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, &vel_data, elem_size_vel, &time_comm_vel);
+        get_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, &pres_data, elem_size_pres &time_comm_pres);
 
-        // calculate divergence
-        cal_local_divs(buffer_all_regions,&region_def,k_npdiv, div_func, table, pair_index_l, pair_index_h, rank, &divs_this_rank, &time_used);
-        time_comp = time_used;
+        divide(vel_data, dims,region_length,buffer_regions);
 
-        // put divs into dataspaces
-        put_divs_buffer(timestep, pair_index_l, pair_index_h, num_tasks, rank, &gcomm, &divs_this_rank, &time_comm_divs);
-        if(divs_this_rank != NULL){
-            free(divs_this_rank);
-        }
+        // 2. sampling
+        prepare_sampled_buffer(buffer_region, buffer_region_sampled, sample_size);
+
+        // 3. send sampled regions(only velocity)
+        char var_name_null[STRING_LENGTH]
+        sprintf(var_name_null, "null");
+        put_common_buffer(timestep, bounds_sampled, rank, &gcomm, var_name_sampled, &buffer_region_sampled, elem_size_region,  &time_comm_sampled);
+
+        // wait here, for better performance those three steps should be put in next timestep
+        // 4. get medoids info 
+        get_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, &buffer_medoids, elem_size_medoids, &time_comm_medoids);
+
+        // 5. assign clusterid
+        int clusterid[num_region];
+        assign_clusterid(buffer_region, buffer_medoids, clusterid);
+
+        // 6. put clusterid
+        put_common_buffer(timestep, bounds_cluster, rank, &gcomm, var_name_cluster, &clusterid, elem_size_cluster, &time_comm_cluster);
+
 
         // should wait until get all the divergence
         sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm_raw, time_comp, time_comm_divs);

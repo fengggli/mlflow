@@ -15,8 +15,11 @@ extern "C" {
 //#define USE_SYNTHETIC 
 //#define USE_CAVITY
 #define INCLUDE_ML
-//#define USE_PARAL_CAVITY
-#define USE_EXP
+#define USE_PARAL_CAVITY
+#define SAMPLING
+ 
+// large scale experiment
+//#define USE_EXP
 
 // whether or not using same lock eachtime, only affect the ds_adaptor
 // only affect raw data, writer won't start new
