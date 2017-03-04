@@ -40,7 +40,7 @@ extern int generate_regions(char *hdfpath, int region_length, int *p_num_region,
  *  p_divs_this_rank
  *      all divs of this rank
  */
-void cal_local_divs(float *buffer_all_regions, Region_Def * p_region_def, int k_npdiv, int div_func, int *table, int  pair_index_l,int  pair_index_h,  int rank, float** p_divs_this_rank, double *p_time_used);
+void cal_local_divs(float *buffer_regions, int region_length, int k_npdiv, int div_func, int *table, int  pair_index_l,int  pair_index_h,  int rank, float*divs_this_rank, double *p_time_used);
 
 // select some samples of regions from 
 static void prepare_sampled_buffer(float *buffer_region, float* buffer_region_sampled, int sample_size);
