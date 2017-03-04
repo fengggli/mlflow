@@ -34,16 +34,36 @@ extern int generate_regions(char *hdfpath, int region_length, int *p_num_region,
 /*
  * main routine to calculate divs which is assigned to each rank
  * INPUT:
- *  buffer_all_regions
- *      all velocify info but orderd by region id
+ *      buffer_all_regions, all velocify info but orderd by region id
  * OUTPUT
- *  p_divs_this_rank
- *      all divs of this rank
+ *      p_divs_this_rank, all divs of this rank
  */
 void cal_local_divs(float *buffer_regions, int region_length, int k_npdiv, int div_func, int *table, int  pair_index_l,int  pair_index_h,  int rank, float*divs_this_rank, double *p_time_used);
 
-// select some samples of regions from 
-static void prepare_sampled_buffer(float *buffer_region, float* buffer_region_sampled, int sample_size);
+
+/* sample s subset of regions
+ * input:
+ *      buffer_region, whole dataset
+ *      elem_size_region, memory size of one region
+ *      num_elems_region, how many regions in whole dataset
+ *      num_elemns_sample, how many samples
+ * output:
+ *      buffer_sample, 
+ */
+
+static void prepare_sampled_buffer(float *buffer_region, float *buffer_sample, int num_elems_region, int num_elems_sample);
+
+
+/*
+ * assign cluster id to stripped regions using global samples and clusterid
+ * input:
+ *      k: number of clusters
+ *      k_npdiv: how many nearest neighbours
+ *      div_func: which div function
+ */
+
+static void assign_clusterid(float *buffer_region,int num_region, float * buffer_sample_all, int num_sample_all,float *buffer_medoids,int k,int region_length,int k_npdiv, int div_func,  float *clusterids);
+
 
 
 #endif

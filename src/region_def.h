@@ -17,6 +17,8 @@ extern "C" {
 #define INCLUDE_ML
 #define USE_PARAL_CAVITY
 #define SAMPLING
+#define SAMPLE_SIZE (40)
+#define NUM_CONSUMER (32)
  
 // large scale experiment
 //#define USE_EXP

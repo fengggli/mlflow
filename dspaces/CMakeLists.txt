@@ -7,7 +7,7 @@ target_link_libraries(analysis ds_adaptor CLUSTER)
 add_executable(get_regions get_regions.c )                                                                                                                     
 target_link_libraries(get_regions ds_adaptor )
 
-add_executable(consumer consumer.c )                                                                                                                     
+add_executable(consumer consumer.c sample.c)                                                                                                                     
 target_link_libraries(consumer ds_adaptor )
 
 add_executable(put_regions put_regions.c run_with_dspaces.c)

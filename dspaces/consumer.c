@@ -242,8 +242,8 @@ int main(int argc, char **argv)
     int num_elems_region = num_region;
     size_t elem_size_region = (region_length)*(region_length)*3*sizeof(float);
 
-    float *buffer_regions = (float *)malloc(num_elems_region,elem_size_region);
-    if(buffer_regions== NULL){
+    float *buffer_region = (float *)malloc(num_elems_region,elem_size_region);
+    if(buffer_region== NULL){
         perror("    allocate space for striped  regions");
         exit(-1);
     }
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
      * aggregated sampled all data
      */
     // sampling related
-    int sample_size = 40;
+    int sample_size = SAMPLE_SIZE;
 
     // it will operate on the same sample
     //char var_name_sample[STRING_LENGTH];
@@ -291,7 +291,7 @@ int main(int argc, char **argv)
     bounds_sample_all[3] = (nprocs)*(sample_size) -1; 
 
     int num_elems_sample_all = (bounds_sample_all[3]-bounds_sample_all[0] + 1);
-    size_t elem_size_sample = (region_length)*(region_length)*3*sizeof(float);
+    size_t elem_size_sample_all = (region_length)*(region_length)*3*sizeof(float);
 
     float *buffer_sample_all = (float *)malloc(num_elems_sample_all*elem_size_sample_all);
     if(buffer_sample_all== NULL){
@@ -303,11 +303,15 @@ int main(int argc, char **argv)
      * divergence pairs
      * there will be num_region*num_region/2 divergences, each process will cal some of them
      */
+    // how many clusters
+    int cluster_k = 3;
 
 	// how to compute divergence
 	int k_npdiv = K_NPDIV;
     // use L2 divergence
     int div_func = 1;
+
+    int num_tasks = num_elems_sample_all*(num_elems_sample_all_-1)/2;
 
 	// Each process will need to compute its DataSpace index
     int tasks_per_proc = num_tasks/nprocs;
@@ -345,7 +349,7 @@ int main(int argc, char **argv)
 
     float *buffer_divs = (float *)malloc(num_elems_divs*elem_size_divs);
     if(buffer_divs== NULL){
-        perror("    allocate space for sample all");
+        perror("    allocate space for divs");
         exit(-1);
     }
     /*
@@ -366,11 +370,12 @@ int main(int argc, char **argv)
     bounds_medoids[3] = medoids_size -1; 
 
     int num_elems_medoids = bounds_medoids[3] - bounds_medoids[0] +1;
-    size_t elem_size_medoids = (region_length)*(region_length)*3*sizeof(float);
+    // each element if just a id(from all sample) of the medoids
+    size_t elem_size_medoids = sizeof(int);
 
-    float *buffer_medoids = (float *)malloc(num_elems_medoids*elem_size_medoids);
+    int *buffer_medoids = (int *)malloc(num_elems_medoids*elem_size_medoids);
     if(buffer_medoids== NULL){
-        perror("    allocate space for sampled  regions");
+        perror("    allocate space for medoids");
         exit(-1);
     }
     /*
@@ -429,12 +434,12 @@ int main(int argc, char **argv)
         get_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, &vel_data, elem_size_vel, &time_comm_vel);
         get_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, &pres_data, elem_size_pres &time_comm_pres);
 
-        divide(vel_data, dims,region_length,buffer_regions);
+        divide(vel_data, dims,region_length,buffer_region);
 
         // 2. sampling
-        prepare_sampled_buffer(buffer_region, buffer_region_sampled, elem_size_region, num_elems_buffer_region, num_elems_sample);
+        prepare_sampled_buffer(buffer_region, buffer_sample, elem_size_region, num_elems_region, num_elems_sample);
 
-        // 3. send sampled regions(only velocity)
+        // 3. send own sampled regions(only velocity)
         put_common_buffer(timestep, bounds_sample, rank, &gcomm, var_name_sampled, &buffer_sample, elem_size_region,  &time_comm_sampled);
 
         // 4. get aggregate sampled regions
@@ -451,11 +456,15 @@ int main(int argc, char **argv)
         get_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, &buffer_medoids, elem_size_medoids, &time_comm_medoids);
 
         // 7. assign clusterid
-        int clusterid[num_region];
-        assign_clusterid(buffer_region, buffer_medoids, clusterid);
+        float* clusterids = (float *)malloc(num_region*sizeof(float));
+        if(clusterids == NULL){
+            perror("malloc clusterids");
+            exit(-1);
+        }
+        assign_clusterid(buffer_region, num_region, buffer_sample_all, num_elems_sample_all, buffer_medoids, cluster_k, region_length, k_npdiv, clusterids);
 
         // 7. put clusterid
-        put_common_buffer(timestep, bounds_cluster, rank, &gcomm, var_name_cluster, &clusterid, elem_size_cluster, &time_comm_cluster);
+        put_common_buffer(timestep, bounds_cluster, rank, &gcomm, var_name_cluster, &clusterids, elem_size_cluster, &time_comm_cluster);
 
 
         // should wait until get all the divergence
@@ -466,6 +475,7 @@ int main(int argc, char **argv)
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
         my_message(msg, rank, LOG_CRITICAL);
 
+        /*
         double global_time_comm_raw;
         double global_time_comm_divs;
         double global_time_comp;
@@ -480,6 +490,7 @@ int main(int argc, char **argv)
           printf("%d raw Total %lf avg %lf\n",timestep,  global_time_comm_raw , global_time_comm_raw/ (nprocs));
           printf("%d divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
         }
+        */
         timestep++;
     }
 
@@ -497,6 +508,36 @@ int main(int argc, char **argv)
 
     if(table != NULL){
         free_lookup_table(table);
+    }
+    if(buffer_region != NULL){
+        free(buffer_region);
+        sprintf(msg,"-- buffer_region freed");
+        my_message(msg, rank, LOG_CRITICAL);
+    }
+    if(buffer_sample != NULL){
+        free(buffer_sample);
+        sprintf(msg,"-- buffer_sample freed");
+        my_message(msg, rank, LOG_CRITICAL);
+    }
+    if(buffer_sample_all != NULL){
+        free(buffer_sample_all);
+        sprintf(msg,"-- buffer_sample_all freed");
+        my_message(msg, rank, LOG_CRITICAL);
+    }
+    if(divs != NULL){
+        free(divs);
+        sprintf(msg,"-- divs freed");
+        my_message(msg, rank, LOG_CRITICAL);
+    }
+    if(medoids != NULL){
+        free(medoids);
+        sprintf(msg,"-- medoids freed");
+        my_message(msg, rank, LOG_CRITICAL);
+    }
+    if(clusterids != NULL){
+        free(clusterids);
+        sprintf(msg,"-- clusterids freed");
+        my_message(msg, rank, LOG_CRITICAL);
     }
 
     sprintf(msg, "now finalize the dspaces and exit");

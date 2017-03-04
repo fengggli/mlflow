@@ -1,6 +1,40 @@
 #include "analysis.h"
 #include "ds_adaptor.h"
 
+static void fill_div_matrix(double **matrix, float *buffer_divs, int num_region){
+    int count =0;
+    int i;
+    for(i = 1; i < num_region; i++){
+        for(j = 0; j < i;j++){
+            // its the same order as when its saved
+            matrix[i][j] = buffer_divs[count];
+            // also write to divergence file
+            count +=1;
+        }
+    }
+}
+
+// make sure this works
+static void prepare_medoids(int *buffer_medoids, int *clusterids, int num_elems, int cluster_k){
+    int i,j,n;
+    n = 0;
+    for (i = 0; i < 20; ++i)
+    {
+        for (j = 0; j < n; ++j)
+        {
+            // find new uniq value
+            if (!strcmp(clusterids[i], buffer_medoids[j]))
+               break;
+        }
+
+        if (j == n)
+            buffer_medoids[n++] = clusterids[i];
+        // at most cluster_k values
+        if(n >= cluster_k)
+            break;
+    }
+}
+
 int main(int argc, char **argv)
 {
     // init dspaces
@@ -34,28 +68,34 @@ int main(int argc, char **argv)
     dspaces_init(nprocs, 3, &gcomm, NULL);
 
     /*
-     * sampled vel data
+     * divs data
      */
-    // sampling related
-    int sample_size = 40;
-    int nprocs_consumer = 32;
+    // divs related
+    int sample_size = SAMPLE_SIZE;
+    int nprocs_consumer = NUM_CONSUMER;
 
-    char var_name_sample[STRING_LENGTH];
-    sprintf(var_name_sample, "sample");
+    int num_elems_sample_all = (nprocs_consumer)*(sample_size); 
+    int num_region = num_elems_sample_all;
+    // divs tasks
+    int num_tasks = num_elems_sample_all*(num_elems_sample_all_-1)/2;
 
-    int bounds_sampled[6]={0};
+    char var_name_divs[STRING_LENGTH];
+    sprintf(var_name_divs, "divs");
+
+    int bounds_divs[6]={0};
+
     // x_min
-    bounds_sampled[0] = 0;
+    bounds_divs[0] = 0;
 
     // x_max
-    bounds_sampled[3] = (nprocs_consumer)*(sample_size) -1; 
+    bounds_divs[3] = num_tasks-1; 
 
-    int num_elems_sample = (bounds_sampled[3] - bounds_sampled[0])*(bounds_sampled[4] - bounds_sampled[1])*(bounds_sampled[5] - bounds_sampled[2]);
-    size_t elem_size_sample = (region_length)*(region_length)*3*sizeof(float);
+    int num_elems_divs = (bounds_divs[3]-bounds_divs[0] + 1);
+    size_t elem_size_divs = sizeof(float);
 
-    float *buffer_regions_sampled = (float *)malloc(num_elems_sample*elem_size_sample);
-    if(buffer_regions_sampled== NULL){
-        perror("    allocate space for sampled  regions");
+    float *buffer_divs = (float *)malloc(num_elems_divs*elem_size_divs);
+    if(buffer_divs== NULL){
+        perror("    allocate space for divs");
         exit(-1);
     }
 
@@ -76,21 +116,41 @@ int main(int argc, char **argv)
     bounds_medoids[3] = medoids_size -1; 
 
     int num_elems_medoids = medoids_size;
-    size_t elem_size_medoids = (region_length)*(region_length)*3*sizeof(float);
+    size_t elem_size_medoids = sizeof(int);
 
-    float *buffer_medoids = (float *)malloc(num_elems_medoids*elem_size_medoids);
+    int *buffer_medoids = (int *)malloc(num_elems_medoids*elem_size_medoids);
     if(buffer_medoids== NULL){
         perror("    allocate space for sampled  regions");
         exit(-1);
     }
 
     /*
+     * div matrix (ragged)
+     */
+    double **matrix = malloc(num_region*sizeof(double *));
+
+    if(matrix == NULL){
+        perror("malloc for div matrix");
+        exit(-1);
+    }
+    matrix[0] = NULL;
+    for(i = 1; i< num_region; i++){
+        matrix[i] = malloc(i*sizeof(double));
+        if(matrix[i] == NULL) break;
+    }
+    if(i< num_region){
+        for(j = 0 ;j< i; j++)
+            free(matrix[j]);
+        perror("malloc 2 for div matrix");
+        exit(-2);
+    }
+
+    /*
      *  further select a subset from all the samples
      */
-    int select_size = 48;
-    float *buffer_region_selected = (float*)malloc(select_size*elem_size_medoids);
+    //int select_size = 48;
+    //float *buffer_region_selected = (float*)malloc(select_size*elem_size_medoids);
 
-    int num_region = NUM_REGION;
     /*
      * npdiv parameter
      */
@@ -116,40 +176,40 @@ int main(int argc, char **argv)
     while(timestep < MAX_VERSION){
 
         // updated on March 2
-        // 1. read samples from all consumer procs
-        put_common_buffer(timestep, bounds_sampled, rank, &gcomm, var_name_sampled, &buffer_region_sampled, elem_size_region,  &time_comm_sampled);
+        // 1. read divs from all consumer procs
+        get_common_buffer(timestep, bounds_divs, rank, &gcomm, var_name_divs, &buffer_divs, elem_size_divs,  &time_comm_divs);
 
-        // 2. using subset of them
-        select_sampled_buffer(buffer_region_sampled, buffer_region_selected,  select_size);
+
+        // 1.1. using subset of them
+        //select_sampled_buffer(buffer_region_sampled, buffer_region_selected,  select_size);
+
+        // 2. save divs into ragmatrix
+        fill_div_matrix(matrix, buffer_divs, num_region);
 
         // 3.  to decide k medoids
         int nclusters = NCLUSTERS;
         int npass = NPASS;
-        int clusterid[num_region];
+        int clusterids[num_region];
         double error;
         int ifound;
-
 
         sprintf(msg, "start clustering");
         my_message(msg, rank, LOG_WARNING);
 
         t1 = MPI_Wtime();
-        kmedoids(nclusters, num_region, matrix, npass, clusterid, &error, &ifound);
-
+        kmedoids(nclusters, num_region, matrix, npass, clusterids, &error, &ifound);
         t2 = MPI_Wtime();
         time_comp = t2-t1;
 
-        sprintf(msg, "finished clustering in %.3lf s  time", t2 -t1);
-        my_message(msg, rank, LOG_WARNING);
-
-        sprintf(msg, "error is %.3lf, %d times/ %d passes give the best results\n", error, ifound, npass);
-        my_message(msg, rank, LOG_WARNING);
+        printf(msg, "finished clustering in %.3lf s  time", t2 -t1);
+        printf(msg, "error is %.3lf, %d times/ %d passes give the best results\n", error, ifound, npass);
         
-        // 4. put the k medoids(k regions) to dspaces
-        prepare_medoids(buffer_region_selected, buffer_medoids, clusterid);
+        // 4. put the k medoids(k region ids) to dspaces
+        prepare_medoids(buffer_medoids, clusterids);
 
         put_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, &buffer_medoids, elem_size_medoids, &time_comm_medoids);
         
+        /*
         double global_time_comm_cluster;
         double global_time_comm_divs;
         double global_time_comp;
@@ -164,6 +224,7 @@ int main(int argc, char **argv)
           printf("%d cluster Total %lf avg %lf\n",timestep,  global_time_comm_cluster , global_time_comm_cluster/ (nprocs));
           printf("%d divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
         }
+        */
         timestep++;
     }
     

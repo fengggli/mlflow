@@ -265,7 +265,7 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
  *  after mapping
  *      
  */
-void divide(float *pdata, int dims[3], int l, int *p_num_region, float *buffer_regions){
+void divide(float *pdata, int dims[3], int l, int *p_num_region, float *buffer_region){
     int p,q,ii,jj, side_num_region;
 
     // index inside the logic block 
@@ -283,8 +283,8 @@ void divide(float *pdata, int dims[3], int l, int *p_num_region, float *buffer_r
     }
 
     // actual num_regions will be square of this
-    int num_regions_row = dims[0]/l;
-    int num_regions_col =  dims[1]/l;
+    int num_region_row = dims[0]/l;
+    int num_region_col =  dims[1]/l;
     *p_num_region = dims[0]*dims[1]/(l*l); // this will be (201-1)/10 = 20
 
     int d1 = *p_num_region;
