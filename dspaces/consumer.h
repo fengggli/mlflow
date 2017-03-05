@@ -51,7 +51,7 @@ void cal_local_divs(float *buffer_regions, int region_length, int k_npdiv, int d
  *      buffer_sample, 
  */
 
-static void prepare_sampled_buffer(float *buffer_region, float *buffer_sample, int num_elems_region, int num_elems_sample);
+void prepare_sampled_buffer(float *buffer_region, float *buffer_sample, int num_elems_region, int num_elems_sample, int region_length);
 
 
 /*
@@ -62,7 +62,7 @@ static void prepare_sampled_buffer(float *buffer_region, float *buffer_sample, i
  *      div_func: which div function
  */
 
-static void assign_clusterid(float *buffer_region,int num_region, float * buffer_sample_all, int num_sample_all,float *buffer_medoids,int k,int region_length,int k_npdiv, int div_func,  float *clusterids);
+void assign_clusterid(float *buffer_region,int num_region, float * buffer_sample_all, int num_sample_all,int *buffer_medoids,int k,int region_length,int k_npdiv, int div_func,  float *clusterids);
 
 
 

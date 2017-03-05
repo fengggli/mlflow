@@ -3,7 +3,7 @@
 
 static void fill_div_matrix(double **matrix, float *buffer_divs, int num_region){
     int count =0;
-    int i;
+    int i, j;
     for(i = 1; i < num_region; i++){
         for(j = 0; j < i;j++){
             // its the same order as when its saved
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
     int num_elems_sample_all = (nprocs_consumer)*(sample_size); 
     int num_region = num_elems_sample_all;
     // divs tasks
-    int num_tasks = num_elems_sample_all*(num_elems_sample_all_-1)/2;
+    int num_tasks = num_elems_sample_all*(num_elems_sample_all-1)/2;
 
     char var_name_divs[STRING_LENGTH];
     sprintf(var_name_divs, "divs");
@@ -134,6 +134,7 @@ int main(int argc, char **argv)
         exit(-1);
     }
     matrix[0] = NULL;
+    int i,j;
     for(i = 1; i< num_region; i++){
         matrix[i] = malloc(i*sizeof(double));
         if(matrix[i] == NULL) break;
@@ -168,9 +169,11 @@ int main(int argc, char **argv)
     int timestep=0;
 
     // timer
-    double time_comm_sampled = 0;
+    double time_comm_medoids = 0;
     double time_comm_cluster = 0;
+    double time_comm_divs = 0;
     double time_comp =0;
+    double t1, t2;
 
     // we will receive each timestamp
     while(timestep < MAX_VERSION){
@@ -205,7 +208,7 @@ int main(int argc, char **argv)
         printf(msg, "error is %.3lf, %d times/ %d passes give the best results\n", error, ifound, npass);
         
         // 4. put the k medoids(k region ids) to dspaces
-        prepare_medoids(buffer_medoids, clusterids);
+        prepare_medoids(buffer_medoids, clusterids, num_region, nclusters);
 
         put_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, &buffer_medoids, elem_size_medoids, &time_comm_medoids);
         

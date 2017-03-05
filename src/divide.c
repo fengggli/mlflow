@@ -266,7 +266,8 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
  *      
  */
 void divide(float *pdata, int dims[3], int l, int *p_num_region, float *buffer_region){
-    int p,q,ii,jj, side_num_region;
+    int p,q,ii,jj;
+    //side_num_region;
 
     // index inside the logic block 
     int index_x, index_y;
@@ -287,7 +288,7 @@ void divide(float *pdata, int dims[3], int l, int *p_num_region, float *buffer_r
     int num_region_col =  dims[1]/l;
     *p_num_region = dims[0]*dims[1]/(l*l); // this will be (201-1)/10 = 20
 
-    int d1 = *p_num_region;
+    //int d1 = *p_num_region;
     int d2 = (l)*(l);
     int d3 = 3;
 
@@ -308,7 +309,7 @@ void divide(float *pdata, int dims[3], int l, int *p_num_region, float *buffer_r
                     index_y = q*l+jj;
 
                     // mapped the logic address into linear address
-                    linear_index = index_x*dim[1] + index_y;
+                    linear_index = index_x*dims[1] + index_y;
                     tripple_address = pdata+ 3*linear_index;
                     ux = *tripple_address;
                     uy = *(tripple_address + 1);

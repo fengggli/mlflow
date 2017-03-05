@@ -17,39 +17,39 @@
 
 using namespace std;
 
-// this will map cluster id buffer into the same size of pressure buffer
-// this function is similar to divide function
-// dim is the how many points in each side// 201
-void map_regions(float *cluster_raw, float *cluster_data, const unsigned int dim, const unsigned int region_length){
+static void map_regions(float *buffer_cluster, float *cluster_data, const unsigned int dims[3], const unsigned int region_length){
     int p, q, ii, jj, index_x, index_y, linear_index;
 
     int l = region_length;
-    printf("dim == %d, region_length = %d\n", dim, region_length);
+    printf("dims== %d %d %d , region_length = %d\n", dims[0],dims[1], dims[2], region_length);
 
     float clusterid;
 
-    if((dim - 1)%l != 0){
+    if((dims[0])%l != 0|| dims[1]%l != 0){
         printf("not pefect division, try different region size of datacut size\n");
         exit(-1);
     }
-    int side_num_region = (dim -1)/l; // this will be (201-1)/10 = 20
-    for(p = 0; p < side_num_region; p++){
-        for( q = 0; q < side_num_region; q++){
-            clusterid = *(cluster_raw + side_num_region*p + q);
+
+    int num_region_row = dims[0]/l;
+    int num_region_col =  dims[1]/l;
+
+    for(p = 0; p < num_region_row; p++){
+        for( q = 0; q < num_region_col; q++){
+            clusterid = *(buffer_cluster + num_region_col*p + q);
             // for each region
             // this region will have corner:
             //  (pl, ql) , (pl, (q+1)l)
             //  ((p+1)l,ql), ((p+1)l,(q+1)l)
             //  also the region all have the center (pl+l/2, ql+l/2)
-            for(ii = 0; ii < l+1; ii++){
-                for(jj = 0; jj < l+1; jj++){
+            for(ii = 0; ii < l; ii++){
+                for(jj = 0; jj < l; jj++){
                     // for each point inside the region
                     index_x = p*l+ii;
                     index_y = q*l+jj;
 
                     // mapped the logic address into linear address
                     // will be overlap but it's okay
-                    linear_index = index_x*dim + index_y;
+                    linear_index = index_x*dims[1] + index_y;
                     *(cluster_data +linear_index) = clusterid;
                 }
             }
@@ -81,7 +81,6 @@ int main(int argc, char* argv[])
 
   unsigned int dims[3] = {POINTS_SIDE, POINTS_SIDE, 1};
   unsigned int num_points = dims[0]*dims[1]*dims[2];
-  unsigned int num_regions = NUM_REGION;
   unsigned int region_length = REGION_LENGTH;
     
 
@@ -133,22 +132,31 @@ int main(int argc, char* argv[])
     // vel and pressure buffer
     //double time_used, time_used_cluster;
     double t1, t2;
-    double time_comm_raw, time_comm_cluster;
+    double time_comm_raw, time_comm_cluster, time_comm_vel, time_comm_pres;
     time_comm_raw = 0;
     time_comm_cluster =0;
+    time_comm_vel=0;
+    time_comm_pres = 0;
+   
     double time_comp=0;
 
     // if we define strict max_reader in dspaces configurations, we can read the same variable
+    
+    /*
+     * vel and pressure data
+     */
     char var_name_vel[STRING_LENGTH];
     char var_name_pres[STRING_LENGTH];
-    char var_name_cluster[STRING_LENGTH];
     sprintf(var_name_vel, "VEL");
     sprintf(var_name_pres, "PRES");
-    sprintf(var_name_cluster, "CLUSTER");
+
     // data layout
     uint64_t gdims_raw[3] = {POINTS_SIDE, POINTS_SIDE,1};
     dspaces_define_gdim(var_name_vel, 3,gdims_raw);
     dspaces_define_gdim(var_name_pres, 3,gdims_raw);
+
+    size_t elem_size_vel = sizeof(float)*3;
+    size_t elem_size_pres = sizeof(float);
 
 
     //x_min,y_min,z_min,x_max_y_max_z_max
@@ -158,26 +166,41 @@ int main(int argc, char* argv[])
 
 
     // prepare space
-    float * vel_data = (float *)malloc(num_points* sizeof(float)*3);
+    float * vel_data = (float *)malloc(num_points* elem_size_vel);
     if(vel_data == NULL){
           perror("vel data allocated error");
           exit(-1);
       }
 
     // prepare space for pres
-    float * pres_data = (float *)malloc(num_points* sizeof(float));
+    float * pres_data = (float *)malloc(num_points*elem_size_pres);
     if(pres_data == NULL){
           perror("pres data allocated error");
           exit(-1);
       }
 #ifdef INCLUDE_ML
 
-    // this may be space efficiency but will work 
-    float * cluster_raw = (float *)malloc(num_regions* sizeof(float));
-    if(cluster_raw == NULL){
-          perror("cluster data allocated error");
-          exit(-1);
-      }
+    int num_region = NUM_REGION;
+
+    char var_name_cluster[STRING_LENGTH];
+    sprintf(var_name_cluster, "cluster");
+
+    int bounds_cluster[6]={0};
+    // x_min
+    bounds_cluster[0] = 0;
+
+    // x_max
+    bounds_cluster[3] = num_region;
+
+    int num_elems_cluster = bounds_cluster[3] - bounds_cluster[0]+1;
+    size_t elem_size_cluster = sizeof(float);
+
+    float *buffer_cluster = (float *)malloc(num_elems_cluster*elem_size_cluster);
+    if(buffer_cluster== NULL){
+        perror("    allocate space cluster");
+        exit(-1);
+    }
+
 
     //cluster info will be small and 
     float * cluster_data = (float *)malloc(num_points* sizeof(float));
@@ -202,9 +225,12 @@ int main(int argc, char* argv[])
         cout <<"-----current timestep" << timestep << endl;
     }
 
-    // read data from dataspces
+    // 1. read simulation  data from dataspces
     // this will get blocked until new data available
-    get_raw_buffer(timestep,bounds, NULL ,rank, &gcomm, var_name_vel, &vel_data, var_name_pres,  &pres_data, &time_comm_raw);
+
+    get_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
+    get_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
+    time_comm_raw = time_comm_vel+ time_comm_pres;
 
 
     //update using vel and pres info, if there is more ranks I need to partition first
@@ -213,14 +239,17 @@ int main(int argc, char* argv[])
 #else
     // updated on March 2
     // 1. get medoids from 
-    int num_region = NUM_REGION;
 
     // also get cluster buffer here
-    get_cluster_buffer(timestep, &num_region ,rank, &gcomm, var_name_cluster, &cluster_raw , &time_comm_cluster);
+    //get_cluster_buffer(timestep, &num_region ,rank, &gcomm, var_name_cluster, &cluster_raw , &time_comm_cluster);
+
+
+    // 2. read cluster  data from dataspces
+    get_common_buffer(timestep, bounds_cluster, rank, &gcomm, var_name_cluster,(void **) &buffer_cluster, elem_size_cluster, &time_comm_cluster);
 
     
     t1 = MPI_Wtime();
-    map_regions(cluster_raw, cluster_data, dims[0], region_length);
+    map_regions(buffer_cluster, cluster_data, dims, region_length);
     attributes.UpdateFields(vel_data, pres_data, cluster_data);
 #endif
 
@@ -267,8 +296,8 @@ int main(int argc, char* argv[])
         free(cluster_data);
         cout << "cluster is freed" << endl;
     }
-    if(cluster_raw != NULL){
-        free(cluster_raw);
+    if(buffer_cluster!= NULL){
+        free(buffer_cluster);
         cout << "cluster is freed" << endl;
     }
 #endif

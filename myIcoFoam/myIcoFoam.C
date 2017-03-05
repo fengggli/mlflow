@@ -233,6 +233,8 @@ int main(int argc, char *argv[])
 
         // time 
         double time_comm = 0;
+        double time_comm_vel = 0;
+        double time_comm_pres = 0;
         double time_comp = 0;
         double t1, t2;
         
@@ -379,8 +381,9 @@ int main(int argc, char *argv[])
        */
 
 
-        put_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, &vel_data, elem_size_vel, &time_comm_vel);
-        put_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, &pres_data, elem_size_pres &time_comm_pres);
+        put_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
+        put_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
+        time_comm = time_comm_vel + time_comm_pres;
 
         MPI_Barrier(gcomm);
 

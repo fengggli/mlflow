@@ -2,7 +2,7 @@
 
 //#define debug_1
 //
-void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, float **p_buffer,size_t elem_size, double *p_time_used){
+void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void **p_buffer,size_t elem_size, double *p_time_used){
     // how many number of elements are actually written
     //int num_elems;
     char msg[STRING_LENGTH];
@@ -25,7 +25,7 @@ void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
     ub[1] = bounds[4];
     ub[2] = bounds[5];
 
-    num_points = (bounds[3]-bounds[0]+1)*(bounds[4]- bounds[1]+1)(bounds[5]- bounds[2]+1);
+    num_points = (bounds[3]-bounds[0]+1)*(bounds[4]- bounds[1]+1)*(bounds[5]- bounds[2]+1);
 
     // Define the dimensionality of the data to be received 
     int ndim = 3;
@@ -47,7 +47,7 @@ void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
 
     // read all regions in once
     t1 = MPI_Wtime();
-    ret_get = dspaces_get(var_name, timestep, elem_size, ndim, lb, ub, *p_buffer_data);
+    ret_get = dspaces_get(var_name, timestep, elem_size, ndim, lb, ub, *p_buffer);
     t2 = MPI_Wtime();
 
     // now we can release region lock
@@ -67,7 +67,7 @@ void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
     
 }
 
-void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, float **p_buffer,size_t elem_size, double *p_time_used){
+void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void  **p_buffer,size_t elem_size, double *p_time_used){
     // how many number of elements are actually written
     //int num_elems;
     char msg[STRING_LENGTH];
@@ -90,7 +90,7 @@ void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
     ub[1] = bounds[4];
     ub[2] = bounds[5];
 
-    num_points = (bounds[3]-bounds[0]+1)*(bounds[4]- bounds[1]+1)(bounds[5]- bounds[2]+1);
+    num_points = (bounds[3]-bounds[0]+1)*(bounds[4]- bounds[1]+1)*(bounds[5]- bounds[2]+1);
 
     // Define the dimensionality of the data to be received 
     int ndim = 3;
@@ -112,7 +112,7 @@ void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
 
     // write all data in once
     t1 = MPI_Wtime();
-    ret_put = dspaces_put(var_name, timestep, elem_size, ndim, lb, ub, *p_buffer_data);
+    ret_put = dspaces_put(var_name, timestep, elem_size, ndim, lb, ub, *p_buffer);
     t2 = MPI_Wtime();
 
     // now we can release region lock
