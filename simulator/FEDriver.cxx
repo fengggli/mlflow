@@ -191,6 +191,7 @@ int main(int argc, char* argv[])
 
     // x_max
     bounds_cluster[3] = num_region;
+    printf("    number of regions %d\n", num_region);
 
     int num_elems_cluster = bounds_cluster[3] - bounds_cluster[0]+1;
     size_t elem_size_cluster = sizeof(float);

@@ -385,10 +385,10 @@ int main(int argc, char **argv)
 
     int bounds_cluster[6]={0};
     // x_min
-    bounds_cluster[0] = nprocs*num_region;
+    bounds_cluster[0] = rank*num_region;
 
     // x_max
-    bounds_cluster[3] = (nprocs+1)*num_region -1;
+    bounds_cluster[3] = (rank+1)*num_region -1;
 
     int num_elems_cluster = bounds_cluster[3] - bounds_cluster[0]+1;
     size_t elem_size_cluster = sizeof(float);

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 	get_bound_dist, variable type int to float
 	memcpy function, dest and source
 	corrected the prepare_medoids
+## status 
+	only now analysis part err  in timstep 3
 
 	
 

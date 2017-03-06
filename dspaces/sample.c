@@ -34,7 +34,7 @@ void assign_clusterid(float *buffer_region,int num_region, float * buffer_sample
                 clusterid = j;
             }
         }
-        printf("clusterid for region %d is %d", i, clusterid);
+        printf("clusterid for region %d is %f\n", i, clusterid);
         clusterids[i] = clusterid;
     }
 
