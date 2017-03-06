@@ -209,7 +209,7 @@ int main(int argc, char **argv)
     unsigned int dims[3] = {strip_size, POINTS_SIDE, 1};
     size_t elem_size_vel = sizeof(float)*3;
     size_t elem_size_pres = sizeof(float);
-    uint64_t num_elems = dims[0]*dims[1]*dims[2];
+    unsigned int num_elems = dims[0]*dims[1]*dims[2];
 
     //x_min,y_min,z_min,x_max_y_max_z_max
     int bounds[6]={0};
@@ -439,33 +439,44 @@ int main(int argc, char **argv)
         get_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
         get_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
 
+        // note
         int num_region_2;
         divide(vel_data, dims,region_length,&num_region_2, buffer_region);
+        printf("divide completed %d regions generated\n", num_region_2);
 
         // 2. sampling
         prepare_sampled_buffer(buffer_region, buffer_sample, num_elems_region, num_elems_sample, region_length);
+        printf("local_sample generated\n");
 
         // 3. send own sampled regions(only velocity)
         put_common_buffer(timestep, bounds_sample, rank, &gcomm, var_name_sample,(void **)&buffer_sample, elem_size_region,  &time_comm_sample);
+        printf("local_sample sent\n");
 
-        // 4. get aggregate sampled regions
-        get_common_buffer(timestep, bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
+        // 4. get aggregated sampled regions(dspaces get blocked if one applciation both writes and reds on the same variable)
+        MPI_Barrier(gcomm);
+        get_common_buffer_unblocking(timestep, bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
+        printf("global_sample got\n");
 
         // 5. calculate subset of divergence pairs based on sampled regions
         cal_local_divs(buffer_sample_all, region_length, k_npdiv,div_func,table, pair_index_l, pair_index_h, rank, buffer_divs, &time_comp_divs);
+        printf("divergence calculated\n");
 
         // 6. send divergence to analyis
         put_common_buffer(timestep, bounds_divs, rank, &gcomm, var_name_divs, (void **)&buffer_divs, elem_size_divs,  &time_comm_divs);
+        printf("divergence sent\n");
 
         // wait here, for better performance those three steps should be put in next timestep
         // 6. get medoids info 
         get_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, (void **)&buffer_medoids, elem_size_medoids, &time_comm_medoids);
+        printf("medoids are %d %d %d\n",buffer_medoids[0], buffer_medoids[1], buffer_medoids[2]);
 
         // 7. assign clusterid
         assign_clusterid(buffer_region, num_region, buffer_sample_all, num_elems_sample_all, buffer_medoids, cluster_k, region_length, k_npdiv, div_func,  buffer_cluster);
+        printf("clusterid  assigned\n");
 
         // 7. put clusterid
-        put_common_buffer(timestep, bounds_cluster, rank, &gcomm, var_name_cluster, &buffer_cluster, elem_size_cluster, &time_comm_cluster);
+        put_common_buffer(timestep, bounds_cluster, rank, &gcomm, var_name_cluster, (void **)&buffer_cluster, elem_size_cluster, &time_comm_cluster);
+        printf("clusterid  put to dspaces\n");
 
 
         // should wait until get all the divergence

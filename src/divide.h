@@ -63,7 +63,7 @@ void divide_synthetic(int dim, int l, int *p_num_region, float **p_regions);
  *  p_regions: the tripple features(vx, vy, dc). there will be num_regions* points_in_each_region*3 float numbers,note that features are stored in flat format.
  */
 
-void divide(float *pdata, int dims[3], int l, int *p_num_region, float *buffer_regions);
+void divide(float *pdata, unsigned int dims[3], int l, int *p_num_region, float *buffer_regions);
 
 #endif
 

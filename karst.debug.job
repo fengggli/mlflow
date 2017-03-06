@@ -1,8 +1,7 @@
 #!/bin/bash  
 #PBS -N databroker
-#PBS -q debug
 #PBS -j oe
-#PBS -l walltime=00:20:00
+#PBS -l walltime=00:10:00
 #PBS -l nodes=5:ppn=16
 #PBS -o results/$PBS_JOBID.output
 
@@ -12,15 +11,15 @@
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
-CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity
+CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity_fine_1024
 
 mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR
 
 # num of process in each side
-SIM_PROC_SIDE=4
+SIM_PROC_SIDE=1
 SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE})) # square of proc_side
-CONSUMER_PROCS=$((${SIM_PROCS}*2))
+CONSUMER_PROCS=$((${SIM_PROCS}*1))
 ANALYSIS_PROCS=1
 CATALYST_PROCS=1
 
@@ -74,7 +73,7 @@ $CMD_CONSUMER &
 echo "reader applciation lauched: $CMD_CONSUMER"
 
 # the analysis application
-CMD_ANALYSIS="mpirun  -n ${ANALYSIS_PROCS}  --output-filename ${PBS_RESULTDIR}/analysis.log ${BUILD}/analysis ${PBS_RESULTDIR}"
+CMD_ANALYSIS="mpirun  -n ${ANALYSIS_PROCS}  --output-filename ${PBS_RESULTDIR}/analysis.log ${BUILD}/analysis ${CONSUMER_PROCS}"
 $CMD_ANALYSIS &
 echo "analysis applciation lauched:$CMD_ANALYSIS"
 

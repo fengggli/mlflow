@@ -23,7 +23,7 @@ static void prepare_medoids(int *buffer_medoids, int *clusterids, int num_elems,
         for (j = 0; j < n; ++j)
         {
             // find new uniq value
-            if (!strcmp(clusterids[i], buffer_medoids[j]))
+            if (clusterids[i] !=buffer_medoids[j])
                break;
         }
 
@@ -41,13 +41,16 @@ int main(int argc, char **argv)
     int nprocs, rank;
     MPI_Comm gcomm;
 
-    char result_path[STRING_LENGTH]="";
+    int nprocs_consumer;
 
     // output results into a folded specified with a slurm jobid
     if(argc == 2){
-        strcpy(result_path, argv[1]);
+        nprocs_consumer = atoi(argv[1]);
     }
-
+    else{
+        printf("need to specify consumer procs, now exit\n");
+        exit(-1);
+    }
 
     // MPI communicator
     MPI_Init(&argc, &argv);
@@ -72,7 +75,6 @@ int main(int argc, char **argv)
      */
     // divs related
     int sample_size = SAMPLE_SIZE;
-    int nprocs_consumer = NUM_CONSUMER;
 
     int num_elems_sample_all = (nprocs_consumer)*(sample_size); 
     int num_region = num_elems_sample_all;
@@ -104,7 +106,7 @@ int main(int argc, char **argv)
      * all process will receive the same medoids info
      */
     // generate 3 clusters in the end
-    int medoids_size = 3;
+    int medoids_size = NCLUSTERS;
     char var_name_medoids[STRING_LENGTH];
     sprintf(var_name_medoids, "medoids");
 
@@ -155,13 +157,8 @@ int main(int argc, char **argv)
     /*
      * npdiv parameter
      */
-    int k_npdiv = K_NPDIV;
-
 
     sprintf(msg, "k = %d, max_timestep= %d", K_NPDIV,MAX_VERSION );
-    my_message(msg, rank, LOG_CRITICAL);
-
-    sprintf(msg, "ds init ok, result path:%s, address: %p,len: %zu\n",result_path, result_path, strlen(result_path) );
     my_message(msg, rank, LOG_CRITICAL);
 
 
@@ -170,7 +167,6 @@ int main(int argc, char **argv)
 
     // timer
     double time_comm_medoids = 0;
-    double time_comm_cluster = 0;
     double time_comm_divs = 0;
     double time_comp =0;
     double t1, t2;
@@ -180,7 +176,7 @@ int main(int argc, char **argv)
 
         // updated on March 2
         // 1. read divs from all consumer procs
-        get_common_buffer(timestep, bounds_divs, rank, &gcomm, var_name_divs, &buffer_divs, elem_size_divs,  &time_comm_divs);
+        get_common_buffer(timestep, bounds_divs, rank, &gcomm, var_name_divs,(void **) &buffer_divs, elem_size_divs,  &time_comm_divs);
 
 
         // 1.1. using subset of them
@@ -210,7 +206,7 @@ int main(int argc, char **argv)
         // 4. put the k medoids(k region ids) to dspaces
         prepare_medoids(buffer_medoids, clusterids, num_region, nclusters);
 
-        put_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, &buffer_medoids, elem_size_medoids, &time_comm_medoids);
+        put_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, (void **)&buffer_medoids, elem_size_medoids, &time_comm_medoids);
         
         /*
         double global_time_comm_cluster;

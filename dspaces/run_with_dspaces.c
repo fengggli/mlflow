@@ -22,7 +22,7 @@ int generate_regions(char *hdfpath, int region_length, int *p_num_region, float 
     read_data(hdfpath, &pressure, &velocity, &dim1, &dim2, &dim3);
 
     // dim1 is the dimension of x, we assume that the datacut is a square: dim1 = dim2
-    divide(velocity, dim1, region_length, p_num_region, p_regions);
+    divide(velocity, dim1, region_length, p_num_region, *p_regions);
 
     printf("    all the regions are divided\n");
     

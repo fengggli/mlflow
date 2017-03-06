@@ -265,7 +265,7 @@ void divide_synthetic(int dim, int region_length, int *p_num_region, float **p_r
  *  after mapping
  *      
  */
-void divide(float *pdata, int dims[3], int l, int *p_num_region, float *buffer_region){
+void divide(float *pdata, unsigned int dims[3], int l, int *p_num_region, float *buffer_region){
     int p,q,ii,jj;
     //side_num_region;
 

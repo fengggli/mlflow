@@ -101,6 +101,18 @@
     Feb 27
     seems distance matrix of A only execute one iteration
     add print and see what happens
+2033729
+    Mar 5
+    err 11 when receiving from dspaces
+    1. changed nprocs_consumer
+    2. blockMesh generated again
+2036132
+    mar 5
+    fixed: dimension error, caused by cmake cmake -DADD_FLAGS=-DPROCS_PER_DIM=2 .. >cmake.log in build_1
+2036701
+    Mar 5 16:41
+    get global samples blocked. now using 1 consumer instead
+    
         
 
 

@@ -18,10 +18,9 @@ extern "C" {
 #define USE_PARAL_CAVITY
 #define SAMPLING
 #define SAMPLE_SIZE (40)
-#define NUM_CONSUMER (32)
  
 // large scale experiment
-//#define USE_EXP
+#define USE_EXP
 
 // whether or not using same lock eachtime, only affect the ds_adaptor
 // only affect raw data, writer won't start new
@@ -34,14 +33,16 @@ extern "C" {
     #define MAX_VERSION (100)
     #define CASE_LENGTH (1024)
     #define REGION_LENGTH (32)
+    //#define CASE_LENGTH (32)
+    //#define REGION_LENGTH (4)
     #ifndef PROCS_PER_DIM
         #error "need to define process per side"
     #endif
     // need to define from outside
     //#define PROCS_PER_DIM (2)
     // this will be 40*4+1 = 161 (161 points in each side for 4^2 = 16 procs)
-    #define POINTS_SIDE (CASE_LENGTH*PROCS_PER_DIM +1) //2^13
-    #define NUM_REGION (((POINTS_SIDE -1.0)/REGION_LENGTH)*((POINTS_SIDE-1.0)/REGION_LENGTH)) // (2^13/2^8)^2 = 2^10 regions
+    #define POINTS_SIDE (CASE_LENGTH*PROCS_PER_DIM) //2^13
+    #define NUM_REGION (POINTS_SIDE/REGION_LENGTH)*(POINTS_SIDE*REGION_LENGTH) // (2^13/2^8)^2 = 2^10 regions
 
     #define K_NPDIV (5)
     #define NPASS (100)

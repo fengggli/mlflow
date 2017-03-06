@@ -10,8 +10,8 @@ target_link_libraries(get_regions ds_adaptor )
 add_executable(consumer consumer.c sample.c)                                                                                                                     
 target_link_libraries(consumer ds_adaptor )
 
-add_executable(put_regions put_regions.c run_with_dspaces.c)
-target_link_libraries(put_regions ds_adaptor )
+#add_executable(put_regions put_regions.c run_with_dspaces.c)
+#target_link_libraries(put_regions ds_adaptor )
 #add_executable(catalyst_2 catalyst.c)
 
 #Dynamic/Shared Libs
