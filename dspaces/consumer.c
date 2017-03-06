@@ -81,19 +81,10 @@ void cal_local_divs(float *buffer_all_regions, int region_length, int k_npdiv, i
         
 
 #ifdef debug_1
-        snprintf(msg, STRING_LENGTH,"got div %.6f ", div);
-        my_message(msg, rank, LOG_WARNING);
+        //snprintf(msg, STRING_LENGTH,"got div of region %d and region %d: %.6f ",a, b, div);
+        //my_message(msg, rank, LOG_WARNING);
 #endif
-        if(!isfinite(div)){
-            snprintf(msg, STRING_LENGTH,"ERR:got infinite div %f", div);
-            my_message(msg, rank, LOG_CRITICAL);
-            exit(-1);
-        }
-        if(isnan(div)){
-            snprintf(msg, STRING_LENGTH,"ERR:got nan  div %f", div);
-            my_message(msg, rank, LOG_CRITICAL);
-            exit(-1);
-        }
+        
         // save it into buffer first
         divs_this_rank[i - pair_index_l] = div;
         // record the time for communication and calculation
@@ -256,6 +247,10 @@ int main(int argc, char **argv)
      */
     // sampling related
     int sample_size = SAMPLE_SIZE;
+    if(sample_size > num_region){
+        printf("cannot sample more than number of regions\n");
+        exit(-1);
+    }
 
     char var_name_sample[STRING_LENGTH];
     sprintf(var_name_sample, "sample");
@@ -306,7 +301,7 @@ int main(int argc, char **argv)
      * there will be num_region*num_region/2 divergences, each process will cal some of them
      */
     // how many clusters
-    int cluster_k = 3;
+    int cluster_k = NCLUSTERS;
 
 	// how to compute divergence
 	int k_npdiv = K_NPDIV;
@@ -360,7 +355,7 @@ int main(int argc, char **argv)
      */
     
     // generate 3 clusters in the end
-    int medoids_size = 3;
+    int medoids_size = NCLUSTERS;
     char var_name_medoids[STRING_LENGTH];
     sprintf(var_name_medoids, "medoids");
 
@@ -424,10 +419,7 @@ int main(int argc, char **argv)
     int timestep=0;
     while(timestep < MAX_VERSION){
 
-        if(rank == 0){
-            sprintf(msg, "********************timestep %d now start!\n",timestep);
-            my_message(msg, rank, LOG_WARNING);
-        }
+        printf("********************timestep %d now start!\n",timestep);
 
         // do we need this barrier?
         MPI_Barrier(gcomm);
@@ -443,10 +435,21 @@ int main(int argc, char **argv)
         int num_region_2;
         divide(vel_data, dims,region_length,&num_region_2, buffer_region);
         printf("divide completed %d regions generated\n", num_region_2);
+#ifdef debug_1
+        int spacing = elem_size_region/sizeof(float);
+        printf(" first data of all regions: %f %f %f \n", buffer_region[0], buffer_region[1], buffer_region[2]);
+        printf(" last data of all regions: %f %f %f \n", buffer_region[spacing*num_region -3], buffer_region[spacing*num_region -2], buffer_region[spacing*num_region-1]);
+#endif
 
         // 2. sampling
         prepare_sampled_buffer(buffer_region, buffer_sample, num_elems_region, num_elems_sample, region_length);
         printf("local_sample generated\n");
+
+#ifdef debug_1
+        spacing = elem_size_region/sizeof(float);
+        printf(" first data of local samples: %f %f %f \n", buffer_sample[0], buffer_sample[1], buffer_sample[2]);
+        printf(" last data of local samples: %f %f %f \n", buffer_sample[spacing*num_elems_sample -3], buffer_sample[spacing*num_elems_sample -2], buffer_sample[spacing*num_elems_sample-1]);
+#endif
 
         // 3. send own sampled regions(only velocity)
         put_common_buffer(timestep, bounds_sample, rank, &gcomm, var_name_sample,(void **)&buffer_sample, elem_size_region,  &time_comm_sample);
@@ -456,6 +459,12 @@ int main(int argc, char **argv)
         MPI_Barrier(gcomm);
         get_common_buffer_unblocking(timestep, bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
         printf("global_sample got\n");
+
+#ifdef debug_1
+        spacing = elem_size_region/sizeof(float);
+        printf("\tfirst data of all samples: %f %f %f \n", buffer_sample_all[0], buffer_sample_all[1], buffer_sample_all[2]);
+        printf("\tlast data of all samples: %f %f %f \n", buffer_sample_all[spacing*num_elems_sample -3], buffer_sample_all[spacing*num_elems_sample -2], buffer_sample_all[spacing*num_elems_sample-1]);
+#endif
 
         // 5. calculate subset of divergence pairs based on sampled regions
         cal_local_divs(buffer_sample_all, region_length, k_npdiv,div_func,table, pair_index_l, pair_index_h, rank, buffer_divs, &time_comp_divs);
@@ -481,8 +490,6 @@ int main(int argc, char **argv)
 
         // should wait until get all the divergence
         //sprintf(msg,"--time eclapsed for read regions// calculation // put divs:%.4lf %.4lf, %.4f", time_comm_vel, time_comp, time_comm_divs);
-        my_message(msg, rank, LOG_CRITICAL);
-
 
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
         my_message(msg, rank, LOG_CRITICAL);

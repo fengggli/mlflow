@@ -60,9 +60,9 @@ float get_bound_dist(int i, float *A, int length, int k){
     // the index of k-th least distance
     int j;
     // values of this point
-    int tmp_x = *(A + 3*i);
-    int tmp_y = *(A + 3*i +1);
-    int tmp_z = *(A + 3*i +2);
+    float tmp_x = *(A + 3*i);
+    float tmp_y = *(A + 3*i +1);
+    float tmp_z = *(A + 3*i +2);
 
     // get distances with all other points
     float *tmp_array = (float *)malloc(sizeof(float)*length);
@@ -80,6 +80,9 @@ float get_bound_dist(int i, float *A, int length, int k){
         else{
            dist_tmp = pow(tmp_x - *(A + 3*j),2) + pow(tmp_y - *(A + 3*j +1), 2)+ pow(tmp_z - *(A+3*j+2),2);
         }
+        if(dist_tmp == 0){
+            printf("x:(%f, %f, %f), y(%f, %f, %f)\n", tmp_x, tmp_y, tmp_z, *(A + 3*j),*(A + 3*j+1),*(A + 3*j+2));
+        }
         tmp_array[j] = dist_tmp;
     }
     //float *array_to_sort = DisMatrix + i*length;
@@ -93,7 +96,7 @@ float get_bound_dist(int i, float *A, int length, int k){
  * calculate the divergence of two regions
  * input:
  *      A and B: starting address of region A and region B; note that each region should be continuous in memory 
- *      region_length: size length of each region: num of points in each side -1
+ *      region_length: size length of each region: num of points in each side
  *      k the nearest neibours need to check in divergence
  *      div_func: divergence function to use:
  * return: divergence  
@@ -103,7 +106,7 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     // there are (region_length+1)^2 points in each region
     // we can treat data as if there are in 1-demension
     int i;
-    int num_cell = (region_length+1)*(region_length +1);
+    int num_cell = (region_length)*(region_length);
 
     // distance to the k-nearest neighbours
     float k_dist_a;
@@ -128,7 +131,6 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
 #ifdef debug_1
         printf("\tpoint %d dist in lh %lf, dist in rh %lf;density in lh: %lf, in rh: %lf\n", i, k_dist_a,k_dist_b,den_a, den_b);
 #endif
-        
         // Now we can free the distance lookup table(matrix)
         // allert if the value is too small, use logorithm here
         if(div_func == 0){
@@ -144,14 +146,21 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
         }
     }
 
-
     // for L_2 divergence, square root is required
-    
     if(div_func == 1){
         div = sqrt(tmp);
 #ifdef debug_1
         printf("get div = sqrt(%lf) = %lf\n", tmp, div);
 #endif
     }
+    if(!isfinite(div)){
+            printf("ERR:got infinite div %f, density_a= %f, density_b=%f", div, den_a, den_b);
+            exit(-1);
+        }
+        if(isnan(div)){
+            // this can happen when velocity data are just 0
+            printf("ERR:got nan  div %f", div);
+            exit(-1);
+        }
     return div;
 }

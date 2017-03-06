@@ -17,7 +17,7 @@ extern "C" {
 #define INCLUDE_ML
 #define USE_PARAL_CAVITY
 #define SAMPLING
-#define SAMPLE_SIZE (40)
+#define SAMPLE_SIZE (20)
  
 // large scale experiment
 #define USE_EXP
@@ -31,10 +31,10 @@ extern "C" {
 
 #ifdef USE_EXP
     #define MAX_VERSION (100)
-    #define CASE_LENGTH (1024)
-    #define REGION_LENGTH (32)
-    //#define CASE_LENGTH (32)
-    //#define REGION_LENGTH (4)
+    //#define CASE_LENGTH (1024)
+    //#define REGION_LENGTH (32)
+    #define CASE_LENGTH (32)
+    #define REGION_LENGTH (4)
     #ifndef PROCS_PER_DIM
         #error "need to define process per side"
     #endif

@@ -35,7 +35,8 @@ static void fill_div_matrix(double **matrix, float *buffer_divs, int num_region)
 /*
  * get unique clusterid
  */
-static void prepare_medoids(int *buffer_medoids, int *clusterid, int num_elems, int cluster_k);
+
+static void prepare_medoids(int *buffer_medoids, int *clusterids, int num_elems, int *cluster_k);
 #endif
 
 

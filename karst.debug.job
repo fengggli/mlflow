@@ -1,8 +1,8 @@
 #!/bin/bash  
 #PBS -N databroker
 #PBS -j oe
-#PBS -l walltime=00:10:00
-#PBS -l nodes=5:ppn=16
+#PBS -l walltime=00:5:00
+#PBS -l nodes=5:ppn=4
 #PBS -o results/$PBS_JOBID.output
 
 #This job runs with 3 nodes  
@@ -11,7 +11,7 @@
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
-CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity_fine_1024
+CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity_32
 
 mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR

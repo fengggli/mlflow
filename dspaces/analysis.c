@@ -15,25 +15,33 @@ static void fill_div_matrix(double **matrix, float *buffer_divs, int num_region)
 }
 
 // make sure this works
-static void prepare_medoids(int *buffer_medoids, int *clusterids, int num_elems, int cluster_k){
+static void prepare_medoids(int *buffer_medoids, int *clusterids, int num_elems, int *cluster_k){
     int i,j,n;
     n = 0;
-    for (i = 0; i < 20; ++i)
+    for (i = 0; i < num_elems; ++i)
     {
+        //printf("processing No %d element %d\n", i, clusterids[i]);
+        
+        int find = 0;
         for (j = 0; j < n; ++j)
         {
+            //printf("\t %d component %d\n", j, clusterids[j]);
             // find new uniq value
-            if (clusterids[i] !=buffer_medoids[j])
+            if (buffer_medoids[j] ==clusterids[i]){
+                find =1;
                break;
+            }
         }
 
-        if (j == n)
+        if (find == 0){
             buffer_medoids[n++] = clusterids[i];
+            //printf("\t\t i=%d, j=%d add new uniq value %d\n", i, j, clusterids[i]);
+        }
         // at most cluster_k values
-        if(n >= cluster_k)
-            break;
     }
+    *cluster_k = n;
 }
+
 
 int main(int argc, char **argv)
 {
@@ -174,6 +182,7 @@ int main(int argc, char **argv)
     // we will receive each timestamp
     while(timestep < MAX_VERSION){
 
+        printf("********************timestep %d now start!\n",timestep);
         // updated on March 2
         // 1. read divs from all consumer procs
         get_common_buffer(timestep, bounds_divs, rank, &gcomm, var_name_divs,(void **) &buffer_divs, elem_size_divs,  &time_comm_divs);
@@ -192,7 +201,7 @@ int main(int argc, char **argv)
         double error;
         int ifound;
 
-        sprintf(msg, "start clustering");
+        printf("\tstart clustering\n");
         my_message(msg, rank, LOG_WARNING);
 
         t1 = MPI_Wtime();
@@ -200,11 +209,13 @@ int main(int argc, char **argv)
         t2 = MPI_Wtime();
         time_comp = t2-t1;
 
-        printf(msg, "finished clustering in %.3lf s  time", t2 -t1);
-        printf(msg, "error is %.3lf, %d times/ %d passes give the best results\n", error, ifound, npass);
+        printf("\tfinished clustering in %.3lf s  time\n", t2 -t1);
+        printf("\terror is %.3lf, %d times/ %d passes give the best results\n", error, ifound, npass);
         
         // 4. put the k medoids(k region ids) to dspaces
-        prepare_medoids(buffer_medoids, clusterids, num_region, nclusters);
+        int ncluster_2;
+        prepare_medoids(buffer_medoids, clusterids, num_region, &ncluster_2);
+        printf("number of cluster %d, medoids: %d %d %d \n", ncluster_2, buffer_medoids[0], buffer_medoids[1], buffer_medoids[2]);
 
         put_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, (void **)&buffer_medoids, elem_size_medoids, &time_comm_medoids);
         

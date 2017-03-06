@@ -112,6 +112,24 @@
 2036701
     Mar 5 16:41
     get global samples blocked. now using 1 consumer instead
+2039028
+    mar 6 09:16
+    vel and pres read as 0.000
+2039091
+    mar 6 09:31
+    icofoam writter has buffer 0.000, but icofoam file i/o output is not
+    1. memory copy function order of dest and source
+    2. previous regions are overlapped, bottomnost =0 the border is not written
+2039925
+    Mar 6   11:34
+    region No.39 has inf divs, the velocity values are all 0s
+204035
+    mar 6  11:45
+    divergence are correctly calculated and read by analysis
+2040531
+    Mar 6 14:08
+    all good until timstep3
+
     
         
 

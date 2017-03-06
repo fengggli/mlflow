@@ -66,6 +66,9 @@ Description
 #include <stdio.h>
 #include "time.h"
 
+// file writer for simulation data
+//#define debug_1
+
 #define USE_DSPACES
 
 #ifdef USE_DSPACES
@@ -94,61 +97,7 @@ Description
         }
     }
 
-    void mydump(volScalarField &p, float *tmp_buffer,int points_per_dim, int bottom_most, int right_most){
-        int ii, jj;
-        ii = 0;
-        jj = 0;
-
-        float * tmp = tmp_buffer;
-        forAll(p , i)
-         {
-             // if this isn't a block in the boundary, don't write right/bottom most 
-             if((bottom_most !=1&&ii == points_per_dim -1) || (right_most !=1&& jj==points_per_dim-1)){
-                     ;
-              }
-             else{
-                *(tmp++) = p[i];
-            }
-
-             jj+=1;
-
-             // control loop
-             if(jj%points_per_dim == 0){
-                 jj =0;
-                 ii +=1;
-             }
-         }
-    }
-    void mydump(volVectorField &U, float *tmp_buffer,int points_per_dim, int bottom_most, int right_most){
-
-        int ii, jj;
-        ii = 0;
-        jj = 0;
-        float *tmp = tmp_buffer;
-        forAll(U, i)
-        {
-            // don't writte right/bottom boundary for some block
-            if((bottom_most !=1&&ii == points_per_dim -1) || (right_most !=1&& jj==points_per_dim-1)){
-                     ;
-              }
-            else{
-            *tmp = U[i].x();
-            *(tmp+1) = U[i].y();
-            *(tmp+2) = U[i].z();
-
-            //Info<<" point "<< i << ": "<< tmp[0] <<" " << tmp[1]<< " "<<tmp[2]<< endl;
-            tmp+=3;
-            }
-
-             jj+=1;
-
-             // control loop
-             if(jj%points_per_dim == 0){
-                 jj =0;
-                 ii +=1;
-             }
-        }
-    }
+    
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -196,9 +145,6 @@ int main(int argc, char *argv[])
         int proc_row_pos = rank/procs_per_dim;
         int proc_col_pos = rank%procs_per_dim;
 
-        // whether its the last proc in each dim
-        int flag_bottom_most = 0;
-        int flag_right_most = 0;
 
         // icofoam size
         int case_length = CASE_LENGTH;
@@ -287,6 +233,11 @@ int main(int argc, char *argv[])
         
 // end of dspaces preparation
 #endif
+#ifdef debug_1
+
+        OFstream ofs_p("p_.txt");
+        OFstream ofs_U("U_.txt");
+#endif
 
     Info<< "\nStarting time loop\n" << endl;
 
@@ -294,6 +245,7 @@ int main(int argc, char *argv[])
     {
         //sleep(2);
         Info<< "Time = " << runTime.timeName() << nl << endl;
+        printf("********************timestep %d now start!\n",timestep);
 
         #include "CourantNo.H"
 
@@ -371,15 +323,14 @@ int main(int argc, char *argv[])
     // if use  dataspces, write the correct 
         //put_vel_buffer(timestep, NULL,rank, &gcomm, &vel_data, &time_comm_vel);
         // dump data from U and P into buffer
-        printf("points_per_dim %d, flag_bottom_most %d, flag_right_most %d\n", points_per_dim, flag_bottom_most, flag_right_most);
-        mydump(p, pres_data, points_per_dim,flag_bottom_most, flag_right_most);
-        mydump(U, vel_data, points_per_dim,flag_bottom_most, flag_right_most);
+        //printf("points_per_dim %d flag_bottom_most %d, flag_right_most %d\n", points_per_dim, flag_bottom_most, flag_right_most);
+        mydump(p, pres_data);
+        mydump(U, vel_data);
 
         /*
         Info<<" first data, address"<< vel_data << ": "<< vel_data[0] <<" " << vel_data[1]<< " "<<vel_data[2]<< endl;
        printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
        */
-
 
         put_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
         put_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
@@ -387,18 +338,19 @@ int main(int argc, char *argv[])
 
         MPI_Barrier(gcomm);
 
-        timestep++;
+        
+#endif
 
-        count++;
 
-
-#else
+#ifdef debug_1
     // use file writer
-        OFstream ofs_p("p_"+ runTime.timeName() + ".txt");
-        OFstream ofs_U("U_"+ runTime.timeName() + ".txt");
+        int spacing = elem_size_vel/sizeof(float);
+        printf(" first data before send, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
+        printf(" last data before send, address %p: %f %f %f\n", vel_data[spacing*num_elems-3], vel_data[spacing*num_elems-2], vel_data[spacing*num_elems-1]);
+        
         
         // get dimensions here
-        ofs_p << "dimensions "<< p.dimensions() << endl;
+        ofs_p << "** time step " << timestep << endl <<"dimensions "<< p.dimensions() << endl;
 
         // get name
         ofs_p << "internal field, size " << p.size() << endl;
@@ -413,10 +365,10 @@ int main(int argc, char *argv[])
         ofs_p << endl;
 
         // get dimension here
-        ofs_U << "dimensions "<< p.dimensions() << endl;
+        ofs_U << "** time step " << timestep << endl << "dimensions "<< U.dimensions() << endl;
 
         // get name
-        ofs_U << "internal field, size " << p.size() << endl;
+        ofs_U << "internal field, size " << U.size() << endl;
 
         // Write contents
          forAll(U , i)
@@ -430,6 +382,9 @@ int main(int argc, char *argv[])
 
         ofs_U << endl;
 #endif
+        timestep++;
+
+        count++;
 
       /*
         ofs_p << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"

@@ -1,11 +1,12 @@
 #include "consumer.h"
+#include <float.h>
 
 // fake one, only select first num_elem_sample
 void prepare_sampled_buffer(float *buffer_region, float *buffer_sample, int num_elems_region, int num_elems_sample, int region_length){
     int i;
     int spacing = region_length*region_length*3;
     for(i = 0; i< num_elems_sample; i++){
-        memcpy(buffer_region+ spacing, buffer_sample + spacing, spacing*sizeof(float));
+        memcpy(buffer_sample + i*spacing, buffer_region+ i*spacing,spacing*sizeof(float));
     }
 }
 
@@ -20,22 +21,20 @@ void assign_clusterid(float *buffer_region,int num_region, float * buffer_sample
     for(i = 0; i< num_region; i++){
         // get divergence to each medoids
         clusterid = -1;
-        divs = -1;
+        divs = FLT_MAX;
         buffer_a = buffer_region + i*spacing;
 
         for( j = 0; j <k; j++){
             // compare this region with one medoids
             buffer_b = buffer_sample_all + buffer_medoids[j]*spacing;
             divs_tmp = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
+            printf("divergence to medoids %d is %f\n", buffer_medoids[j], divs_tmp);
             if(divs_tmp < divs){
                 divs =divs_tmp;
                 clusterid = j;
             }
-            if(divs_tmp <0){
-                printf("negative divergence !\n");
-                exit(-1);
-            }
         }
+        printf("clusterid for region %d is %d", i, clusterid);
         clusterids[i] = clusterid;
     }
 

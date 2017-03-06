@@ -2,6 +2,8 @@
 
 #define debug_1
 void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void **p_buffer,size_t elem_size, double *p_time_used){
+
+    printf("\n ** prepare to get\n");
     // how many number of elements are actually written
     //int num_elems;
     char msg[STRING_LENGTH];
@@ -57,6 +59,17 @@ void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
     dspaces_unlock_on_read(lock_name, p_gcomm);
     sprintf(msg, "release the read lock");
     my_message(msg, rank, LOG_WARNING);
+#ifdef debug_1
+    int spacing;
+    if(num_points == NCLUSTERS){
+        spacing = 1;
+        printf("get buffer: num_elem %d, spacing is %d,  first data %d %d %d, last data %d %d %d\n",num_points,spacing, (*(int**)p_buffer)[0], (*(int**)p_buffer)[1],(*(int**)p_buffer)[2],(*(int**)p_buffer)[spacing*num_points -3],(*(int**)p_buffer)[spacing*num_points -2],(*(int**)p_buffer)[spacing*num_points -1]);
+    }
+    else{
+        spacing = elem_size/sizeof(float);
+        printf("get buffer: num_elem %d, spacing is %d,  first data %f %f %f, last data %f %f %f\n",num_points,spacing, (*(float**)p_buffer)[0], (*(float**)p_buffer)[1],(*(float**)p_buffer)[2],(*(float**)p_buffer)[spacing*num_points -3],(*(float**)p_buffer)[spacing*num_points -2],(*(float**)p_buffer)[spacing*num_points -1]);
+    }
+#endif
 
     if(ret_get != 0){
         printf("get varaible %s err,  error number %d \n", var_name, ret_get);
@@ -71,6 +84,7 @@ void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
 }
 
 void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void  **p_buffer,size_t elem_size, double *p_time_used){
+    printf("\n ** prepare to put\n");
     // how many number of elements are actually written
     //int num_elems;
     char msg[STRING_LENGTH];
@@ -97,6 +111,7 @@ void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
 
     // Define the dimensionality of the data to be received 
     int ndim = 3;
+    int spacing;
 
     char lock_name[STRING_LENGTH];
 #ifdef USE_SAME_LOCK
@@ -107,6 +122,15 @@ void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
 
 #ifdef debug_1
     printf("lb: (%d, %d  %d), hb(%d, %d, %d), elem_size %zu bytes\n", bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5], elem_size);
+    if(num_points == NCLUSTERS){
+        spacing = 1;
+        printf("put buffer: num_elem %d, spacing is %d,  first data %d %d %d, last data %d %d %d\n",num_points,spacing, (*(int**)p_buffer)[0], (*(int**)p_buffer)[1],(*(int**)p_buffer)[2],(*(int**)p_buffer)[spacing*num_points -3],(*(int**)p_buffer)[spacing*num_points -2],(*(int**)p_buffer)[spacing*num_points -1]);
+    }
+    else{
+        spacing = elem_size/sizeof(float);
+        printf("put buffer: num_elem %d, spacing is %d,  first data %f %f %f, last data %f %f %f\n",num_points,spacing, (*(float**)p_buffer)[0], (*(float**)p_buffer)[1],(*(float**)p_buffer)[2],(*(float**)p_buffer)[spacing*num_points -3],(*(float**)p_buffer)[spacing*num_points -2],(*(float**)p_buffer)[spacing*num_points -1]);
+
+    }
 #endif
 
     sprintf(msg, "try to acquired the write lock %s", lock_name);
@@ -129,10 +153,11 @@ void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
     my_message(msg, rank, LOG_WARNING);
 
     if(ret_put != 0){
+        perror("put err:");
         printf("put varaible %s err,  error number %d \n", var_name, ret_put);
         exit(-1);
     }else if(sync_ok != 0){
-        printf("sync err \n");
+        perror("put err:");
         exit(-1);
     }
     else{
