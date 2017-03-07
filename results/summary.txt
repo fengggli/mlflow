@@ -129,6 +129,20 @@
 2040531
     Mar 6 14:08
     all good until timstep3
+2040926 & 2041744
+    Mar 6 17:02
+    2040926 analysis read err 11
+    2041744 consumer read err 11
+2042522
+    Mar 7 02:07
+    two consumer, cal_local_divs segmentation fault
+2043081
+    Mar 7 02:59
+    generate lookup_table, should use num_sample_all as input
+2043085
+    Mar 7 03:10
+    now error at timestep 98
+    
 
     
         

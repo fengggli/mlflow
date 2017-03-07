@@ -28,15 +28,14 @@ void assign_clusterid(float *buffer_region,int num_region, float * buffer_sample
             // compare this region with one medoids
             buffer_b = buffer_sample_all + buffer_medoids[j]*spacing;
             divs_tmp = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
-            printf("divergence to medoids %d is %f\n", buffer_medoids[j], divs_tmp);
+            //printf("divergence to medoids %d is %f\n", buffer_medoids[j], divs_tmp);
             if(divs_tmp < divs){
                 divs =divs_tmp;
                 clusterid = j;
             }
         }
-        printf("clusterid for region %d is %f\n", i, clusterid);
+        //printf("clusterid for region %d is %f\n", i, clusterid);
         clusterids[i] = clusterid;
     }
-
 }
 

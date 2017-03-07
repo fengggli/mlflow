@@ -30,7 +30,6 @@ void generate_lookup_table(int num_region, int **p_table){
             count+=1;
         }
     }
-
     *p_table = table;
 }
 
@@ -67,6 +66,9 @@ void cal_local_divs(float *buffer_all_regions, int region_length, int k_npdiv, i
 
         //snprintf(msg, STRING_LENGTH,"try to access No.%d/%d pair, region %d and %d",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
         //my_message(msg, rank, LOG_WARNING);
+#ifdef debug_2
+        printf("\t\ttry to access No.%d/%d pair, region %d and %d\n",i - pair_index_l, pair_index_h - pair_index_l +1, a, b);
+#endif
 
         buffer_a = buffer_all_regions + a*region_length*region_length*3;
         buffer_b = buffer_all_regions + b*region_length*region_length*3;
@@ -326,7 +328,9 @@ int main(int argc, char **argv)
         printf("--rank%d:num_tasks=%d, tasks_per_proc=%d,tasks_left_over=%d\n", rank,num_tasks, tasks_per_proc, tasks_left_over);
 
 	int *table;
-    generate_lookup_table(num_region, &table);
+    //generate_lookup_table(num_region, &table);
+    generate_lookup_table(num_elems_sample_all, &table);
+    //
     sprintf(msg,"pair lookup table generated, I am responsible for P%d to P%d", pair_index_l, pair_index_h);
     my_message(msg, rank, LOG_CRITICAL);
 
@@ -460,10 +464,11 @@ int main(int argc, char **argv)
         get_common_buffer_unblocking(timestep, bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
         printf("global_sample got\n");
 
+        MPI_Barrier(gcomm);
 #ifdef debug_1
         spacing = elem_size_region/sizeof(float);
         printf("\tfirst data of all samples: %f %f %f \n", buffer_sample_all[0], buffer_sample_all[1], buffer_sample_all[2]);
-        printf("\tlast data of all samples: %f %f %f \n", buffer_sample_all[spacing*num_elems_sample -3], buffer_sample_all[spacing*num_elems_sample -2], buffer_sample_all[spacing*num_elems_sample-1]);
+        printf("\tlast data of all samples: %f %f %f \n", buffer_sample_all[spacing*num_elems_sample_all -3], buffer_sample_all[spacing*num_elems_sample_all -2], buffer_sample_all[spacing*num_elems_sample_all-1]);
 #endif
 
         // 5. calculate subset of divergence pairs based on sampled regions

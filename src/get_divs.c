@@ -1,5 +1,5 @@
 #include "get_divs.h"
-//#define debug_1
+#define debug_1
 
 // parallel version and sequential version have different divergence
 #define DEBUG_REGION_MAPPING
@@ -81,9 +81,10 @@ float get_bound_dist(int i, float *A, int length, int k){
            dist_tmp = pow(tmp_x - *(A + 3*j),2) + pow(tmp_y - *(A + 3*j +1), 2)+ pow(tmp_z - *(A+3*j+2),2);
         }
         if(dist_tmp == 0){
-            printf("x:(%f, %f, %f), y(%f, %f, %f)\n", tmp_x, tmp_y, tmp_z, *(A + 3*j),*(A + 3*j+1),*(A + 3*j+2));
+            printf("A[%d]:(%f, %f, %f), A[%d]:(%f, %f, %f)\n", i, tmp_x, tmp_y, tmp_z, j, *(A + 3*j),*(A + 3*j+1),*(A + 3*j+2));
         }
         tmp_array[j] = dist_tmp;
+        //printf("\tset %d th distance\n", j);
     }
     //float *array_to_sort = DisMatrix + i*length;
     float ret =  get_k_order(tmp_array, length, k);
@@ -121,6 +122,9 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
     // start to accumulate the divgence(linear kernel here)
     for(i = 0; i< num_cell; i++){
         // for each point in both regions, get the distance to its k-nearest neighbours
+#ifdef debug_1
+        printf("\t\ti = %i, A address %p, B address %p, number of cell %d, k= %d\n", i, A, B, num_cell, k);
+#endif
         k_dist_a = get_bound_dist(i, A, num_cell, k);
         k_dist_b = get_bound_dist(i, B, num_cell, k);
 

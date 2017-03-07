@@ -183,6 +183,7 @@ int main(int argc, char **argv)
     while(timestep < MAX_VERSION){
 
         printf("********************timestep %d now start!\n",timestep);
+        MPI_Barrier(gcomm);
         // updated on March 2
         // 1. read divs from all consumer procs
         get_common_buffer(timestep, bounds_divs, rank, &gcomm, var_name_divs,(void **) &buffer_divs, elem_size_divs,  &time_comm_divs);
@@ -217,6 +218,7 @@ int main(int argc, char **argv)
         prepare_medoids(buffer_medoids, clusterids, num_region, &ncluster_2);
         printf("number of cluster %d, medoids: %d %d %d \n", ncluster_2, buffer_medoids[0], buffer_medoids[1], buffer_medoids[2]);
 
+        MPI_Barrier(gcomm);
         put_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, (void **)&buffer_medoids, elem_size_medoids, &time_comm_medoids);
         
         /*

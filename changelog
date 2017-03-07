@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
+## [0.2.15] 2017 Mar-7
+## fixed
+	generate lookup_table, should use num_sample_all as input
 ##[0.2.14] 2017 Mar-5
 ## issues 
 	read gobal sample will be blocked because dspaces doesn't support 1 app tboth writes and reads from a variable
@@ -13,7 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 	memcpy function, dest and source
 	corrected the prepare_medoids
 ## status 
-	only now analysis part err  in timstep 3
+	eiter analysis part or consumer part has err  in later
 
 	
 

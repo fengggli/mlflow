@@ -156,7 +156,8 @@ void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
         perror("put err:");
         printf("put varaible %s err,  error number %d \n", var_name, ret_put);
         exit(-1);
-    }else if(sync_ok != 0){
+    }
+    else if(sync_ok != 0){
         perror("put err:");
         exit(-1);
     }
@@ -168,6 +169,8 @@ void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
 }
 
 void get_common_buffer_unblocking(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void **p_buffer,size_t elem_size, double *p_time_used){
+
+    printf("\n ** prepare to unblocking get\n");
     // how many number of elements are actually written
     //int num_elems;
     char msg[STRING_LENGTH];
@@ -209,6 +212,7 @@ void get_common_buffer_unblocking(int timestep, int bounds[6], int rank, MPI_Com
     t2 = MPI_Wtime();
 
     if(ret_get != 0){
+        perror("get err:");
         printf("get varaible %s err,  error number %d \n", var_name, ret_get);
         exit(-1);
     }else{

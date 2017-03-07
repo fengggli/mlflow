@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
     bounds_cluster[0] = 0;
 
     // x_max
-    bounds_cluster[3] = num_region;
+    bounds_cluster[3] = num_region-1;
     printf("    number of regions %d\n", num_region);
 
     int num_elems_cluster = bounds_cluster[3] - bounds_cluster[0]+1;

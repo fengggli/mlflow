@@ -2,7 +2,7 @@
 #PBS -N databroker
 #PBS -j oe
 #PBS -l walltime=00:5:00
-#PBS -l nodes=5:ppn=4
+#PBS -l nodes=5:ppn=10
 #PBS -o results/$PBS_JOBID.output
 
 #This job runs with 3 nodes  
@@ -17,9 +17,9 @@ mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR
 
 # num of process in each side
-SIM_PROC_SIDE=1
+SIM_PROC_SIDE=2
 SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE})) # square of proc_side
-CONSUMER_PROCS=$((${SIM_PROCS}*1))
+CONSUMER_PROCS=$((${SIM_PROCS}*2))
 ANALYSIS_PROCS=1
 CATALYST_PROCS=1
 
