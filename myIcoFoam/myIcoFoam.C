@@ -139,7 +139,6 @@ int main(int argc, char *argv[])
 
     // check the size and get
         int procs_per_dim = (int)std::sqrt(nprocs);
-        int points_per_dim = (int)std::sqrt(num_points);
 
         // cartisian position
         int proc_row_pos = rank/procs_per_dim;
@@ -148,11 +147,6 @@ int main(int argc, char *argv[])
 
         // icofoam size
         int case_length = CASE_LENGTH;
-
-        //x_min,y_min,z_min,x_max_y_max_z_max
-        //y_min,x_min,0 ,y_max_x_max, 0
-        
-
 
 
         // Initalize DataSpaces
@@ -191,9 +185,11 @@ int main(int argc, char *argv[])
 
 
         // data layout
-        uint64_t gdims_raw[3] = {POINTS_SIDE, POINTS_SIDE,1};
-        dspaces_define_gdim(var_name_vel, 3,gdims_raw);
-        dspaces_define_gdim(var_name_pres, 3,gdims_raw);
+#ifdef FORCE_GDIM
+        uint64_t gdims_raw[2] = {POINTS_SIDE, POINTS_SIDE};
+        dspaces_define_gdim(var_name_vel, 2,gdims_raw);
+        dspaces_define_gdim(var_name_pres, 2,gdims_raw);
+#endif
 
         /*
         char var_name_vel_2[STRING_LENGTH];
@@ -321,9 +317,7 @@ int main(int argc, char *argv[])
 
 #ifdef USE_DSPACES
     // if use  dataspces, write the correct 
-        //put_vel_buffer(timestep, NULL,rank, &gcomm, &vel_data, &time_comm_vel);
         // dump data from U and P into buffer
-        //printf("points_per_dim %d flag_bottom_most %d, flag_right_most %d\n", points_per_dim, flag_bottom_most, flag_right_most);
         mydump(p, pres_data);
         mydump(U, vel_data);
 
@@ -332,8 +326,8 @@ int main(int argc, char *argv[])
        printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
        */
 
-        put_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
-        put_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
+        put_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
+        put_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
         time_comm = time_comm_vel + time_comm_pres;
 
         MPI_Barrier(gcomm);

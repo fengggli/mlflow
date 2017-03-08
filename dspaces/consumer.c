@@ -1,5 +1,6 @@
 #include "consumer.h"
 #define debug_1
+#define debug_2
 
 // test segmentation fault
  int validate_regions(float *buffer_a, int region_memory_size){
@@ -77,10 +78,7 @@ void cal_local_divs(float *buffer_all_regions, int region_length, int k_npdiv, i
 
         div = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
 
-
         t3 = MPI_Wtime();
-
-        
 
 #ifdef debug_1
         //snprintf(msg, STRING_LENGTH,"got div of region %d and region %d: %.6f ",a, b, div);
@@ -93,66 +91,6 @@ void cal_local_divs(float *buffer_all_regions, int region_length, int k_npdiv, i
         *p_time_used += t3 -t2;
     }
 }
-
-
-
-void put_divs_buffer(int timestep,int pair_index_l, int pair_index_h ,int num_tasks, int rank, MPI_Comm *p_gcomm, float ** p_divs_this_rank, double* p_time_used){
-
-    char msg[STRING_LENGTH];
-    double t1, t2;
-    // return values for div dspaces operations
-    int ret_put = -1;
-    uint64_t lb_div[3] = {0}, ub_div[3] = {0};
-    // save divergence in a 1-d array! this will save space
-
-    int ndim_div = 3;
-    char var_name_div[128];
-    sprintf(var_name_div, "div_data");
-
-    //uint64_t gdim_div[3] = {10000,1,1};
-    uint64_t gdim_div[3] = {num_tasks,1,1};
-    dspaces_define_gdim(var_name_div, 3,gdim_div);
-
-
-    char lock_name_divs[STRING_LENGTH];
-    snprintf(lock_name_divs, STRING_LENGTH, "div_lock_t_%d", timestep);
-
-
-    lb_div[0] = pair_index_l, ub_div[0] = pair_index_h;
-
-    // div variable operation
-    sprintf(msg, "try to acquired the div write lock %s",lock_name_divs);
-    my_message(msg, rank, LOG_WARNING);
-    dspaces_lock_on_write(lock_name_divs, p_gcomm);
-
-    sprintf(msg, "get div write lock");
-    my_message(msg, rank, LOG_WARNING);
-
-    //pay attention to the order of dimensions!
-    //
-    sprintf(msg, "write divergence to index%d~%d",  pair_index_l, pair_index_h);
-    my_message(msg, rank, LOG_WARNING);
-
-    t1 = MPI_Wtime();
-    ret_put = dspaces_put(var_name_div, timestep, sizeof(float), ndim_div, lb_div, ub_div, *p_divs_this_rank);
-    t2 = MPI_Wtime();
-
-    // write div information into div variable
-    dspaces_unlock_on_write(lock_name_divs, p_gcomm);
-
-    sprintf(msg, " div write lock is released");
-    my_message(msg, rank, LOG_WARNING);
-
-    // how about the symmetric part?
-    if(ret_put == 0){
-        sprintf(msg, "divergence of %d pairs have saved into dspaces",pair_index_h - pair_index_l +1);
-    }else{
-        sprintf(msg, "ERROR when storing divergence of region");
-    }
-    my_message(msg, rank, LOG_CRITICAL);
-    *p_time_used = t2-t1;
-}
-
 
 int main(int argc, char **argv)
 {
@@ -192,11 +130,6 @@ int main(int argc, char **argv)
     char var_name_pres[STRING_LENGTH];
     sprintf(var_name_vel, "VEL");
     sprintf(var_name_pres, "PRES");
-
-    // data layout
-    uint64_t gdims_raw[3] = {POINTS_SIDE, POINTS_SIDE,1};
-    dspaces_define_gdim(var_name_vel, 3,gdims_raw);
-    dspaces_define_gdim(var_name_pres, 3,gdims_raw);
 
     int strip_size = POINTS_SIDE/nprocs;
     unsigned int dims[3] = {strip_size, POINTS_SIDE, 1};
@@ -289,8 +222,10 @@ int main(int argc, char **argv)
     // x_max
     bounds_sample_all[3] = (nprocs)*(sample_size) -1; 
 
+#ifdef FORCE_GDIM
     uint64_t gdims_sample[3] = {nprocs*sample_size, 1,1};
     dspaces_define_gdim(var_name_sample, 3,gdims_sample);
+#endif
 
 
     int num_elems_sample_all = (bounds_sample_all[3]-bounds_sample_all[0] + 1);
@@ -341,8 +276,10 @@ int main(int argc, char **argv)
     char var_name_divs[STRING_LENGTH];
     sprintf(var_name_divs, "divs");
 
+#ifdef FORCE_GDIM
     uint64_t gdims_divs[3] = {num_tasks, 1,1};
     dspaces_define_gdim(var_name_divs, 3,gdims_divs);
+#endif
 
 
     int bounds_divs[6]={0};
@@ -371,8 +308,10 @@ int main(int argc, char **argv)
     char var_name_medoids[STRING_LENGTH];
     sprintf(var_name_medoids, "medoids");
 
+#ifdef FORCE_GDIM
     uint64_t gdims_medoids[3] = {NCLUSTERS, 1,1};
     dspaces_define_gdim(var_name_medoids, 3,gdims_medoids);
+#endif
 
 
     int bounds_medoids[6]={0};
@@ -399,8 +338,10 @@ int main(int argc, char **argv)
     char var_name_cluster[STRING_LENGTH];
     sprintf(var_name_cluster, "cluster");
 
+#ifdef FORCE_GDIM
     uint64_t gdims_cluster[3] = {nprocs*num_region, 1,1};
     dspaces_define_gdim(var_name_cluster, 3, gdims_cluster);
+#endif
 
 
     int bounds_cluster[6]={0};
@@ -448,8 +389,8 @@ int main(int argc, char **argv)
         // updated on March 2, three steps
 
         // 1. get stripped data, 
-        get_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
-        get_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
+        get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
+        get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
 
         // note
         int num_region_2;
@@ -472,14 +413,14 @@ int main(int argc, char **argv)
 #endif
 
         // 3. send own sampled regions(only velocity)
-        put_common_buffer(timestep, bounds_sample, rank, &gcomm, var_name_sample,(void **)&buffer_sample, elem_size_region,  &time_comm_sample);
+        put_common_buffer(timestep, 1, bounds_sample, rank, &gcomm, var_name_sample,(void **)&buffer_sample, elem_size_region,  &time_comm_sample);
         printf("local_sample sent\n");
 
         // 4. get aggregated sampled regions(dspaces get blocked if one applciation both writes and reds on the same variable)
         //MPI_Barrier(gcomm);
 
         dspaces_barrier();
-        get_common_buffer_unblocking(timestep, bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
+        get_common_buffer_unblocking(timestep,1,  bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
         printf("global_sample got\n");
 
         dspaces_barrier();
@@ -496,12 +437,12 @@ int main(int argc, char **argv)
         printf("divergence calculated\n");
 
         // 6. send divergence to analyis
-        put_common_buffer(timestep, bounds_divs, rank, &gcomm, var_name_divs, (void **)&buffer_divs, elem_size_divs,  &time_comm_divs);
+        put_common_buffer(timestep,1,  bounds_divs, rank, &gcomm, var_name_divs, (void **)&buffer_divs, elem_size_divs,  &time_comm_divs);
         printf("divergence sent\n");
 
         // wait here, for better performance those three steps should be put in next timestep
         // 6. get medoids info 
-        get_common_buffer(timestep, bounds_medoids, rank, &gcomm, var_name_medoids, (void **)&buffer_medoids, elem_size_medoids, &time_comm_medoids);
+        get_common_buffer(timestep,1, bounds_medoids, rank, &gcomm, var_name_medoids, (void **)&buffer_medoids, elem_size_medoids, &time_comm_medoids);
         printf("medoids are %d %d %d\n",buffer_medoids[0], buffer_medoids[1], buffer_medoids[2]);
 
         // 7. assign clusterid
@@ -509,7 +450,7 @@ int main(int argc, char **argv)
         printf("clusterid  assigned\n");
 
         // 7. put clusterid
-        put_common_buffer(timestep, bounds_cluster, rank, &gcomm, var_name_cluster, (void **)&buffer_cluster, elem_size_cluster, &time_comm_cluster);
+        put_common_buffer(timestep,1,  bounds_cluster, rank, &gcomm, var_name_cluster, (void **)&buffer_cluster, elem_size_cluster, &time_comm_cluster);
         printf("clusterid  put to dspaces\n");
 
 

@@ -1,5 +1,5 @@
 #include "get_divs.h"
-#define debug_1
+//#define debug_1
 
 // parallel version and sequential version have different divergence
 #define DEBUG_REGION_MAPPING
@@ -81,7 +81,7 @@ float get_bound_dist(int i, float *A, int length, int k){
            dist_tmp = pow(tmp_x - *(A + 3*j),2) + pow(tmp_y - *(A + 3*j +1), 2)+ pow(tmp_z - *(A+3*j+2),2);
         }
         if(dist_tmp == 0){
-            printf("A[%d]:(%f, %f, %f), A[%d]:(%f, %f, %f)\n", i, tmp_x, tmp_y, tmp_z, j, *(A + 3*j),*(A + 3*j+1),*(A + 3*j+2));
+            printf("A[%d]:(%f, %f, %f), B[%d]:(%f, %f, %f)\n", i, tmp_x, tmp_y, tmp_z, j, *(A + 3*j),*(A + 3*j+1),*(A + 3*j+2));
         }
         tmp_array[j] = dist_tmp;
         //printf("\tset %d th distance\n", j);
@@ -158,13 +158,13 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
 #endif
     }
     if(!isfinite(div)){
-            printf("ERR:got infinite div %f, density_a= %f, density_b=%f", div, den_a, den_b);
-            exit(-1);
+            fprintf(stderr, "ERR:got infinite div %f, density_a= %f, density_b=%f", div, den_a, den_b);
+            return 0.1;
         }
         if(isnan(div)){
             // this can happen when velocity data are just 0
-            printf("ERR:got nan  div %f", div);
-            exit(-1);
+            fprintf(stderr, "ERR:got nan  div %f", div);
+            return 0.1;
         }
     return div;
 }

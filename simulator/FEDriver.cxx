@@ -151,9 +151,11 @@ int main(int argc, char* argv[])
     sprintf(var_name_pres, "PRES");
 
     // data layout
+#ifdef FORCE_GDIM
     uint64_t gdims_raw[3] = {POINTS_SIDE, POINTS_SIDE,1};
     dspaces_define_gdim(var_name_vel, 3,gdims_raw);
     dspaces_define_gdim(var_name_pres, 3,gdims_raw);
+#endif
 
     size_t elem_size_vel = sizeof(float)*3;
     size_t elem_size_pres = sizeof(float);
@@ -229,8 +231,8 @@ int main(int argc, char* argv[])
     // 1. read simulation  data from dataspces
     // this will get blocked until new data available
 
-    get_common_buffer(timestep,bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
-    get_common_buffer(timestep,bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
+    get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
+    get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
     time_comm_raw = time_comm_vel+ time_comm_pres;
 
 
@@ -246,7 +248,7 @@ int main(int argc, char* argv[])
 
 
     // 2. read cluster  data from dataspces
-    get_common_buffer(timestep, bounds_cluster, rank, &gcomm, var_name_cluster,(void **) &buffer_cluster, elem_size_cluster, &time_comm_cluster);
+    get_common_buffer(timestep,1,  bounds_cluster, rank, &gcomm, var_name_cluster,(void **) &buffer_cluster, elem_size_cluster, &time_comm_cluster);
 
     
     t1 = MPI_Wtime();

@@ -147,6 +147,22 @@
     if use 4 producers and 8 consumers, different procs read different contents from global samples
 2043110
     mpi_barrier doesn't work
+2043190
+    even raw data getting has problem
+2043363
+    add gdim def, all consumer get -11 for raw data
+2043370
+    rm all gdim def other than in catalyst, now raw data is fine , errr is same with 2043099
+2043373
+    without dgim in icofam, raw data reading in consumer is fine, reading local samples are problems
+2043378
+    with gdim in icofoam, raw data reading in consumer all return -11, gdim err?
+2043379
+    use {NUM_POINTS, NUMPOINTS, NUMPOINTS} and gdim, now  half consumers can get vel correctly. half still get -11 err
+2043440
+    Mar 8
+    raw data getting error
+    
     
 
     

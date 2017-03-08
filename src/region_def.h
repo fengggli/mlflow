@@ -22,6 +22,9 @@ extern "C" {
 // large scale experiment
 #define USE_EXP
 
+// explicitly define the dgdimm info for dataspaces
+//#define FORCE_GDIM
+
 // whether or not using same lock eachtime, only affect the ds_adaptor
 // only affect raw data, writer won't start new
 //#define USE_SAME_LOCK

@@ -1,7 +1,7 @@
 #include "ds_adaptor.h"
 
 #define debug_1
-void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void **p_buffer,size_t elem_size, double *p_time_used){
+void get_common_buffer(int timestep,int ndim, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void **p_buffer,size_t elem_size, double *p_time_used){
 
     printf("\n ** prepare to get\n");
     // how many number of elements are actually written
@@ -29,7 +29,7 @@ void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
     num_points = (bounds[3]-bounds[0]+1)*(bounds[4]- bounds[1]+1)*(bounds[5]- bounds[2]+1);
 
     // Define the dimensionality of the data to be received 
-    int ndim = 3;
+    //int ndim = 3;
 
     char lock_name[STRING_LENGTH];
 #ifdef USE_SAME_LOCK
@@ -83,7 +83,7 @@ void get_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
     
 }
 
-void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void  **p_buffer,size_t elem_size, double *p_time_used){
+void put_common_buffer(int timestep,int ndim, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void  **p_buffer,size_t elem_size, double *p_time_used){
     printf("\n ** prepare to put\n");
     // how many number of elements are actually written
     //int num_elems;
@@ -110,7 +110,6 @@ void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
     num_points = (bounds[3]-bounds[0]+1)*(bounds[4]- bounds[1]+1)*(bounds[5]- bounds[2]+1);
 
     // Define the dimensionality of the data to be received 
-    int ndim = 3;
     int spacing;
 
     char lock_name[STRING_LENGTH];
@@ -168,7 +167,7 @@ void put_common_buffer(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm
     *p_time_used += t2-t1;
 }
 
-void get_common_buffer_unblocking(int timestep, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void **p_buffer,size_t elem_size, double *p_time_used){
+void get_common_buffer_unblocking(int timestep, int ndim, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void **p_buffer,size_t elem_size, double *p_time_used){
 
     printf("\n ** prepare to unblocking get\n");
     // how many number of elements are actually written
@@ -195,8 +194,6 @@ void get_common_buffer_unblocking(int timestep, int bounds[6], int rank, MPI_Com
 
     num_points = (bounds[3]-bounds[0]+1)*(bounds[4]- bounds[1]+1)*(bounds[5]- bounds[2]+1);
 
-    // Define the dimensionality of the data to be received 
-    int ndim = 3;
 
 #ifdef debug_1
     printf("lb: (%d, %d  %d), hb(%d, %d, %d), elem_size %zu bytes\n", bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5], elem_size);
