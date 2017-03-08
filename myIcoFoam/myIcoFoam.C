@@ -185,11 +185,11 @@ int main(int argc, char *argv[])
 
 
         // data layout
-#ifdef FORCE_GDIM
+//#ifdef FORCE_GDIM
         uint64_t gdims_raw[2] = {POINTS_SIDE, POINTS_SIDE};
         dspaces_define_gdim(var_name_vel, 2,gdims_raw);
         dspaces_define_gdim(var_name_pres, 2,gdims_raw);
-#endif
+//#endif
 
         /*
         char var_name_vel_2[STRING_LENGTH];

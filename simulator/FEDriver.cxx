@@ -151,11 +151,9 @@ int main(int argc, char* argv[])
     sprintf(var_name_pres, "PRES");
 
     // data layout
-#ifdef FORCE_GDIM
-    uint64_t gdims_raw[3] = {POINTS_SIDE, POINTS_SIDE,1};
-    dspaces_define_gdim(var_name_vel, 3,gdims_raw);
-    dspaces_define_gdim(var_name_pres, 3,gdims_raw);
-#endif
+    uint64_t gdims_raw[2] = {POINTS_SIDE, POINTS_SIDE};
+    dspaces_define_gdim(var_name_vel, 2,gdims_raw);
+    dspaces_define_gdim(var_name_pres, 2,gdims_raw);
 
     size_t elem_size_vel = sizeof(float)*3;
     size_t elem_size_pres = sizeof(float);
@@ -186,6 +184,9 @@ int main(int argc, char* argv[])
 
     char var_name_cluster[STRING_LENGTH];
     sprintf(var_name_cluster, "cluster");
+
+    uint64_t gdims_cluster[1] = {num_region};
+    dspaces_define_gdim(var_name_cluster, 1, gdims_cluster);
 
     int bounds_cluster[6]={0};
     // x_min

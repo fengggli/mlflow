@@ -92,6 +92,9 @@ int main(int argc, char **argv)
     char var_name_divs[STRING_LENGTH];
     sprintf(var_name_divs, "divs");
 
+    uint64_t gdims_divs[1] = {num_tasks};
+    dspaces_define_gdim(var_name_divs, 1,gdims_divs);
+
     int bounds_divs[6]={0};
 
     // x_min
@@ -117,6 +120,9 @@ int main(int argc, char **argv)
     int medoids_size = NCLUSTERS;
     char var_name_medoids[STRING_LENGTH];
     sprintf(var_name_medoids, "medoids");
+
+    uint64_t gdims_medoids[1] = {NCLUSTERS};
+    dspaces_define_gdim(var_name_medoids, 1,gdims_medoids);
 
     int bounds_medoids[6]={0};
     // x_min

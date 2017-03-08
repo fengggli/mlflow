@@ -162,7 +162,21 @@
 2043440
     Mar 8
     raw data getting error
+2043970
+    Mar 8
+    aec8192e0
+    samples still have getting error, but now all iterations can be done.
     
+2043975
+    Mar 8
+    consumer 2 and consumer 5 get different raw data
+    
+2045384
+    if only use gdim_define in myicofoam, both consumer and catalyst get -11(compared with nothing in 2044683)
+    I need to specifiy gdim in both ?
+    yes! , see 2045390
+2045401
+    now changed the dims of other variables but No.3 consumer still get zero values of global samples
     
 
     

@@ -3,7 +3,7 @@
 #define debug_1
 void get_common_buffer(int timestep,int ndim, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void **p_buffer,size_t elem_size, double *p_time_used){
 
-    printf("\n ** prepare to get\n");
+    printf("\n ** prepare to get, ndim = %d\n", ndim);
     // how many number of elements are actually written
     //int num_elems;
     char msg[STRING_LENGTH];
@@ -84,7 +84,8 @@ void get_common_buffer(int timestep,int ndim, int bounds[6], int rank, MPI_Comm 
 }
 
 void put_common_buffer(int timestep,int ndim, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void  **p_buffer,size_t elem_size, double *p_time_used){
-    printf("\n ** prepare to put\n");
+
+    printf("\n ** prepare to get, ndim = %d\n", ndim);
     // how many number of elements are actually written
     //int num_elems;
     char msg[STRING_LENGTH];
@@ -169,7 +170,7 @@ void put_common_buffer(int timestep,int ndim, int bounds[6], int rank, MPI_Comm 
 
 void get_common_buffer_unblocking(int timestep, int ndim, int bounds[6], int rank, MPI_Comm * p_gcomm,char * var_name, void **p_buffer,size_t elem_size, double *p_time_used){
 
-    printf("\n ** prepare to unblocking get\n");
+    printf("\n ** prepare to get, ndim = %d\n", ndim);
     // how many number of elements are actually written
     //int num_elems;
     char msg[STRING_LENGTH];
@@ -211,7 +212,6 @@ void get_common_buffer_unblocking(int timestep, int ndim, int bounds[6], int ran
     if(ret_get != 0){
         perror("get err:");
         printf("get varaible %s err,  error number %d \n", var_name, ret_get);
-        exit(-1);
     }else{
         sprintf(msg, "read %d elem from dspaces, each has %zu bytes", num_points, elem_size);
         my_message(msg, rank, LOG_WARNING);

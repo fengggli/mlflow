@@ -131,6 +131,11 @@ int main(int argc, char **argv)
     sprintf(var_name_vel, "VEL");
     sprintf(var_name_pres, "PRES");
 
+    uint64_t gdims_raw[2] = {POINTS_SIDE, POINTS_SIDE};
+    dspaces_define_gdim(var_name_vel, 2,gdims_raw);
+    dspaces_define_gdim(var_name_pres, 2,gdims_raw);
+
+
     int strip_size = POINTS_SIDE/nprocs;
     unsigned int dims[3] = {strip_size, POINTS_SIDE, 1};
     size_t elem_size_vel = sizeof(float)*3;
@@ -222,10 +227,8 @@ int main(int argc, char **argv)
     // x_max
     bounds_sample_all[3] = (nprocs)*(sample_size) -1; 
 
-#ifdef FORCE_GDIM
-    uint64_t gdims_sample[3] = {nprocs*sample_size, 1,1};
-    dspaces_define_gdim(var_name_sample, 3,gdims_sample);
-#endif
+    uint64_t gdims_sample[1] = {nprocs*sample_size};
+    dspaces_define_gdim(var_name_sample, 1,gdims_sample);
 
 
     int num_elems_sample_all = (bounds_sample_all[3]-bounds_sample_all[0] + 1);
@@ -276,10 +279,8 @@ int main(int argc, char **argv)
     char var_name_divs[STRING_LENGTH];
     sprintf(var_name_divs, "divs");
 
-#ifdef FORCE_GDIM
-    uint64_t gdims_divs[3] = {num_tasks, 1,1};
-    dspaces_define_gdim(var_name_divs, 3,gdims_divs);
-#endif
+    uint64_t gdims_divs[1] = {num_tasks};
+    dspaces_define_gdim(var_name_divs, 1,gdims_divs);
 
 
     int bounds_divs[6]={0};
@@ -308,10 +309,8 @@ int main(int argc, char **argv)
     char var_name_medoids[STRING_LENGTH];
     sprintf(var_name_medoids, "medoids");
 
-#ifdef FORCE_GDIM
-    uint64_t gdims_medoids[3] = {NCLUSTERS, 1,1};
-    dspaces_define_gdim(var_name_medoids, 3,gdims_medoids);
-#endif
+    uint64_t gdims_medoids[1] = {NCLUSTERS};
+    dspaces_define_gdim(var_name_medoids, 1,gdims_medoids);
 
 
     int bounds_medoids[6]={0};
@@ -338,10 +337,8 @@ int main(int argc, char **argv)
     char var_name_cluster[STRING_LENGTH];
     sprintf(var_name_cluster, "cluster");
 
-#ifdef FORCE_GDIM
-    uint64_t gdims_cluster[3] = {nprocs*num_region, 1,1};
-    dspaces_define_gdim(var_name_cluster, 3, gdims_cluster);
-#endif
+    uint64_t gdims_cluster[1] = {nprocs*num_region};
+    dspaces_define_gdim(var_name_cluster, 1, gdims_cluster);
 
 
     int bounds_cluster[6]={0};
@@ -417,15 +414,14 @@ int main(int argc, char **argv)
         printf("local_sample sent\n");
 
         // 4. get aggregated sampled regions(dspaces get blocked if one applciation both writes and reds on the same variable)
-        //MPI_Barrier(gcomm);
+        MPI_Barrier(MPI_COMM_WORLD);
+        printf("start to gather global_sample\n");
 
-        dspaces_barrier();
         get_common_buffer_unblocking(timestep,1,  bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
         printf("global_sample got\n");
 
-        dspaces_barrier();
+        MPI_Barrier(MPI_COMM_WORLD);
 
-        //MPI_Barrier(gcomm);
 #ifdef debug_1
         spacing = elem_size_region/sizeof(float);
         printf("\tfirst data of all samples: %f %f %f \n", buffer_sample_all[0], buffer_sample_all[1], buffer_sample_all[2]);
