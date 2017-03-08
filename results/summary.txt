@@ -142,6 +142,11 @@
 2043085
     Mar 7 03:10
     now error at timestep 98
+2043099
+    Mar 7 04:32
+    if use 4 producers and 8 consumers, different procs read different contents from global samples
+2043110
+    mpi_barrier doesn't work
     
 
     

@@ -18,6 +18,4 @@ namespace FEAdaptor
 // this function is similar to divide function
 // dim is the how many points in each side// 201
 
-static void map_regions(float *cluster_raw, float *cluster_data, const unsigned int dim[3], const unsigned int region_length);
-
 #endif

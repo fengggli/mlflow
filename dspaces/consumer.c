@@ -289,6 +289,10 @@ int main(int argc, char **argv)
     // x_max
     bounds_sample_all[3] = (nprocs)*(sample_size) -1; 
 
+    uint64_t gdims_sample[3] = {nprocs*sample_size, 1,1};
+    dspaces_define_gdim(var_name_sample, 3,gdims_sample);
+
+
     int num_elems_sample_all = (bounds_sample_all[3]-bounds_sample_all[0] + 1);
     size_t elem_size_sample_all = (region_length)*(region_length)*3*sizeof(float);
 
@@ -337,6 +341,10 @@ int main(int argc, char **argv)
     char var_name_divs[STRING_LENGTH];
     sprintf(var_name_divs, "divs");
 
+    uint64_t gdims_divs[3] = {num_tasks, 1,1};
+    dspaces_define_gdim(var_name_divs, 3,gdims_divs);
+
+
     int bounds_divs[6]={0};
 
     // x_min
@@ -363,6 +371,10 @@ int main(int argc, char **argv)
     char var_name_medoids[STRING_LENGTH];
     sprintf(var_name_medoids, "medoids");
 
+    uint64_t gdims_medoids[3] = {NCLUSTERS, 1,1};
+    dspaces_define_gdim(var_name_medoids, 3,gdims_medoids);
+
+
     int bounds_medoids[6]={0};
     // x_min
     bounds_medoids[0] = 0;
@@ -386,6 +398,10 @@ int main(int argc, char **argv)
      */
     char var_name_cluster[STRING_LENGTH];
     sprintf(var_name_cluster, "cluster");
+
+    uint64_t gdims_cluster[3] = {nprocs*num_region, 1,1};
+    dspaces_define_gdim(var_name_cluster, 3, gdims_cluster);
+
 
     int bounds_cluster[6]={0};
     // x_min
@@ -460,11 +476,15 @@ int main(int argc, char **argv)
         printf("local_sample sent\n");
 
         // 4. get aggregated sampled regions(dspaces get blocked if one applciation both writes and reds on the same variable)
-        MPI_Barrier(gcomm);
+        //MPI_Barrier(gcomm);
+
+        dspaces_barrier();
         get_common_buffer_unblocking(timestep, bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
         printf("global_sample got\n");
 
-        MPI_Barrier(gcomm);
+        dspaces_barrier();
+
+        //MPI_Barrier(gcomm);
 #ifdef debug_1
         spacing = elem_size_region/sizeof(float);
         printf("\tfirst data of all samples: %f %f %f \n", buffer_sample_all[0], buffer_sample_all[1], buffer_sample_all[2]);

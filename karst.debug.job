@@ -1,8 +1,9 @@
 #!/bin/bash  
 #PBS -N databroker
+#PBS -q debug
 #PBS -j oe
 #PBS -l walltime=00:5:00
-#PBS -l nodes=5:ppn=10
+#PBS -l nodes=4:ppn=10
 #PBS -o results/$PBS_JOBID.output
 
 #This job runs with 3 nodes  
@@ -46,7 +47,7 @@ rm -f dataspaces.conf
 # max readers will include both consumer and catalyst
 echo "## Config file for DataSpaces
 ndim = 3
-dims = 500, 500, 500
+dims = 1000, 1000, 1000
 max_versions = 100
 max_readers = 100
 lock_type = 2
