@@ -1,14 +1,7 @@
 #include "consumer.h"
 #include <float.h>
 
-// fake one, only select first num_elem_sample
-void prepare_sampled_buffer(float *buffer_region, float *buffer_sample, int num_elems_region, int num_elems_sample, int region_length){
-    int i;
-    int spacing = region_length*region_length*3;
-    for(i = 0; i< num_elems_sample; i++){
-        memcpy(buffer_sample + i*spacing, buffer_region+ i*spacing,spacing*sizeof(float));
-    }
-}
+
 
 void assign_clusterid(float *buffer_region,int num_region, float * buffer_sample_all, int num_sample_all,int *buffer_medoids,int k,int region_length,int k_npdiv, int div_func,  float *clusterids){
     int i, j;

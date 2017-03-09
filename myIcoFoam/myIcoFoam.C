@@ -73,6 +73,7 @@ Description
 
 #ifdef USE_DSPACES
     #include "ds_adaptor.h"
+    #include "divide.h"
 
     // write data from veolscalar field into dspaces send buffer 
     // not sure if we need special buffer
@@ -94,6 +95,14 @@ Description
 
             //Info<<" point "<< i << ": "<< tmp[0] <<" " << tmp[1]<< " "<<tmp[2]<< endl;
             tmp+=3;
+        }
+    }
+    // fake one, only select first num_elem_sample
+    void prepare_sampled_buffer(float *buffer_region, float *buffer_sample, int num_elems_region, int num_elems_sample, int region_length){
+        int i;
+        int spacing = region_length*region_length*3;
+        for(i = 0; i< num_elems_sample; i++){
+            memcpy(buffer_sample + i*spacing, buffer_region+ i*spacing,spacing*sizeof(float));
         }
     }
 
@@ -176,6 +185,7 @@ int main(int argc, char *argv[])
         double time_comm_vel = 0;
         double time_comm_pres = 0;
         double time_comp = 0;
+        double time_comm_sample = 0;
         double t1, t2;
         
         char var_name_vel[STRING_LENGTH];
@@ -225,6 +235,52 @@ int main(int argc, char *argv[])
               perror("pres data allocated error");
               exit(-1);
           }
+
+        // regions stripped to this rank
+        int region_length = REGION_LENGTH;
+        int num_region_row = dims[0]/region_length;
+        int num_region_col =  dims[1]/region_length;
+        int num_region = num_region_row*num_region_col; // this will be (201-1)/10 = 20
+
+        int num_elems_region = num_region;
+        size_t elem_size_region = (region_length)*(region_length)*3*sizeof(float);
+
+        float *buffer_region = (float *)malloc(num_elems_region*elem_size_region);
+        if(buffer_region== NULL){
+            perror("    allocate space for striped  regions");
+            exit(-1);
+        }
+
+        /*
+         * sampled vel data
+         */
+        // sampling related
+        int sample_size = SAMPLE_SIZE;
+        if(sample_size > num_region){
+            printf("cannot sample more than number of regions\n");
+            exit(-1);
+        }
+
+        char var_name_sample[STRING_LENGTH];
+        sprintf(var_name_sample, "sample");
+
+        int bounds_sample[6]={0};
+        // x_min
+        bounds_sample[0] = rank*sample_size;
+
+        // x_max
+        bounds_sample[3] = (rank+1)*(sample_size) -1; 
+
+        int num_elems_sample = sample_size;
+        size_t elem_size_sample = (region_length)*(region_length)*3*sizeof(float);
+
+        float *buffer_sample = (float *)malloc(num_elems_sample*elem_size_sample);
+        if(buffer_sample== NULL){
+            perror("    allocate space for sampled  regions");
+            exit(-1);
+        }
+        uint64_t gdims_sample[1] = {nprocs*sample_size};
+        dspaces_define_gdim(var_name_sample, 1,gdims_sample);
 
         
 // end of dspaces preparation
@@ -326,8 +382,42 @@ int main(int argc, char *argv[])
        printf(" first data, address %p: %f %f %f\n", vel_data, vel_data[0], vel_data[1], vel_data[2]);
        */
 
+        // 1. write raw buffer
         put_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
         put_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
+
+        // 3. divide into regions
+        int num_region_2;
+        divide(vel_data, dims,region_length,&num_region_2, buffer_region);
+        printf("divide completed %d regions generated\n", num_region_2);
+#ifdef debug_1
+        int spacing = elem_size_region/sizeof(float);
+        printf(" first data of all regions: %f %f %f \n", buffer_region[0], buffer_region[1], buffer_region[2]);
+        printf(" last data of all regions: %f %f %f \n", buffer_region[spacing*num_region -3], buffer_region[spacing*num_region -2], buffer_region[spacing*num_region-1]);
+#endif
+        
+        // 3. sampling
+        prepare_sampled_buffer(buffer_region, buffer_sample, num_elems_region, num_elems_sample, region_length);
+        printf("local_sample generated\n");
+
+        // 4. send own sampled regions(only velocity)
+        put_common_buffer(timestep, 1, bounds_sample, rank, &gcomm, var_name_sample,(void **)&buffer_sample, elem_size_region,  &time_comm_sample);
+        printf("local_sample sent\n");
+
+
+
+#ifdef debug_1
+        spacing = elem_size_region/sizeof(float);
+        printf(" first data of local samples: %f %f %f \n", buffer_sample[0], buffer_sample[1], buffer_sample[2]);
+        printf(" last data of local samples: %f %f %f \n", buffer_sample[spacing*num_elems_sample -3], buffer_sample[spacing*num_elems_sample -2], buffer_sample[spacing*num_elems_sample-1]);
+#endif
+
+
+
+
+        
+        // write samples into dataspaces
+        
         time_comm = time_comm_vel + time_comm_pres;
 
         MPI_Barrier(gcomm);
@@ -400,6 +490,16 @@ int main(int argc, char *argv[])
         if(timestep == MAX_VERSION){
             break;
         }
+    }
+    if(buffer_region != NULL){
+        free(buffer_region);
+        sprintf(msg,"-- buffer_region freed");
+        my_message(msg, rank, LOG_CRITICAL);
+    }
+    if(buffer_sample != NULL){
+        free(buffer_sample);
+        sprintf(msg,"-- buffer_sample freed");
+        my_message(msg, rank, LOG_CRITICAL);
     }
 
     MPI_Barrier(gcomm);

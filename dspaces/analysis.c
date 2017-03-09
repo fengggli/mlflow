@@ -49,16 +49,8 @@ int main(int argc, char **argv)
     int nprocs, rank;
     MPI_Comm gcomm;
 
-    int nprocs_consumer;
+    int nprocs_sim = (PROCS_PER_DIM*PROCS_PER_DIM);
 
-    // output results into a folded specified with a slurm jobid
-    if(argc == 2){
-        nprocs_consumer = atoi(argv[1]);
-    }
-    else{
-        printf("need to specify consumer procs, now exit\n");
-        exit(-1);
-    }
 
     // MPI communicator
     MPI_Init(&argc, &argv);
@@ -84,7 +76,7 @@ int main(int argc, char **argv)
     // divs related
     int sample_size = SAMPLE_SIZE;
 
-    int num_elems_sample_all = (nprocs_consumer)*(sample_size); 
+    int num_elems_sample_all = (nprocs_sim)*(sample_size); 
     int num_region = num_elems_sample_all;
     // divs tasks
     int num_tasks = num_elems_sample_all*(num_elems_sample_all-1)/2;

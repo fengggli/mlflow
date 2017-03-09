@@ -7,6 +7,10 @@
  * each region is a block with a length of l, ovelapping length default value is 0
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,5 +69,8 @@ void divide_synthetic(int dim, int l, int *p_num_region, float **p_regions);
 
 void divide(float *pdata, unsigned int dims[3], int l, int *p_num_region, float *buffer_regions);
 
+#endif
+#ifdef __cplusplus
+}
 #endif
 

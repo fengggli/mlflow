@@ -182,35 +182,7 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
-    /*
-     * sampled vel data
-     */
-    // sampling related
-    int sample_size = SAMPLE_SIZE;
-    if(sample_size > num_region){
-        printf("cannot sample more than number of regions\n");
-        exit(-1);
-    }
-
-    char var_name_sample[STRING_LENGTH];
-    sprintf(var_name_sample, "sample");
-
-    int bounds_sample[6]={0};
-    // x_min
-    bounds_sample[0] = rank*sample_size;
-
-    // x_max
-    bounds_sample[3] = (rank+1)*(sample_size) -1; 
-
-    int num_elems_sample = sample_size;
-    size_t elem_size_sample = (region_length)*(region_length)*3*sizeof(float);
-
-    float *buffer_sample = (float *)malloc(num_elems_sample*elem_size_sample);
-    if(buffer_sample== NULL){
-        perror("    allocate space for sampled  regions");
-        exit(-1);
-    }
-
+    
     /*
      * aggregated sampled all data
      */
@@ -219,15 +191,20 @@ int main(int argc, char **argv)
     // it will operate on the same sample
     //char var_name_sample[STRING_LENGTH];
     //sprintf(var_name_sample_all, "sample");
+    int nprocs_sim = (PROCS_PER_DIM*PROCS_PER_DIM);
+    int sample_size = SAMPLE_SIZE;
+
+    char var_name_sample[STRING_LENGTH];
+    sprintf(var_name_sample, "sample");
 
     int bounds_sample_all[6]={0};
     // x_min
     bounds_sample_all[0] = 0;
 
     // x_max
-    bounds_sample_all[3] = (nprocs)*(sample_size) -1; 
+    bounds_sample_all[3] = (nprocs_sim)*(sample_size) -1; 
 
-    uint64_t gdims_sample[1] = {nprocs*sample_size};
+    uint64_t gdims_sample[1] = {nprocs_sim*sample_size};
     dspaces_define_gdim(var_name_sample, 1,gdims_sample);
 
 
@@ -367,7 +344,6 @@ int main(int argc, char **argv)
     double time_comp = 0;
     double time_comm_pres = 0;
     double time_comm_vel = 0;
-    double time_comm_sample = 0;
     double time_comm_sample_all = 0;
     double time_comm_medoids =0;
     double time_comm_cluster= 0;
@@ -389,7 +365,7 @@ int main(int argc, char **argv)
         get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
         get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
 
-        // note
+        // 3. divide into regions
         int num_region_2;
         divide(vel_data, dims,region_length,&num_region_2, buffer_region);
         printf("divide completed %d regions generated\n", num_region_2);
@@ -399,25 +375,12 @@ int main(int argc, char **argv)
         printf(" last data of all regions: %f %f %f \n", buffer_region[spacing*num_region -3], buffer_region[spacing*num_region -2], buffer_region[spacing*num_region-1]);
 #endif
 
-        // 2. sampling
-        prepare_sampled_buffer(buffer_region, buffer_sample, num_elems_region, num_elems_sample, region_length);
-        printf("local_sample generated\n");
-
-#ifdef debug_1
-        spacing = elem_size_region/sizeof(float);
-        printf(" first data of local samples: %f %f %f \n", buffer_sample[0], buffer_sample[1], buffer_sample[2]);
-        printf(" last data of local samples: %f %f %f \n", buffer_sample[spacing*num_elems_sample -3], buffer_sample[spacing*num_elems_sample -2], buffer_sample[spacing*num_elems_sample-1]);
-#endif
-
-        // 3. send own sampled regions(only velocity)
-        put_common_buffer(timestep, 1, bounds_sample, rank, &gcomm, var_name_sample,(void **)&buffer_sample, elem_size_region,  &time_comm_sample);
-        printf("local_sample sent\n");
 
         // 4. get aggregated sampled regions(dspaces get blocked if one applciation both writes and reds on the same variable)
         MPI_Barrier(MPI_COMM_WORLD);
         printf("start to gather global_sample\n");
 
-        get_common_buffer_unblocking(timestep,1,  bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
+        get_common_buffer(timestep,1,  bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
         printf("global_sample got\n");
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -495,11 +458,7 @@ int main(int argc, char **argv)
         sprintf(msg,"-- buffer_region freed");
         my_message(msg, rank, LOG_CRITICAL);
     }
-    if(buffer_sample != NULL){
-        free(buffer_sample);
-        sprintf(msg,"-- buffer_sample freed");
-        my_message(msg, rank, LOG_CRITICAL);
-    }
+
     if(buffer_sample_all != NULL){
         free(buffer_sample_all);
         sprintf(msg,"-- buffer_sample_all freed");
