@@ -49,7 +49,7 @@ echo "## Config file for DataSpaces
 ndim = 3
 dims = 1000, 1000, 1000
 max_versions = 100
-max_readers = 100
+max_readers = 2
 lock_type = 2
 " > dataspaces.conf
 

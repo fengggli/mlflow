@@ -182,6 +182,10 @@
 
 2046913
     medoids get err in consumer
+2047132
+    change medoids size to 10
+    full 100 timsteps
+    in compute nodes run three times, all passed
     
     
     
