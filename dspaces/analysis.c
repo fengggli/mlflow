@@ -219,22 +219,20 @@ int main(int argc, char **argv)
         MPI_Barrier(gcomm);
         put_common_buffer(timestep,1,  bounds_medoids, rank, &gcomm, var_name_medoids, (void **)&buffer_medoids, elem_size_medoids, &time_comm_medoids);
         
-        /*
-        double global_time_comm_cluster;
         double global_time_comm_divs;
-        double global_time_comp;
+        double global_time_comp_medoids;
+        double global_time_comm_medoids;
 
-        MPI_Reduce(&time_comm_cluster, &global_time_comm_cluster, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
         MPI_Reduce(&time_comm_divs, &global_time_comm_divs, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
-        MPI_Reduce(&time_comp, &global_time_comp, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comp, &global_time_comp_medoids, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comm_medoids, &global_time_comm_medoids, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
 
         // Print the result
         if (rank == 0) {
-          printf("%d Computation Total %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
-          printf("%d cluster Total %lf avg %lf\n",timestep,  global_time_comm_cluster , global_time_comm_cluster/ (nprocs));
-          printf("%d divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
+          printf("%d comm divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
+          printf("%d comp medoids Total %lf avg %lf\n",timestep,  global_time_comp_medoids, global_time_comp_medoids/ (nprocs));
+          printf("%d comm medoids %lf avg %lf\n",timestep,  global_time_comm_medoids , global_time_comm_medoids/ (nprocs));
         }
-        */
         timestep++;
     }
     

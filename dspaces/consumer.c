@@ -1,6 +1,6 @@
 #include "consumer.h"
 #define debug_1
-#define debug_2
+//#define debug_2
 
 // test segmentation fault
  int validate_regions(float *buffer_a, int region_memory_size){
@@ -57,6 +57,7 @@ void cal_local_divs(float *buffer_all_regions, int region_length, int k_npdiv, i
     }
 
 
+    t2 = MPI_Wtime();
     for(i = pair_index_l; i<= pair_index_h; i++){
         // get the region index of that pair
 
@@ -74,11 +75,9 @@ void cal_local_divs(float *buffer_all_regions, int region_length, int k_npdiv, i
         buffer_a = buffer_all_regions + a*region_length*region_length*3;
         buffer_b = buffer_all_regions + b*region_length*region_length*3;
 
-        t2 = MPI_Wtime();
 
         div = get_divs( buffer_a , buffer_b, region_length, k_npdiv, div_func);
 
-        t3 = MPI_Wtime();
 
 #ifdef debug_1
         //snprintf(msg, STRING_LENGTH,"got div of region %d and region %d: %.6f ",a, b, div);
@@ -88,8 +87,11 @@ void cal_local_divs(float *buffer_all_regions, int region_length, int k_npdiv, i
         // save it into buffer first
         divs_this_rank[i - pair_index_l] = div;
         // record the time for communication and calculation
-        *p_time_used += t3 -t2;
     }
+
+    t3 = MPI_Wtime();
+
+    *p_time_used = t3 -t2;
 }
 
 int main(int argc, char **argv)
@@ -341,7 +343,7 @@ int main(int argc, char **argv)
 
     // accumulated time for communication(read regions and write divs) and calculation(divs)
     //double time_comm_regions = 0;
-    double time_comp = 0;
+    double t1,t2;
     double time_comm_pres = 0;
     double time_comm_vel = 0;
     double time_comm_sample_all = 0;
@@ -349,6 +351,7 @@ int main(int argc, char **argv)
     double time_comm_cluster= 0;
     double time_comm_divs= 0;
     double time_comp_divs =0;
+    double time_comp_assign = 0;
 
     int timestep=0;
     while(timestep < MAX_VERSION){
@@ -377,13 +380,11 @@ int main(int argc, char **argv)
 
 
         // 4. get aggregated sampled regions(dspaces get blocked if one applciation both writes and reds on the same variable)
-        MPI_Barrier(MPI_COMM_WORLD);
         printf("start to gather global_sample\n");
 
         get_common_buffer(timestep,1,  bounds_sample_all, rank, &gcomm, var_name_sample, (void **)&buffer_sample_all, elem_size_region,  &time_comm_sample_all);
         printf("global_sample got\n");
 
-        MPI_Barrier(MPI_COMM_WORLD);
 
 #ifdef debug_1
         spacing = elem_size_region/sizeof(float);
@@ -405,7 +406,10 @@ int main(int argc, char **argv)
         printf("medoids are %d %d %d\n",buffer_medoids[0], buffer_medoids[1], buffer_medoids[2]);
 
         // 7. assign clusterid
+        t1 = MPI_Wtime();
         assign_clusterid(buffer_region, num_region, buffer_sample_all, num_elems_sample_all, buffer_medoids, cluster_k, region_length, k_npdiv, div_func,  buffer_cluster);
+        t2 = MPI_Wtime();
+        time_comp_assign = t2 - t1;
         printf("clusterid  assigned\n");
 
         // 7. put clusterid
@@ -418,23 +422,34 @@ int main(int argc, char **argv)
 
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
         my_message(msg, rank, LOG_CRITICAL);
+        double time_comm_raw = time_comm_vel+ time_comm_pres;
 
-        /*
         double global_time_comm_raw;
+        double global_time_comm_sample;
+        double global_time_comp_divs;
         double global_time_comm_divs;
-        double global_time_comp;
+        double global_time_comm_medoids;
+        double global_time_comp_assign;
+        double global_time_comm_cluster;
 
         MPI_Reduce(&time_comm_raw, &global_time_comm_raw, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comm_sample_all, &global_time_comm_sample, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comp_divs, &global_time_comp_divs, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
         MPI_Reduce(&time_comm_divs, &global_time_comm_divs, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
-        MPI_Reduce(&time_comp, &global_time_comp, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comm_medoids, &global_time_comm_medoids, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comp_assign, &global_time_comp_assign, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comm_cluster, &global_time_comm_cluster, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
 
         // Print the result
         if (rank == 0) {
-          printf("%d Computation Total %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
-          printf("%d raw Total %lf avg %lf\n",timestep,  global_time_comm_raw , global_time_comm_raw/ (nprocs));
-          printf("%d divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
+          printf("%d comm raw Total %lf avg %lf\n",timestep,  global_time_comm_raw , global_time_comm_raw/ (nprocs));
+          printf("%d comm sample Total %lf avg %lf\n",timestep,  global_time_comm_sample , global_time_comm_sample/ (nprocs));
+          printf("%d comp divs Total %lf avg %lf\n",timestep,  global_time_comp_divs , global_time_comp_divs/ (nprocs));
+          printf("%d comm divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
+          printf("%d comm medoids Total %lf avg %lf\n",timestep,  global_time_comm_medoids , global_time_comm_medoids/ (nprocs));
+          printf("%d comp assign Total %lf avg %lf\n",timestep,  global_time_comp_assign , global_time_comp_assign/ (nprocs));
+          printf("%d comm cluster Total %lf avg %lf\n",timestep,  global_time_comm_cluster , global_time_comm_cluster/ (nprocs));
         }
-        */
         timestep++;
     }
 

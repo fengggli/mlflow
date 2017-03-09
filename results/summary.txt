@@ -177,6 +177,13 @@
     yes! , see 2045390
 2045401
     now changed the dims of other variables but No.3 consumer still get zero values of global samples
+2045537
+    this gives correct result but only once..
+
+2046913
+    medoids get err in consumer
+    
+    
     
 
     

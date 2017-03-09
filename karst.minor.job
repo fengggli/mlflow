@@ -19,7 +19,7 @@ cd $PBS_O_WORKDIR
 # num of process in each side
 SIM_PROC_SIDE=4
 SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE})) # square of proc_side
-CONSUMER_PROCS=$((${SIM_PROCS}*4))
+CONSUMER_PROCS=$((${SIM_PROCS}*2))
 ANALYSIS_PROCS=1
 CATALYST_PROCS=1
 

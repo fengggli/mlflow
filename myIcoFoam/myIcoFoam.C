@@ -466,10 +466,7 @@ int main(int argc, char *argv[])
 
         ofs_U << endl;
 #endif
-        timestep++;
-
-        count++;
-
+        
       /*
         ofs_p << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
@@ -478,14 +475,21 @@ int main(int argc, char *argv[])
 
         double global_time_comm;
         double global_time_comp;
+        double global_time_comm_sample;
         MPI_Reduce(&time_comm, &global_time_comm, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comm_sample, &global_time_comm_sample, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
         MPI_Reduce(&time_comp, &global_time_comp, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
 
         // Print the result
         if (rank == 0) {
-          printf("%d Computation Total %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
-          printf("%d raw Total %lf avg %lf\n",timestep,  global_time_comm , global_time_comm/ (nprocs));
+          printf("%d comp sim Total  %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
+          printf("%d comm raw Total %lf avg %lf\n",timestep,  global_time_comm , global_time_comm/ (nprocs));
+          printf("%d comm sample Total %lf avg %lf\n",timestep,  global_time_comm_sample , global_time_comm_sample/ (nprocs));
         }
+        timestep++;
+
+        count++;
+
 
         if(timestep == MAX_VERSION){
             break;
@@ -518,6 +522,7 @@ int main(int argc, char *argv[])
     if(pres_data != NULL){     
         free(pres_data);
     }
+    printf("now finalize the dspaces and exit");
 
     dspaces_finalize();
 

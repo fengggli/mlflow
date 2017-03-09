@@ -267,19 +267,19 @@ int main(int argc, char* argv[])
     t2 = MPI_Wtime();
     time_comp = t2-t1;
     // timer
-        double global_time_comm_cluster;
         double global_time_comm_raw;
-        double global_time_comp;
+        double global_time_comm_cluster;
+        double global_time_comp_cat;
 
-        MPI_Reduce(&time_comm_cluster, &global_time_comm_cluster, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
         MPI_Reduce(&time_comm_raw, &global_time_comm_raw, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
-        MPI_Reduce(&time_comp, &global_time_comp, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comm_cluster, &global_time_comm_cluster, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_comp, &global_time_comp_cat, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
 
         // Print the result
         if (rank == 0) {
-          printf("%d Computation Total %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
-          printf("%d cluster Total %lf avg %lf\n",timestep,  global_time_comm_cluster , global_time_comm_cluster/ (nprocs));
-          printf("%d divs Total %lf avg %lf\n",timestep,  global_time_comm_raw , global_time_comm_raw/ (nprocs));
+          printf("%d comm raw Total %lf avg %lf\n",timestep,  global_time_comm_raw , global_time_comm_raw/ (nprocs));
+          printf("%d comm cluster Total %lf avg %lf\n",timestep,  global_time_comm_cluster , global_time_comm_cluster/ (nprocs));
+          printf("%d comp cat Total %lf avg %lf\n",timestep,  global_time_comp_cat , global_time_comp_cat/ (nprocs));
         }
     }
 
