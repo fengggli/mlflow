@@ -3,7 +3,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 ## []0.2.17  2017 Mar-9
+	this is the version can correctly run
 	add more timer for each process
+	set dims_cluster =10
+	max_reader = 2(this is where problems come from)
 ## [0.2.16] 2017 Mar-8
 ## added
 	preprocessor switch for gdim

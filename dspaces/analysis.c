@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     char var_name_medoids[STRING_LENGTH];
     sprintf(var_name_medoids, "medoids");
 
-    uint64_t gdims_medoids[1] = {10};
+    uint64_t gdims_medoids[1] = {NCLUSTERS};
     dspaces_define_gdim(var_name_medoids, 1,gdims_medoids);
 
     int bounds_medoids[6]={0};

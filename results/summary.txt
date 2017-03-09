@@ -186,6 +186,7 @@
     change medoids size to 10
     full 100 timsteps
     in compute nodes run three times, all passed
+    debug nodes is also correct, commit in 00c78c72bc90c114df623e49b5f7920574d8dafe
     
     
     
