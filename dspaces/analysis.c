@@ -231,7 +231,7 @@ int main(int argc, char **argv)
         if (rank == 0) {
           printf("%d comm divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
           printf("%d comp medoids Total %lf avg %lf\n",timestep,  global_time_comp_medoids, global_time_comp_medoids/ (nprocs));
-          printf("%d comm medoids %lf avg %lf\n",timestep,  global_time_comm_medoids , global_time_comm_medoids/ (nprocs));
+          printf("%d comm medoids Total %lf avg %lf\n",timestep,  global_time_comm_medoids , global_time_comm_medoids/ (nprocs));
         }
         timestep++;
     }

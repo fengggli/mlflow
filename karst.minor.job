@@ -1,17 +1,19 @@
 #!/bin/bash  
 #PBS -N databroker
 #PBS -j oe
-#PBS -l walltime=00:40:00
+#PBS -l walltime=00:300:00
 #PBS -l nodes=8:ppn=16
 #PBS -o results/$PBS_JOBID.output
 
 #This job runs with 3 nodes  
 #ibrun in verbose mode will give binding detail  
 #BUILD=${PBS_O_WORKDIR}/build_filewriter/bin
+CASE_LENGTH=1024
+REGION_LENGTH=16
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
-CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity_fine_1025
+CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity_fine_${CASE_LENGTH}
 
 mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR
@@ -23,7 +25,7 @@ CONSUMER_PROCS=$((${SIM_PROCS}*2))
 ANALYSIS_PROCS=1
 CATALYST_PROCS=1
 
-BUILD=${PBS_O_WORKDIR}/build_${SIM_PROC_SIDE}/bin
+BUILD=${PBS_O_WORKDIR}/build_sim_${SIM_PROC_SIDE}_case_${CASE_LENGTH}_regionLength_${REGION_LENGTH}/bin
 
 DS_SERVER_PROCS=2
 
@@ -46,9 +48,9 @@ rm -f dataspaces.conf
 # max readers will include both consumer and catalyst
 echo "## Config file for DataSpaces
 ndim = 3
-dims = 500, 500, 500
+dims = 1000, 1000, 1000
 max_versions = 100
-max_readers = 100
+max_readers = 2
 lock_type = 2
 " > dataspaces.conf
 

@@ -34,10 +34,16 @@ extern "C" {
 
 #ifdef USE_EXP
     #define MAX_VERSION (100)
+   #ifndef CASE_LENGTH
+        #error "need to define case_length of icofoam"
+    #endif
+
+   #ifndef REGION_LENGTH
+        #error "need to define length of region"
+    #endif
+
     //#define CASE_LENGTH (1024)
     //#define REGION_LENGTH (32)
-    #define CASE_LENGTH (32)
-    #define REGION_LENGTH (4)
     #ifndef PROCS_PER_DIM
         #error "need to define process per side"
     #endif

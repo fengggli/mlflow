@@ -158,13 +158,19 @@ float get_divs(float *A, float *B, int region_length, int k, int div_func){
 #endif
     }
     if(!isfinite(div)){
-            fprintf(stderr, "ERR:got infinite div %f, density_a= %f, density_b=%f", div, den_a, den_b);
-            return 0.1;
+            //fprintf(stderr, "ERR:got infinite div %f, density_a= %f, density_b=%f\n", div, den_a, den_b);
+            float noise;
+            float noise_range = 0.05;
+            noise = (float)rand()/(float)(RAND_MAX/noise_range);
+            return (1+1000*noise);
         }
         if(isnan(div)){
             // this can happen when velocity data are just 0
-            fprintf(stderr, "ERR:got nan  div %f", div);
-            return 0.1;
+            //fprintf(stderr, "ERR:got nan  div %f", div);
+            float noise;
+            float noise_range = 0.05;
+            noise = (float)rand()/(float)(RAND_MAX/noise_range);
+            return (1+1000*noise);
         }
     return div;
 }
