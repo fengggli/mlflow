@@ -186,7 +186,10 @@ int main(int argc, char *argv[])
         double time_comm_pres = 0;
         double time_comp = 0;
         double time_comm_sample = 0;
-        double t1, t2;
+        double time_latency = 0;
+        double t1, t2, t3;
+        // timer for end-to-end
+        double t_start, t_end;
         
         char var_name_vel[STRING_LENGTH];
         char var_name_pres[STRING_LENGTH];
@@ -299,6 +302,9 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
         printf("********************timestep %d now start!\n",timestep);
 
+        MPI_Barrier(gcomm);
+        t_start = MPI_Wtime();
+
         #include "CourantNo.H"
 
         // Momentum predictor
@@ -318,7 +324,6 @@ int main(int argc, char *argv[])
         // --- PISO loop
         // start timer
         
-        t1 = MPI_Wtime();
         while (piso.correct())
         {
             volScalarField rAU(1.0/UEqn.A());
@@ -362,7 +367,7 @@ int main(int argc, char *argv[])
         }
 
         t2 = MPI_Wtime();
-        time_comp = t2-t1;
+        time_comp = t2-t_start;
 
         // if the setting is 'no write', that field won't be written to files
         runTime.write();
@@ -420,7 +425,6 @@ int main(int argc, char *argv[])
         
         time_comm = time_comm_vel + time_comm_pres;
 
-        MPI_Barrier(gcomm);
 
         
 #endif
@@ -473,6 +477,12 @@ int main(int argc, char *argv[])
             << nl << endl;
         */
 
+
+
+        MPI_Barrier(gcomm);
+        t_end = MPI_Wtime();
+        time_latency = t_end-t_start;
+
         double global_time_comm;
         double global_time_comp;
         double global_time_comm_sample;
@@ -485,6 +495,8 @@ int main(int argc, char *argv[])
           printf("%d comp sim Total  %lf avg %lf\n",timestep,  global_time_comp , global_time_comp/ (nprocs));
           printf("%d comm raw Total %lf avg %lf\n",timestep,  global_time_comm , global_time_comm/ (nprocs));
           printf("%d comm sample Total %lf avg %lf\n",timestep,  global_time_comm_sample , global_time_comm_sample/ (nprocs));
+
+          printf("%d all latency Total %lf\n",timestep,  time_latency );
         }
         timestep++;
 

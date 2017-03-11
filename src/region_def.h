@@ -17,7 +17,6 @@ extern "C" {
 #define INCLUDE_ML
 #define USE_PARAL_CAVITY
 #define SAMPLING
-#define SAMPLE_SIZE (20)
  
 // large scale experiment
 #define USE_EXP
@@ -52,6 +51,8 @@ extern "C" {
     // this will be 40*4+1 = 161 (161 points in each side for 4^2 = 16 procs)
     #define POINTS_SIDE (CASE_LENGTH*PROCS_PER_DIM) //2^13
     #define NUM_REGION (POINTS_SIDE/REGION_LENGTH)*(POINTS_SIDE/REGION_LENGTH) // (2^13/2^8)^2 = 2^10 regions
+
+    #define SAMPLE_SIZE (512/(PROCS_PER_DIM*PROCS_PER_DIM))
 
     #define K_NPDIV (5)
     #define NPASS (100)

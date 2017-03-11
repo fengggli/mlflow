@@ -176,9 +176,12 @@ int main(int argc, char **argv)
     double time_comm_divs = 0;
     double time_comp =0;
     double t1, t2;
+    double t_start, t_end;
 
     // we will receive each timestamp
     while(timestep < MAX_VERSION){
+
+        t_start = MPI_Wtime();
 
         printf("********************timestep %d now start!\n",timestep);
         MPI_Barrier(gcomm);
@@ -218,20 +221,27 @@ int main(int argc, char **argv)
 
         MPI_Barrier(gcomm);
         put_common_buffer(timestep,1,  bounds_medoids, rank, &gcomm, var_name_medoids, (void **)&buffer_medoids, elem_size_medoids, &time_comm_medoids);
+
+        t_end = MPI_Wtime();
+        double time_latency= t_end - t_start;
         
         double global_time_comm_divs;
         double global_time_comp_medoids;
         double global_time_comm_medoids;
+        double global_time_latency;
 
         MPI_Reduce(&time_comm_divs, &global_time_comm_divs, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
         MPI_Reduce(&time_comp, &global_time_comp_medoids, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
         MPI_Reduce(&time_comm_medoids, &global_time_comm_medoids, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
+        MPI_Reduce(&time_latency, &global_time_latency, 1, MPI_DOUBLE, MPI_SUM, 0, gcomm);
 
         // Print the result
         if (rank == 0) {
           printf("%d comm divs Total %lf avg %lf\n",timestep,  global_time_comm_divs , global_time_comm_divs/ (nprocs));
           printf("%d comp medoids Total %lf avg %lf\n",timestep,  global_time_comp_medoids, global_time_comp_medoids/ (nprocs));
           printf("%d comm medoids Total %lf avg %lf\n",timestep,  global_time_comm_medoids , global_time_comm_medoids/ (nprocs));
+
+          printf("%d all latency Total %lf avg %lf\n",timestep,  global_time_latency , global_time_latency/ (nprocs));
         }
         timestep++;
     }

@@ -132,6 +132,8 @@ int main(int argc, char* argv[])
     // vel and pressure buffer
     //double time_used, time_used_cluster;
     double t1, t2;
+    double t_start, t_end;
+    double time_latency;
     double time_comm_raw, time_comm_cluster, time_comm_vel, time_comm_pres;
     time_comm_raw = 0;
     time_comm_cluster =0;
@@ -229,10 +231,14 @@ int main(int argc, char* argv[])
         cout <<"-----current timestep" << timestep << endl;
     }
 
+    MPI_Barrier(gcomm);
     // 1. read simulation  data from dataspces
     // this will get blocked until new data available
 
     get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
+
+    t_start = MPI_Wtime()- time_comm_vel;
+
     get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
     time_comm_raw = time_comm_vel+ time_comm_pres;
 
@@ -266,6 +272,10 @@ int main(int argc, char* argv[])
 
     t2 = MPI_Wtime();
     time_comp = t2-t1;
+
+    MPI_Barrier(gcomm);
+    t_end = MPI_Wtime();
+    time_latency = t_end-t_start;
     // timer
         double global_time_comm_raw;
         double global_time_comm_cluster;
@@ -280,6 +290,7 @@ int main(int argc, char* argv[])
           printf("%d comm raw Total %lf avg %lf\n",timestep,  global_time_comm_raw , global_time_comm_raw/ (nprocs));
           printf("%d comm cluster Total %lf avg %lf\n",timestep,  global_time_comm_cluster , global_time_comm_cluster/ (nprocs));
           printf("%d comp cat Total %lf avg %lf\n",timestep,  global_time_comp_cat , global_time_comp_cat/ (nprocs));
+          printf("%d all latency Total %lf\n",timestep,  time_latency );
         }
     }
 

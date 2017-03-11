@@ -344,6 +344,8 @@ int main(int argc, char **argv)
     // accumulated time for communication(read regions and write divs) and calculation(divs)
     //double time_comm_regions = 0;
     double t1,t2;
+    // timer for end-to-end
+    double t_start, t_end, time_latency;
     double time_comm_pres = 0;
     double time_comm_vel = 0;
     double time_comm_sample_all = 0;
@@ -366,6 +368,10 @@ int main(int argc, char **argv)
 
         // 1. get stripped data, 
         get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_vel, (void **)&vel_data, elem_size_vel, &time_comm_vel);
+
+        // this is actual start when enter dspaces read lock
+        t_start = MPI_Wtime()- time_comm_vel;
+
         get_common_buffer(timestep,2, bounds,rank, &gcomm, var_name_pres, (void **)&pres_data, elem_size_pres, &time_comm_pres);
 
         // 3. divide into regions
@@ -422,6 +428,11 @@ int main(int argc, char **argv)
 
         sprintf(msg,"--has reached barrier and yeild div read lock to producer");
         my_message(msg, rank, LOG_CRITICAL);
+
+        MPI_Barrier(gcomm);
+        t_end = MPI_Wtime();
+        time_latency = t_end-t_start;
+
         double time_comm_raw = time_comm_vel+ time_comm_pres;
 
         double global_time_comm_raw;
@@ -449,6 +460,7 @@ int main(int argc, char **argv)
           printf("%d comm medoids Total %lf avg %lf\n",timestep,  global_time_comm_medoids , global_time_comm_medoids/ (nprocs));
           printf("%d comp assign Total %lf avg %lf\n",timestep,  global_time_comp_assign , global_time_comp_assign/ (nprocs));
           printf("%d comm cluster Total %lf avg %lf\n",timestep,  global_time_comm_cluster , global_time_comm_cluster/ (nprocs));
+          printf("%d all latency Total %lf\n",timestep,  time_latency );
         }
         timestep++;
     }

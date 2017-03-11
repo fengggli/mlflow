@@ -1,8 +1,8 @@
 #!/bin/bash  
-#PBS -N databroker
+#PBS -N databroker_case_512
 #PBS -j oe
 #PBS -l walltime=00:60:00
-#PBS -l nodes=8:ppn=16
+#PBS -l nodes=19:ppn=16
 #PBS -o results/$PBS_JOBID.output
 
 #This job runs with 3 nodes  
@@ -10,7 +10,14 @@
 #BUILD=${PBS_O_WORKDIR}/build_filewriter/bin
 
 #### case length = 1024 512, 256, 128
-CASE_LENGTH=1024
+# server 1
+# case_l 1024   512         256
+# sim 16/8 2   64/8 = 8     256/8 = 32
+# con 32/16 2  128/16 = 8   496/16 = 32
+# ana 1
+# cat 1
+
+CASE_LENGTH=512
 #SIM_PROC_SIDE=4
 SIM_PROC_SIDE=$((4096/CASE_LENGTH))
 
@@ -79,11 +86,11 @@ $CMD_CONSUMER &
 echo "reader applciation lauched: $CMD_CONSUMER"
 
 # the analysis application
-CMD_ANALYSIS="mpirun  -n ${ANALYSIS_PROCS}  --output-filename ${PBS_RESULTDIR}/analysis.log ${BUILD}/analysis ${PBS_RESULTDIR}"
+CMD_ANALYSIS="mpirun  -n ${ANALYSIS_PROCS} --npernode 1  --output-filename ${PBS_RESULTDIR}/analysis.log ${BUILD}/analysis ${PBS_RESULTDIR}"
 $CMD_ANALYSIS &
 echo "analysis applciation lauched:$CMD_ANALYSIS"
 
-CMD_CATALYST="mpirun -n ${CATALYST_PROCS} --output-filename ${PBS_RESULTDIR}/catalyst.log ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py"
+CMD_CATALYST="mpirun -n ${CATALYST_PROCS} --npernode 1 --output-filename ${PBS_RESULTDIR}/catalyst.log ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py"
 $CMD_CATALYST &
 echo "catalyst launched: $CMD_CATALYST"
 
