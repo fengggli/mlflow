@@ -1,0 +1,100 @@
+#!/bin/bash  
+#PBS -N databroker_case_512
+#PBS -j oe
+#PBS -l walltime=00:20:00
+#PBS -l nodes=19:ppn=16
+#PBS -o results/$PBS_JOBID.output
+
+#This job runs with 3 nodes  
+#ibrun in verbose mode will give binding detail  
+#BUILD=${PBS_O_WORKDIR}/build_filewriter/bin
+
+#### case length = 1024 512, 256, 128
+# server 1
+# case_l 1024   512         256
+# sim 16/8 2   64/8 = 8     256/8 = 32
+# con 32/16 2  128/16 = 8   496/16 = 32
+# ana 1
+# cat 1
+
+CASE_LENGTH=512
+#SIM_PROC_SIDE=4
+SIM_PROC_SIDE=$((4096/CASE_LENGTH))
+
+REGION_LENGTH=16
+DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
+PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
+SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
+CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity_fine_${CASE_LENGTH}
+
+mkdir -pv ${PBS_RESULTDIR}
+cd $PBS_O_WORKDIR
+
+# num of process in each side
+SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE})) # square of proc_side
+CONSUMER_PROCS=$((${SIM_PROCS}*2))
+ANALYSIS_PROCS=1
+CATALYST_PROCS=1
+
+BUILD=${PBS_O_WORKDIR}/build_sim_${SIM_PROC_SIDE}_case_${CASE_LENGTH}_regionLength_${REGION_LENGTH}/bin
+
+DS_SERVER_PROCS=2
+
+DS_CLIENT_PROCS=$((${SIM_PROCS} + ${CONSUMER_PROCS} + ${ANALYSIS_PROCS} +${CATALYST_PROCS}))
+echo "server procs $DS_SERVER_PROCS clients procs $DS_CLIENT_PROCS"
+
+export DATASPACES_TCP_WRITE_SIZE=1073741824
+export DATASPACES_TCP_READ_SIZE=87380
+
+mkdir -pv ${PBS_RESULTDIR}/clusterids
+mkdir -pv ${PBS_RESULTDIR}/all_divs
+mkdir -pv ${PBS_RESULTDIR}/sim_results
+
+## Clean up
+rm -f conf *.log srv.lck
+rm -f dataspaces.conf
+
+## Create dataspaces configuration file
+# note that we now have 400 regions
+# max readers will include both consumer and catalyst
+echo "## Config file for DataSpaces
+ndim = 3
+dims = 1000, 1000, 1000
+max_versions = 100
+max_readers = 2
+lock_type = 2
+" > dataspaces.conf
+
+## Run DataSpaces servers
+CMD_SERVER="mpirun -n ${DS_SERVER_PROCS} --npernode 2 --output-filename ${PBS_RESULTDIR}/server.log  ${DS_SERVER} -s ${DS_SERVER_PROCS} -c ${DS_CLIENT_PROCS}"
+$CMD_SERVER &
+echo "server applciation lauched: $CMD_SERVER "
+## Give some time for the servers to load and startup
+while [ ! -f conf ]; do
+    sleep 1s
+done
+sleep 5s  # wait server to fill up the conf file
+
+## Run region writer
+CMD_SIM="mpirun -n  ${SIM_PROCS} --npernode 8 --output-filename ${PBS_RESULTDIR}/myicofoam.log  ${BUILD}/myIcoFoam -case ${CASE_DIR}"
+$CMD_SIM &
+echo "writer applciation lauched:$CMD_SIM"
+
+## Run region reader and divergence cal application
+CMD_CONSUMER="mpirun -n ${CONSUMER_PROCS} --npernode 16 --output-filename ${PBS_RESULTDIR}/consumer.log  ${BUILD}/consumer ${PBS_RESULTDIR}"
+$CMD_CONSUMER &
+echo "reader applciation lauched: $CMD_CONSUMER"
+
+# the analysis application
+CMD_ANALYSIS="mpirun  -n ${ANALYSIS_PROCS} --npernode 1  --output-filename ${PBS_RESULTDIR}/analysis.log ${BUILD}/analysis ${PBS_RESULTDIR}"
+$CMD_ANALYSIS &
+echo "analysis applciation lauched:$CMD_ANALYSIS"
+
+CMD_CATALYST="mpirun -n ${CATALYST_PROCS} --npernode 1 --output-filename ${PBS_RESULTDIR}/catalyst.log ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py"
+$CMD_CATALYST &
+echo "catalyst launched: $CMD_CATALYST"
+
+## Wait for the entire workflow to finish
+wait
+
+

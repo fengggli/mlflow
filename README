@@ -1,10 +1,54 @@
-quick start of vertex machine learning
+*********************************************************************************
+Instructions for 0.3.x
+integrate with catalyst and openfoam
+*********************************************************************************
+
+Files:
+    builds:
+        different configurations(problem size, number of processes, etc)
+        see Install for installation details
+    cluster:
+        k-medoids clustering kernel
+    data:
+        data cutout from JHTDB, in both vtk and HDF5 format
+    applications:
+        simulation-data_processing-analysis workflow
+        two paths are provided:
+            1. get_regions+put_regions + generate regions, this is for dataspaces source from JHTDB
+            2. consumer + icoFoam(in myIcoFoam), real simulations
+    simulator
+        contains two compponents
+        myIcoFoam
+            customized icofoam solver, dataspaces access is enabled
+         cavity case,
+            lid-driven cavity of differnt sizes
+    scripts:
+        you may need to change some path.
+        job scripts.
+        karst.case* 
+            scripts for experimenting part in the paper    
+        karst.sim_consumer
+            simulator->consumer->clustering
+        catatlyst.job
+            simulator->catalyst
+    sequential
+        sequential implementation of npdivs clustering
+    simulator
+        sorry for the name, but it include:
+
+    karst.dspaces.job
+        hdfreader(put_regions) -> get_regions -> clustering
+        different components()
+    
+*********************************************************************************
+Instructions for 0.1.x
+JHTDB 
+*********************************************************************************
+quick start of vortex machine learning
 get a slice of turbulence data from John Hopkins
 seperate the data into regions
 feed the data into sequential machine learning method k-medroid with
 verify with synthetic data.
-
-write the algorithm first
 
 Code has three parts:
 dspaces_server:
@@ -15,7 +59,6 @@ get_regions
     get from regions and calculate divergence
 analysis part
     Using the divergence results from 'get_regions', clustering
-
 
 Notes:
 
@@ -35,12 +78,4 @@ different jobfiles
 
 note: simulator can be toy or openfoam, there will connect to consumer via ds_adaptor
 
-    karst.sim_consumer
-        simulator->consumer->clustering
-            
-    catatlyst.job
-        simulator->catalyst
-
-    karst.dspaces.job
-        hdfreader(put_regions) -> get_regions -> clustering
 

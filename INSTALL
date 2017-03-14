@@ -1,0 +1,20 @@
+********************************************************************************
+Note:
+    system is tested in IU Karst
+    system module used
+        python/2.7.9
+        intel/16.0.1
+        openmpi/gnu/1.8.4
+        paraview/4.3.1
+        cmake/gnu/3.3.1
+    other 3-rd party package
+        openfoam(v1612+, see official instructions 
+        dataspaces 1.6.1
+            ./configure CC=mpicc FC=mpif90 --prefix=/N/u/lifen/Karst/DataspacesRoot
+    specify installation path of openfoam and dataspacesin 
+ 
+how to buid
+    mkdir build
+    cd build
+    cmake -DADD_FLAGS='-DPROCS_PER_DIM=4 -DCASE_LENGTH=1024 -DREGION_LENGTH=16' .. >cmake.log &
+    make -j8 1>make.log 2>make.err(takes sometime, especially when linking with openfoam)

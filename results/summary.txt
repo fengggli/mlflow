@@ -199,13 +199,22 @@
     more time steps, not reviewed.
 2053338(results)
     add latency
-2053889
+2053889,2053898
     submit for case_512
     consumer time is almost the same, prblem is more samples are generated
-2053898
+2053904
     submit for case_512, too
     now use fixed total 512 sample for all sim apps
     add end-to-end timer, time = time_sim+time_catalyst, time_consumer provides additional info
+2053909
+    case_length =1024
+       sim: other ranks must wait rank 0 300s+
+2053907
+    case_length = 512
+        time is reduced
+
+2054698
+    use 8 dspaces server procs, and 4 nodes for dspaces server
 
     
 

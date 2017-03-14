@@ -1,42 +1,29 @@
 #!/bin/bash  
-#PBS -N databroker_case_1024
+#PBS -N databroker_smallest
 #PBS -j oe
-#PBS -l walltime=00:60:00
-#PBS -l nodes=7:ppn=16
+#PBS -l walltime=00:20:00
+#PBS -l nodes=4:ppn=16
 #PBS -o results/$PBS_JOBID.output
 
 #This job runs with 3 nodes  
 #ibrun in verbose mode will give binding detail  
 #BUILD=${PBS_O_WORKDIR}/build_filewriter/bin
-
-#### case length = 1024 512, 256, 128
-# server 1
-# case_l 1024   512         256
-# sim 16/8 2   64/8 = 8     256/8 = 32
-# con 32/16 2  128/16 = 8   496/16 = 32
-# ana 1
-# cat 1
-
-CASE_LENGTH=1024
-#SIM_PROC_SIDE=4
-SIM_PROC_SIDE=$((4096/CASE_LENGTH))
-
-REGION_LENGTH=16
 DS_SERVER=${PBS_O_HOME}/Dataspacesroot/bin/dataspaces_server
 PBS_RESULTDIR=${PBS_O_WORKDIR}/results/${PBS_JOBID}
 SCRIPT_PATH=${PBS_O_WORKDIR}/simulator/SampleScripts
-CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity_fine_${CASE_LENGTH}
+CASE_DIR=${PBS_O_WORKDIR}/simulator/cavity_fine_1024
 
 mkdir -pv ${PBS_RESULTDIR}
 cd $PBS_O_WORKDIR
 
 # num of process in each side
+SIM_PROC_SIDE=2
 SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE})) # square of proc_side
-CONSUMER_PROCS=$((${SIM_PROCS}*2))
+CONSUMER_PROCS=$((${SIM_PROCS}*4))
 ANALYSIS_PROCS=1
 CATALYST_PROCS=1
 
-BUILD=${PBS_O_WORKDIR}/build_sim_${SIM_PROC_SIDE}_case_${CASE_LENGTH}_regionLength_${REGION_LENGTH}/bin
+BUILD=${PBS_O_WORKDIR}/build_${SIM_PROC_SIDE}/bin
 
 DS_SERVER_PROCS=2
 
@@ -59,9 +46,9 @@ rm -f dataspaces.conf
 # max readers will include both consumer and catalyst
 echo "## Config file for DataSpaces
 ndim = 3
-dims = 1000, 1000, 1000
+dims = 500, 500, 500
 max_versions = 100
-max_readers = 2
+max_readers = 100
 lock_type = 2
 " > dataspaces.conf
 
@@ -76,7 +63,7 @@ done
 sleep 5s  # wait server to fill up the conf file
 
 ## Run region writer
-CMD_SIM="mpirun -n  ${SIM_PROCS} --npernode 8 --output-filename ${PBS_RESULTDIR}/myicofoam.log  ${BUILD}/myIcoFoam -case ${CASE_DIR}"
+CMD_SIM="mpirun -n  ${SIM_PROCS} --npernode 4 --output-filename ${PBS_RESULTDIR}/myicofoam.log  ${BUILD}/myIcoFoam -case ${CASE_DIR}"
 $CMD_SIM &
 echo "writer applciation lauched:$CMD_SIM"
 
@@ -86,11 +73,11 @@ $CMD_CONSUMER &
 echo "reader applciation lauched: $CMD_CONSUMER"
 
 # the analysis application
-CMD_ANALYSIS="mpirun  -n ${ANALYSIS_PROCS} --npernode 1  --output-filename ${PBS_RESULTDIR}/analysis.log ${BUILD}/analysis ${PBS_RESULTDIR}"
+CMD_ANALYSIS="mpirun  -n ${ANALYSIS_PROCS}  --output-filename ${PBS_RESULTDIR}/analysis.log ${BUILD}/analysis ${PBS_RESULTDIR}"
 $CMD_ANALYSIS &
 echo "analysis applciation lauched:$CMD_ANALYSIS"
 
-CMD_CATALYST="mpirun -n ${CATALYST_PROCS} --npernode 1 --output-filename ${PBS_RESULTDIR}/catalyst.log ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py"
+CMD_CATALYST="mpirun -n ${CATALYST_PROCS} --output-filename ${PBS_RESULTDIR}/catalyst.log ${BUILD}/catalyst ${SCRIPT_PATH}/all_linked_field.py"
 $CMD_CATALYST &
 echo "catalyst launched: $CMD_CATALYST"
 

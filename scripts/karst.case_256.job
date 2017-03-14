@@ -1,8 +1,8 @@
 #!/bin/bash  
-#PBS -N databroker_case_512
+#PBS -N databroker_case_256
 #PBS -j oe
-#PBS -l walltime=00:60:00
-#PBS -l nodes=19:ppn=16
+#PBS -l walltime=00:10:00
+#PBS -l nodes=35:ppn=16
 #PBS -o results/$PBS_JOBID.output
 
 #This job runs with 3 nodes  
@@ -12,12 +12,12 @@
 #### case length = 1024 512, 256, 128
 # server 1
 # case_l 1024   512         256
-# sim 16/8 2   64/8 = 8     256/8 = 32
-# con 32/16 2  128/16 = 8   496/16 = 32
+# sim 16/8 2   64/8 = 8     256/16 = 16
+# con 32/16 2  128/16 = 8   256/16 = 16
 # ana 1
 # cat 1
 
-CASE_LENGTH=512
+CASE_LENGTH=256
 #SIM_PROC_SIDE=4
 SIM_PROC_SIDE=$((4096/CASE_LENGTH))
 
@@ -32,7 +32,7 @@ cd $PBS_O_WORKDIR
 
 # num of process in each side
 SIM_PROCS=$((${SIM_PROC_SIDE}*${SIM_PROC_SIDE})) # square of proc_side
-CONSUMER_PROCS=$((${SIM_PROCS}*2))
+CONSUMER_PROCS=$((${SIM_PROCS}))
 ANALYSIS_PROCS=1
 CATALYST_PROCS=1
 
@@ -76,7 +76,7 @@ done
 sleep 5s  # wait server to fill up the conf file
 
 ## Run region writer
-CMD_SIM="mpirun -n  ${SIM_PROCS} --npernode 8 --output-filename ${PBS_RESULTDIR}/myicofoam.log  ${BUILD}/myIcoFoam -case ${CASE_DIR}"
+CMD_SIM="mpirun -n  ${SIM_PROCS} --npernode 16 --output-filename ${PBS_RESULTDIR}/myicofoam.log  ${BUILD}/myIcoFoam -case ${CASE_DIR}"
 $CMD_SIM &
 echo "writer applciation lauched:$CMD_SIM"
 

@@ -15,10 +15,10 @@ set(ParaView_DIR "/N/soft/rhel6/paraview/ParaView-v4.3.1-source/Build" CACHE PAT
 #set(ParaView_DIR "~/envs/Superbuild/build_mpi_static_syspython_catalyst/install/lib/cmake/paraview-5.2/" CACHE PATH "The path to paraview.")
 set(DS_DIR "/N/u/lifen/Karst/Dataspacesroot" CACHE PATH "The path to dataspaces.")                                                                  
 
-include_directories(${DS_DIR}/include ${CMAKE_SOURCE_DIR}/cluster ${CMAKE_SOURCE_DIR}/simulator ${CMAKE_SOURCE_DIR}/src)                                                                                                       
+include_directories(${DS_DIR}/include ${CMAKE_SOURCE_DIR}/cluster ${CMAKE_SOURCE_DIR}/simulator ${CMAKE_SOURCE_DIR}/common)                                                                                                       
 
-add_subdirectory(src)
-add_subdirectory(myIcoFoam)
+add_subdirectory(common)
 add_subdirectory(simulator)
-add_subdirectory(dspaces)
+add_subdirectory(applications)
 add_subdirectory(cluster)
+add_subdirectory(catalyst)
